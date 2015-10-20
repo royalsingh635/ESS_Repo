@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+    xmlns="http://xmlns.oracle.com/bc4j"
+    Name="LovCoaIdBillVO"
+    Version="12.1.3.10.8"
+    InheritPersonalization="merge"
+    BindingStyle="OracleName"
+    CustomQuery="true"
+    FetchMode="FETCH_AS_NEEDED"
+    PageIterMode="Full">
+    <DesignTime>
+        <Attr Name="_isExpertMode" Value="true"/>
+    </DesignTime>
+    <Properties>
+        <SchemaBasedProperties>
+            <LABEL
+                ResId="pmssiterecordapp.model.views.LovCoaIdBillVO_LABEL"/>
+        </SchemaBasedProperties>
+    </Properties>
+    <Variable
+        Name="cldIdBind"
+        Kind="where"
+        Type="java.lang.String">
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </Variable>
+    <Variable
+        Name="orgIdBind"
+        Kind="where"
+        Type="java.lang.String">
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </Variable>
+    <Variable
+        Name="hoOrgIdBind"
+        Kind="where"
+        Type="java.lang.String">
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </Variable>
+    <Variable
+        Name="slocIdBind"
+        Kind="where"
+        Type="java.lang.Integer">
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </Variable>
+    <Variable
+        Name="coaIdBind"
+        Kind="where"
+        Type="java.lang.Integer">
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </Variable>
+    <Variable
+        Name="typeFlgBind"
+        Kind="where"
+        Type="java.lang.String">
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </Variable>
+    <SQLQuery><![CDATA[SELECT a.coa_cld_id cld_id,              
+               a.coa_sloc_id sloc_id,              
+               a.coa_ho_org_id ho_org_id,              
+               b.org_id,              
+               a.coa_id coa_id,               
+               a.coa_nm,              
+               a.coa_alias,              
+               a.coa_leg_cd,              
+               a.coa_cog_id cog_id,              
+               c.cog_nm,              
+               d.acc_id na_id,              
+               d.acc_nm,              
+               d.acc_alias,              
+               d.acc_leg_code,              
+               d.acc_type,              
+               na_type acc_type_desc,              
+               nvl(e.eo_bhav,'N') eo_bhav,              
+               a.part_of_bdgt,              
+                Decode(d.acc_type, 68,    '  (CUSTOMER)',              
+                                  69,    '  (SUPPLIER)',              
+                                  70,    '  (SERVICE PROVIDER)',              
+                                  71,    '  (SUB CONTRACTOR)',              
+                                  72,    '  (AGENT)',              
+                                  73,    '  (BANK)',              
+                                  74,    '  (BANK BRANCH)',              
+                                  77,    '  (TRANSPORTER)',              
+                                  78,    '  (BANK ACCOUNT)',              
+                                  79,    '  (CASH ACCOUNT)',              
+                                  80,    '  (EMPLOYEE)',              
+                                  81,    '  (PROSPECT)',              
+                                  82,    '  (SUPPLIER PROSPECT)', '  (OTHERS)' )  acc_suffix,  
+              nvl((select avg_cr_days from app.app$eo$prf g where g.eo_cld_id = e.eo_cld_id    
+                and g.eo_ho_org_id = e.eo_ho_org_id and g.eo_id = e.eo_id and g.eo_sloc_id = e.eo_sloc_id),0) avg_cr_days  
+FROM fin.fin$coa a,               
+   fin.org$coa b,              
+   fin.fin$cog c,              
+fin.fin$acc$na d,              
+   app.app$eo e,              
+   fin.fin$na$type_vw f              
+WHERE  a.coa_cld_id= b.cld_id              
+AND a.coa_sloc_id = b.org_sloc_id              
+and a.coa_ho_org_id=b.ho_org_id              
+AND a.coa_id = b.org_coa_id              
+AND a.coa_actv = 'Y'              
+AND b.org_coa_actv = 'Y'              
+               
+AND a.coa_cld_id = c.cog_cld_id              
+and a.coa_sloc_id= c.cog_sloc_id              
+AND a.coa_ho_org_id = c.cog_org_id              
+AND a.coa_cog_id = c.cog_id              
+AND c.cog_actv = 'Y'              
+               
+and a.coa_cld_id = d.acc_cld_id              
+and a.coa_sloc_id = d.acc_sloc_id              
+AND a.coa_ho_org_id = d.ho_org_id              
+AND a.coa_acc_id  = d.acc_id              
+AND d.acc_actv = 'Y'              
+and d.acc_cld_id = e.eo_cld_id(+)              
+and d.acc_sloc_id = e.eo_sloc_id(+)              
+AND d.ho_org_id = e.eo_ho_org_id(+)              
+AND d.acc_type_id = e.eo_id(+)              
+and d.acc_type=e.eo_type(+)             
+AND f.na_type_id = d.acc_type             
+and a.coa_cld_id = :cldIdBind             
+and b.org_id = :orgIdBind             
+and a.coa_ho_org_id = :hoOrgIdBind             
+AND a.coa_sloc_id = :slocIdBind           
+and (case when :typeFlgBind = 'E' and acc_type = 80 then 1     
+when :typeFlgBind = 'P' and acc_type = 69 then 1     
+else 0     
+end     
+) = 1     
+and acc_type in (69, 80)            
+AND  a.coa_id =nvl(:coaIdBind,a.coa_id)        
+AND nvl(e.eo_bhav,'N') = 'C']]></SQLQuery>
+    <ViewAttribute
+        Name="CldId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="4"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="CLD_ID"
+        Expression="CLD_ID"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="4"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="SlocId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="2"
+        Scale="0"
+        Type="java.lang.Integer"
+        ColumnType="NUMBER"
+        AliasName="SLOC_ID"
+        Expression="SLOC_ID"
+        SQLType="INTEGER">
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="HoOrgId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="2"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="HO_ORG_ID"
+        Expression="HO_ORG_ID"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="2"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="OrgId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="2"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="ORG_ID"
+        Expression="ORG_ID"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="2"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="CoaId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Type="java.lang.Integer"
+        ColumnType="BIGINT"
+        AliasName="COA_ID"
+        Expression="COA_ID"
+        SQLType="INTEGER">
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="CoaNm"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="250"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="COA_NM"
+        Expression="COA_NM"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="250"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <LABEL
+                    ResId="LBL.212"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="CoaAlias"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="50"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="COA_ALIAS"
+        Expression="COA_ALIAS"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="50"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="CoaLegCd"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="30"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="COA_LEG_CD"
+        Expression="COA_LEG_CD"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="30"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="CogId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="20"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="COG_ID"
+        Expression="COG_ID"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="20"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="CogNm"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="100"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="COG_NM"
+        Expression="COG_NM"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="100"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="NaId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="20"
+        Scale="0"
+        Type="java.math.BigInteger"
+        ColumnType="NUMBER"
+        AliasName="NA_ID"
+        Expression="NA_ID"
+        SQLType="NUMERIC">
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="AccNm"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="250"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="ACC_NM"
+        Expression="ACC_NM"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="250"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="AccAlias"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="50"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="ACC_ALIAS"
+        Expression="ACC_ALIAS"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="50"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="AccLegCode"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="50"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="ACC_LEG_CODE"
+        Expression="ACC_LEG_CODE"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="50"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="AccType"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="10"
+        Scale="0"
+        Type="java.lang.Long"
+        ColumnType="NUMBER"
+        AliasName="ACC_TYPE"
+        Expression="ACC_TYPE"
+        SQLType="NUMERIC">
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="AccTypeDesc"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="100"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="ACC_TYPE_DESC"
+        Expression="ACC_TYPE_DESC"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="100"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="EoBhav"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="1"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="EO_BHAV"
+        Expression="EO_BHAV"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="1"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="PartOfBdgt"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="1"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="PART_OF_BDGT"
+        Expression="PART_OF_BDGT"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="1"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="AccSuffix"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="21"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="ACC_SUFFIX"
+        Expression="ACC_SUFFIX"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="21"/>
+        </DesignTime>
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="AvgCrDays"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Type="java.lang.Integer"
+        ColumnType="NUMBER"
+        AliasName="AVG_CR_DAYS"
+        Expression="AVG_CR_DAYS"
+        SQLType="NUMERIC">
+        <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYHINT
+                    Value="Hide"/>
+            </SchemaBasedProperties>
+        </Properties>
+    </ViewAttribute>
+    <AttrArray Name="KeyAttributes">
+        <Item Value="CldId"/>
+        <Item Value="SlocId"/>
+        <Item Value="HoOrgId"/>
+        <Item Value="OrgId"/>
+        <Item Value="CoaId"/>
+    </AttrArray>
+</ViewObject>
