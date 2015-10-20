@@ -33,7 +33,7 @@ import oracle.jbo.RowSetIterator;
 import oracle.jbo.domain.Number;
 import oracle.jbo.domain.Timestamp;
 
-
+//comment added by nitesh garg
 public class PmsSiteRecordAddBean {
     private String mode = "V";
     private static ADFLogger _log = ADFLogger.createADFLogger(PmsSiteRecordAddBean.class);
