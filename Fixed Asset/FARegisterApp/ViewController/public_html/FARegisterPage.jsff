@@ -1,0 +1,881 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<jsp:root xmlns:jsp="http://java.sun.com/JSP/Page" version="2.1" xmlns:af="http://xmlns.oracle.com/adf/faces/rich"
+          xmlns:f="http://java.sun.com/jsf/core" xmlns:h="http://java.sun.com/jsf/html">
+  <af:panelGroupLayout id="pgl1">
+    <af:panelGroupLayout id="pgl2" styleClass="AFStretchWidth MainHeader" layout="horizontal">
+      <af:panelFormLayout id="pfl1" inlineStyle="width:236px;padding:5px;">
+        <h:outputLabel value="Fixed Asset Register" id="ol1"/>
+      </af:panelFormLayout>
+      <af:panelGroupLayout id="pgl3" layout="horizontal" halign="right">
+        <af:toolbar id="t1">
+          <af:link id="l1" icon="#{resource['images:enable_add_blue.png']}"
+                   disabledIcon="#{resource['images:disabled_add_white.png']}"
+                   action="#{pageFlowScope.FARegisterBean.CreateSourceAction}"
+                   disabled="#{pageFlowScope.FARegisterBean.mode!='V'}"/>
+          <af:link id="l2" icon="#{resource['images:enable_edit_blue.png']}"
+                   disabledIcon="#{resource['images:disabled_edit_white.png']}"
+                   action="#{pageFlowScope.FARegisterBean.editAction}"
+                   disabled="#{pageFlowScope.FARegisterBean.mode!='V' || bindings.MmFaItmSrc1Iterator.estimatedRowCount==0}"/>
+          <af:link id="l3" icon="#{resource['images:enable_save_blue.png']}"
+                   disabledIcon="#{resource['images:disabled_save_white.png']}"
+                   action="#{pageFlowScope.FARegisterBean.saveAction}"
+                   disabled="#{pageFlowScope.FARegisterBean.mode=='V' || pageFlowScope.FARegisterBean.dis!='V'|| bindings.MmFaItmLn1Iterator.estimatedRowCount==0}"/>
+          <af:link id="l4" icon="#{resource['images:enable_cancel_blue.png']}"
+                   disabledIcon="#{resource['images:disabled_cancel_white.png']}"
+                   action="#{pageFlowScope.FARegisterBean.cancelAction}"
+                   disabled="#{pageFlowScope.FARegisterBean.mode=='V'}" immediate="true">
+            <af:resetActionListener/>
+          </af:link>
+          <af:link id="l5" icon="#{resource['images:enable_delete_blue.png']}"
+                   disabledIcon="#{resource['images:disabled_delete_white.png']}" visible="false"/>
+          <af:link id="l7" icon="#{resource['images:enable_recycle_icon_blue.png']}"
+                   action="#{pageFlowScope.FARegisterBean.LoadInvoiceAction}"
+                   disabledIcon="#{resource['images:disable_recycle_blue.png']}"
+                   disabled="#{pageFlowScope.FARegisterBean.mode=='V' || bindings.MmFaItmChildIterator.estimatedRowCount>0 || bindings.DocDtSrc.inputValue==null || (bindings.DocTypeSrc.inputValue==18521 &amp;&amp; bindings.DocIdSrcTrans.inputValue=='')}"
+                   partialTriggers="id1 docIdSrcTransId"/>
+          <af:link id="l6" icon="#{resource['images:enable_back_white.png']}"
+                   disabledIcon="#{resource['images:disable_back_white.png']}" action="back"
+                   disabled="#{pageFlowScope.FARegisterBean.mode!='V'}"/>
+        </af:toolbar>
+      </af:panelGroupLayout>
+    </af:panelGroupLayout>
+    <af:separator id="s1"/>
+    <af:panelFormLayout id="pfl5" maxColumns="4" rows="1" styleClass="AFStretchWidth TabHeader" labelWidth="150"
+                        fieldWidth="150">
+      <af:selectOneChoice value="#{bindings.CreateId.inputValue}" label="Created By"
+                          required="#{bindings.CreateId.hints.mandatory}" shortDesc="#{bindings.CreateId.hints.tooltip}"
+                          id="soc2" contentStyle="height:20px;width:150px;" readOnly="true">
+        <f:selectItems value="#{bindings.CreateId.items}" id="si2"/>
+        <f:validator binding="#{bindings.CreateId.validator}"/>
+      </af:selectOneChoice>
+      <af:inputDate value="#{bindings.CreateDt.inputValue}" label="Created On"
+                    required="#{bindings.CreateDt.hints.mandatory}" columns="#{bindings.CreateDt.hints.displayWidth}"
+                    shortDesc="#{bindings.CreateDt.hints.tooltip}" id="id7"
+                    contentStyle="height:20px;width:150px;" readOnly="true">
+        <f:validator binding="#{bindings.CreateDt.validator}"/>
+        <af:convertDateTime pattern="#{bindings.CreateDt.format}"/>
+      </af:inputDate>
+      <af:selectOneChoice value="#{bindings.ModifyId.inputValue}" label="Modified By"
+                          required="#{bindings.ModifyId.hints.mandatory}" shortDesc="#{bindings.ModifyId.hints.tooltip}"
+                          id="soc3" contentStyle="height:20px;width:150px;" readOnly="true">
+        <f:selectItems value="#{bindings.ModifyId.items}" id="si3"/>
+        <f:validator binding="#{bindings.ModifyId.validator}"/>
+      </af:selectOneChoice>
+      <af:inputDate value="#{bindings.ModifyDt.inputValue}" label="Modified On"
+                    required="#{bindings.ModifyDt.hints.mandatory}" columns="#{bindings.ModifyDt.hints.displayWidth}"
+                    shortDesc="#{bindings.ModifyDt.hints.tooltip}" id="id8"
+                    contentStyle="height:20px;width:150px;" readOnly="true">
+        <f:validator binding="#{bindings.ModifyDt.validator}"/>
+        <af:convertDateTime pattern="#{bindings.ModifyDt.format}"/>
+      </af:inputDate>
+    </af:panelFormLayout>
+    <af:panelFormLayout id="pfl2" rows="1" maxColumns="4" labelWidth="150" fieldWidth="150"
+                        styleClass="AFStretchWidth PanelForm"
+                        inlineStyle="padding:5px;">
+      <af:selectOneChoice value="#{bindings.DocTypeSrc.inputValue}" label="Document Source"
+                          required="true"
+                          shortDesc="#{bindings.DocTypeSrc.hints.tooltip}" id="soc1"
+                          contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                          disabled="#{pageFlowScope.FARegisterBean.mode=='V' || bindings.MmFaItmChildIterator.estimatedRowCount>0 || bindings.DocIdSrcTrans.inputValue!=''}"
+                          autoSubmit="true" binding="#{pageFlowScope.FARegisterBean.docTypeBinding}"
+                          labelStyle="color:brown;font-weight:bold;"
+                          validator="#{pageFlowScope.FARegisterBean.DocSourceValidator}">
+        <f:selectItems value="#{bindings.DocTypeSrc.items}" id="si1"/>
+        <f:validator binding="#{bindings.DocTypeSrc.validator}"/>
+      </af:selectOneChoice>
+      <af:inputListOfValues id="docIdSrcTransId" popupTitle="Search and Select: #{bindings.DocIdSrcTrans.hints.label}"
+                            value="#{bindings.DocIdSrcTrans.inputValue}" label="Invoice"
+                            model="#{bindings.DocIdSrcTrans.listOfValuesModel}"
+                            required="#{bindings.DocIdSrcTrans.hints.mandatory}"
+                            columns="#{bindings.DocIdSrcTrans.hints.displayWidth}"
+                            shortDesc="#{bindings.DocIdSrcTrans.hints.tooltip}"
+                            contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                            usage="text"
+                            disabled="#{pageFlowScope.FARegisterBean.mode=='V' || bindings.MmFaItmChildIterator.estimatedRowCount>0 || bindings.DocTypeSrc.inputValue!=18521}"
+                            autoSubmit="true" labelStyle="color:brown;font-weight:bold;"
+                            valueChangeListener="#{pageFlowScope.FARegisterBean.InnvoiceVCL}" partialTriggers="soc1">
+        <f:validator binding="#{bindings.DocIdSrcTrans.validator}"/>
+        <af:autoSuggestBehavior suggestedItems="#{bindings.DocIdSrcTrans.suggestedItems}"/>
+      </af:inputListOfValues>
+      <af:inputDate value="#{bindings.DocDtSrc.inputValue}" label="Date"
+                    required="#{bindings.DocDtSrc.hints.mandatory}" columns="#{bindings.DocDtSrc.hints.displayWidth}"
+                    shortDesc="#{bindings.DocDtSrc.hints.tooltip}" id="id1"
+                    contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                    disabled="#{pageFlowScope.FARegisterBean.mode=='V' || bindings.MmFaItmChildIterator.estimatedRowCount>0 || bindings.DocTypeSrc.inputValue!=5507}"
+                    validator="#{pageFlowScope.FARegisterBean.invoiceDateValidator}" autoSubmit="true"
+                    partialTriggers="docIdSrcTransId soc1" labelStyle="color:brown;font-weight:bold;">
+        <f:validator binding="#{bindings.DocDtSrc.validator}"/>
+        <af:convertDateTime pattern="#{bindings.DocDtSrc.format}"/>
+      </af:inputDate>
+    </af:panelFormLayout>
+    <af:panelFormLayout id="pfl3" rows="1" maxColumns="4" fieldWidth="150" labelWidth="150"
+                        styleClass="AFStretchWidth PanelForm"
+                        inlineStyle="padding:5px;">
+      <af:inputText value="#{bindings.DocIdDisp.inputValue}" label="Fixed Asset Id"
+                    required="#{bindings.DocIdDisp.hints.mandatory}" columns="#{bindings.DocIdDisp.hints.displayWidth}"
+                    maximumLength="#{bindings.DocIdDisp.hints.precision}"
+                    shortDesc="#{bindings.DocIdDisp.hints.tooltip}" id="it3" disabled="true"
+                    contentStyle="height:20px;width:150px;color:navy;font-weight:bold;" autoSubmit="true"
+                    labelStyle="color:brown;font-weight:bold;">
+        <f:validator binding="#{bindings.DocIdDisp.validator}"/>
+      </af:inputText>
+      <af:inputDate value="#{bindings.DocDt.inputValue}" label="Document Date"
+                    required="#{bindings.DocDt.hints.mandatory}" columns="#{bindings.DocDt.hints.displayWidth}"
+                    shortDesc="#{bindings.DocDt.hints.tooltip}" id="id2"
+                    contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                    disabled="true" labelStyle="color:brown;font-weight:bold;">
+        <f:validator binding="#{bindings.DocDt.validator}"/>
+        <af:convertDateTime pattern="#{bindings.DocDt.format}"/>
+      </af:inputDate>
+      <af:inputListOfValues id="Supplier" popupTitle="Search and Select: #{bindings.SuppIdTrans.hints.label}"
+                            value="#{bindings.SuppIdTrans.inputValue}" label="Supplier"
+                            model="#{bindings.SuppIdTrans.listOfValuesModel}"
+                            required="#{bindings.SuppIdTrans.hints.mandatory}"
+                            columns="#{bindings.SuppIdTrans.hints.displayWidth}"
+                            shortDesc="#{bindings.SuppIdTrans.hints.tooltip}"
+                            contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                            autoSubmit="true" disabled="true" labelStyle="color:brown;font-weight:bold;">
+        <f:validator binding="#{bindings.SuppIdTrans.validator}"/>
+      </af:inputListOfValues>
+      <af:inputText value="#{bindings.Remark.inputValue}" label="#{bindings.Remark.hints.label}"
+                    required="#{bindings.Remark.hints.mandatory}" columns="#{bindings.Remark.hints.displayWidth}"
+                    maximumLength="#{bindings.Remark.hints.precision}" shortDesc="#{bindings.Remark.hints.tooltip}"
+                    id="it2" contentStyle="width:150px;color:green;font-weight:bold;" rows="3"
+                    autoSubmit="#{pageFlowScope.FARegisterBean.mode=='V' || bindings.MmFaItmLn1Iterator.estimatedRowCount>0}"
+                    disabled="#{pageFlowScope.FARegisterBean.mode=='V'}" labelStyle="color:brown;font-weight:bold;">
+        <f:validator binding="#{bindings.Remark.validator}"/>
+      </af:inputText>
+    </af:panelFormLayout>
+    <af:separator id="s2"/>
+    <af:panelBox id="pb3" showDisclosure="false" partialTriggers="l7">
+      <af:panelGroupLayout id="pgl6">
+        <af:panelFormLayout id="pfl9" rows="1" maxColumns="5" styleClass="AFStretchWidth TabHeader" fieldWidth="130"
+                            labelWidth="110">
+          <af:selectOneChoice value="#{bindings.CreateId1.inputValue}" label="Created By"
+                              required="#{bindings.CreateId1.hints.mandatory}"
+                              shortDesc="#{bindings.CreateId1.hints.tooltip}" id="soc7" readOnly="true"
+                              contentStyle="width:150px;height:20px;">
+            <f:selectItems value="#{bindings.CreateId1.items}" id="si7"/>
+            <f:validator binding="#{bindings.CreateId1.validator}"/>
+          </af:selectOneChoice>
+          <af:inputDate value="#{bindings.CreateDt1.inputValue}" label="Created On"
+                        required="#{bindings.CreateDt1.hints.mandatory}"
+                        columns="#{bindings.CreateDt1.hints.displayWidth}"
+                        shortDesc="#{bindings.CreateDt1.hints.tooltip}" id="id4" readOnly="true"
+                        contentStyle="width:150px;height:20px;">
+            <f:validator binding="#{bindings.CreateDt1.validator}"/>
+            <af:convertDateTime pattern="#{bindings.CreateDt1.format}"/>
+          </af:inputDate>
+          <af:selectOneChoice value="#{bindings.ModifyId1.inputValue}" label="Modified By"
+                              required="#{bindings.ModifyId1.hints.mandatory}"
+                              shortDesc="#{bindings.ModifyId1.hints.tooltip}" id="soc6" readOnly="true"
+                              contentStyle="width:150px;height:20px;">
+            <f:selectItems value="#{bindings.ModifyId1.items}" id="si6"/>
+            <f:validator binding="#{bindings.ModifyId1.validator}"/>
+          </af:selectOneChoice>
+          <af:inputDate value="#{bindings.ModifyDt1.inputValue}" label="Modified On"
+                        required="#{bindings.ModifyDt1.hints.mandatory}"
+                        columns="#{bindings.ModifyDt1.hints.displayWidth}"
+                        shortDesc="#{bindings.ModifyDt1.hints.tooltip}" id="id6" readOnly="true"
+                        contentStyle="width:150px;height:20px;">
+            <f:validator binding="#{bindings.ModifyDt1.validator}"/>
+            <af:convertDateTime pattern="#{bindings.ModifyDt1.format}"/>
+          </af:inputDate>
+          <af:panelGroupLayout id="pgl4" layout="horizontal" halign="right" styleClass="AFStretchWidth">
+            <af:toolbar id="t3">
+              <af:link text="Transfer" id="l10"
+                       disabled="#{pageFlowScope.FARegisterBean.mode=='V' || pageFlowScope.FARegisterBean.dis!='V' || bindings.MmFaItmLn1Iterator.estimatedRowCount==0}">
+                <af:showPopupBehavior popupId="p3"/>
+              </af:link>
+              <af:link id="l9" icon="#{resource['images:enable_add_blue.png']}"
+                       disabledIcon="#{resource['images:disabled_add_white.png']}"
+                       disabled="#{pageFlowScope.FARegisterBean.mode=='V' ||pageFlowScope.FARegisterBean.dis!='V' ||( bindings.MmFaItmLn1Iterator.estimatedRowCount>0 &amp;&amp; bindings.DocTypeSrc.inputValue==18521) || bindings.MmFaItmChildIterator.estimatedRowCount==0}"
+                       shortDesc="Add Opening Balance" action="#{pageFlowScope.FARegisterBean.loadItems}"/>
+              <af:link id="l8" icon="#{resource['images:enable_update_blue.png']}"
+                       disabledIcon="#{resource['images:disable_update_blue.png']}"
+                       action="#{pageFlowScope.FARegisterBean.submitLineValue}"
+                       disabled="#{pageFlowScope.FARegisterBean.mode=='V' ||pageFlowScope.FARegisterBean.dis=='V' }"/>
+            </af:toolbar>
+          </af:panelGroupLayout>
+        </af:panelFormLayout>
+        <af:separator id="s5"/>
+        <af:panelFormLayout id="pfl8" rows="4" maxColumns="4" styleClass="AFStretchWidth PanelForm"
+                            inlineStyle="padding:5px;" fieldWidth="150" labelWidth="150">
+          <af:inputListOfValues id="ilov1" popupTitle="Search and Select: #{bindings.TransGroupName.hints.label}"
+                                value="#{bindings.TransGroupName.inputValue}" label="Group"
+                                model="#{bindings.TransGroupName.listOfValuesModel}"
+                                columns="#{bindings.TransGroupName.hints.displayWidth}"
+                                shortDesc="#{bindings.TransGroupName.hints.tooltip}"
+                                contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                                disabled="#{pageFlowScope.FARegisterBean.mode=='V' || pageFlowScope.FARegisterBean.dis=='V'|| bindings.DocTypeSrc.inputValue==18521 || bindings.TransItem.inputValue!=''}"
+                                autoSubmit="true" labelStyle="color:brown;font-weight:bold;" showRequired="true">
+            <f:validator binding="#{bindings.TransGroupName.validator}"/>
+            <af:autoSuggestBehavior suggestedItems="#{bindings.TransGroupName.suggestedItems}"/>
+          </af:inputListOfValues>
+          <af:inputText value="#{bindings.ItmSelvgValue.inputValue}" label="Salvage Value"
+                        columns="#{bindings.ItmSelvgValue.hints.displayWidth}"
+                        maximumLength="#{bindings.ItmSelvgValue.hints.precision}"
+                        shortDesc="#{bindings.ItmSelvgValue.hints.tooltip}" id="it5"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;text-align:right;"
+                        disabled="#{pageFlowScope.FARegisterBean.mode=='V'|| pageFlowScope.FARegisterBean.dis=='V' || bindings.DocTypeSrc.inputValue==18521 || bindings.TransGroupName.inputValue==''}"
+                        labelStyle="color:brown;font-weight:bold;" partialTriggers="ilov1" showRequired="true">
+            <f:validator binding="#{bindings.ItmSelvgValue.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.ItmSelvgValue.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+          <af:inputText value="#{bindings.TransTotalCost.inputValue}" label="Total Cost"
+                        required="#{bindings.TransTotalCost.hints.mandatory}"
+                        columns="#{bindings.TransTotalCost.hints.displayWidth}"
+                        maximumLength="#{bindings.TransTotalCost.hints.precision}"
+                        shortDesc="#{bindings.TransTotalCost.hints.tooltip}" id="it18" autoSubmit="true"
+                        visible="#{(pageFlowScope.FARegisterBean.dis!='V' &amp;&amp; bindings.DocTypeSrc.inputValue!=18521)|| (bindings.ItmLineStatus1.inputValue=='A' &amp;&amp; pageFlowScope.FARegisterBean.dis!='V' &amp;&amp; pageFlowScope.FARegisterBean.mode!='V')}"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;text-align:right;"
+                        labelStyle="color:brown;font-weight:bold;"
+                        validator="#{pageFlowScope.FARegisterBean.totalcostCOValidator}"
+                        disabled="#{pageFlowScope.FARegisterBean.dis=='V'|| (bindings.DocTypeSrc.inputValue==18521 &amp;&amp; bindings.ItmLineStatus1.inputValue!='A')}"
+                        partialTriggers="pc1:t4:l12" showRequired="true">
+            <f:validator binding="#{bindings.TransTotalCost.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TransTotalCost.format}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+          <af:spacer width="10" height="10" id="s4"/>
+          <af:inputListOfValues id="ilov2" popupTitle="Search and Select: #{bindings.TransItem.hints.label}"
+                                value="#{bindings.TransItem.inputValue}" label="Item"
+                                model="#{bindings.TransItem.listOfValuesModel}"
+                                columns="#{bindings.TransItem.hints.displayWidth}"
+                                shortDesc="#{bindings.TransItem.hints.tooltip}"
+                                contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                                disabled="#{pageFlowScope.FARegisterBean.mode=='V'|| pageFlowScope.FARegisterBean.dis=='V' || bindings.DocTypeSrc.inputValue==18521 || bindings.TransGroupName.inputValue=='' || (pageFlowScope.FARegisterBean.dis=='E' &amp;&amp; pageFlowScope.FARegisterBean.mode=='E')}"
+                                autoSubmit="true" partialTriggers="ilov1" labelStyle="color:brown;font-weight:bold;"
+                                showRequired="true">
+            <f:validator binding="#{bindings.TransItem.validator}"/>
+            <af:autoSuggestBehavior suggestedItems="#{bindings.TransItem.suggestedItems}"/>
+          </af:inputListOfValues>
+          <af:inputText value="#{bindings.AddlCostBs.inputValue}" label="Additional Cost"
+                        required="#{bindings.AddlCostBs.hints.mandatory}"
+                        columns="#{bindings.AddlCostBs.hints.displayWidth}"
+                        maximumLength="#{bindings.AddlCostBs.hints.precision}"
+                        shortDesc="#{bindings.AddlCostBs.hints.tooltip}" id="it11"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;text-align:right;"
+                        labelStyle="color:brown;font-weight:bold;"
+                        disabled="#{pageFlowScope.FARegisterBean.mode=='V'|| pageFlowScope.FARegisterBean.dis=='V' || bindings.DocTypeSrc.inputValue==18521 || bindings.TransGroupName.inputValue==''  || (pageFlowScope.FARegisterBean.dis=='E' &amp;&amp; pageFlowScope.FARegisterBean.mode=='E')}"
+                        autoSubmit="true" partialTriggers="ilov1"
+                        validator="#{pageFlowScope.FARegisterBean.addcostBsValidator}" showRequired="true">
+            <f:validator binding="#{bindings.AddlCostBs.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.AddlCostBs.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+          <af:inputDate value="#{bindings.TransStartDate.inputValue}" label="Effective Date"
+                        required="#{bindings.TransStartDate.hints.mandatory}"
+                        columns="#{bindings.TransStartDate.hints.displayWidth}"
+                        shortDesc="Put in use date " id="id10"
+                        visible="#{(pageFlowScope.FARegisterBean.dis!='V' &amp;&amp; bindings.DocTypeSrc.inputValue==18521)|| (bindings.ItmLineStatus1.inputValue=='A' &amp;&amp; pageFlowScope.FARegisterBean.dis!='V' &amp;&amp; pageFlowScope.FARegisterBean.mode!='V')}"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                        labelStyle="color:brown;font-weight:bold;" minValue="#{bindings.DocDtSrc.inputValue}"
+                        disabled="#{pageFlowScope.FARegisterBean.dis=='V'|| (bindings.DocTypeSrc.inputValue!=18521 &amp;&amp;  bindings.ItmLineStatus1.inputValue!='A')}"
+                        partialTriggers="pc1:t4:l12" validator="#{pageFlowScope.FARegisterBean.effctvDateValidator}"
+                        autoSubmit="true" showRequired="true">
+            <f:validator binding="#{bindings.TransStartDate.validator}"/>
+            <af:convertDateTime pattern="#{bindings.TransStartDate.format}"/>
+          </af:inputDate>
+          <af:spacer width="10" height="10" id="s9"/>
+          <af:inputText value="#{bindings.ItmLblId.inputValue}" label="Label"
+                        columns="#{bindings.ItmLblId.hints.displayWidth}"
+                        maximumLength="#{bindings.ItmLblId.hints.precision}"
+                        shortDesc="#{bindings.ItmLblId.hints.tooltip}" id="it1"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                        disabled="#{pageFlowScope.FARegisterBean.mode=='V'|| pageFlowScope.FARegisterBean.dis=='V' || bindings.DocTypeSrc.inputValue==18521 || bindings.TransGroupName.inputValue==''  || (pageFlowScope.FARegisterBean.dis=='E' &amp;&amp; pageFlowScope.FARegisterBean.mode=='E') || bindings.ItmLineStatus1.inputValue=='A'}"
+                        validator="#{pageFlowScope.FARegisterBean.labelIdValidator}" partialTriggers="ilov1"
+                        labelStyle="color:brown;font-weight:bold;" showRequired="true">
+            <f:validator binding="#{bindings.ItmLblId.validator}"/>
+          </af:inputText>
+          <af:inputText value="#{bindings.FaLagCode.inputValue}" label="Legacy Code"
+                        required="#{bindings.FaLagCode.hints.mandatory}"
+                        columns="#{bindings.FaLagCode.hints.displayWidth}"
+                        maximumLength="#{bindings.FaLagCode.hints.precision}"
+                        shortDesc="#{bindings.FaLagCode.hints.tooltip}" id="it14"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                        labelStyle="color:brown;font-weight:bold;" autoSubmit="true" partialTriggers="ilov1"
+                        disabled="#{pageFlowScope.FARegisterBean.mode=='V'|| pageFlowScope.FARegisterBean.dis=='V' || bindings.DocTypeSrc.inputValue==18521 || bindings.TransGroupName.inputValue==''  || (pageFlowScope.FARegisterBean.dis=='E' &amp;&amp; pageFlowScope.FARegisterBean.mode=='E') || bindings.ItmLineStatus1.inputValue=='A'}">
+            <f:validator binding="#{bindings.FaLagCode.validator}"/>
+          </af:inputText>
+          <af:selectOneChoice value="#{bindings.FaCatgType.inputValue}" label="Category Type"
+                              required="#{bindings.FaCatgType.hints.mandatory}"
+                              shortDesc="#{bindings.FaCatgType.hints.tooltip}" id="soc11"
+                              contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                              labelStyle="color:brown;font-weight:bold;" autoSubmit="true"
+                              disabled="#{pageFlowScope.FARegisterBean.mode=='V' || pageFlowScope.FARegisterBean.dis=='V'}">
+            <f:selectItems value="#{bindings.FaCatgType.items}" id="si11"/>
+            <f:validator binding="#{bindings.FaCatgType.validator}"/>
+          </af:selectOneChoice>
+          <af:selectOneChoice value="#{bindings.FaCatg.inputValue}" label="Category"
+                              required="#{bindings.FaCatg.hints.mandatory}" shortDesc="#{bindings.FaCatg.hints.tooltip}"
+                              id="soc12" contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                              labelStyle="color:brown;font-weight:bold;" autoSubmit="true"
+                              disabled="#{pageFlowScope.FARegisterBean.mode=='V' || pageFlowScope.FARegisterBean.dis=='V'}"
+                              partialTriggers="soc11"
+                              valueChangeListener="#{pageFlowScope.FARegisterBean.catageoryVCL}">
+            <f:selectItems value="#{bindings.FaCatg.items}" id="si12"/>
+            <f:validator binding="#{bindings.FaCatg.validator}"/>
+          </af:selectOneChoice>
+          <af:inputText value="#{bindings.FaRegNo.inputValue}" label="Registration No."
+                        required="#{bindings.FaRegNo.hints.mandatory}" columns="#{bindings.FaRegNo.hints.displayWidth}"
+                        maximumLength="#{bindings.FaRegNo.hints.precision}"
+                        shortDesc="#{bindings.FaRegNo.hints.tooltip}" id="it4"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                        labelStyle="color:brown;font-weight:bold;"
+                        visible="#{bindings.FaCatg.inputValue!=null &amp;&amp; bindings.FaCatg.inputValue!=&quot;&quot;}"
+                        partialTriggers="soc12" autoSubmit="true"
+                        disabled="#{pageFlowScope.FARegisterBean.mode=='V' || pageFlowScope.FARegisterBean.dis=='V'}"
+                        binding="#{pageFlowScope.FARegisterBean.regNoBinding}">
+            <f:validator binding="#{bindings.FaRegNo.validator}"/>
+          </af:inputText>
+          <af:selectOneChoice value="#{bindings.ItmLineStatus1.inputValue}" label="Status"
+                              required="#{bindings.ItmLineStatus1.hints.mandatory}"
+                              shortDesc="#{bindings.ItmLineStatus1.hints.tooltip}" id="soc10"
+                              contentStyle="height:20px;width:155px;color:navy;font-weight:bold;"
+                              labelStyle="color:brown;font-weight:bold;" partialTriggers="ilov1" disabled="true"
+                              binding="#{pageFlowScope.FARegisterBean.statusBinding}">
+            <f:selectItems value="#{bindings.ItmLineStatus1.items}" id="si10"/>
+            <f:validator binding="#{bindings.ItmLineStatus1.validator}"/>
+          </af:selectOneChoice>
+          <af:inputText value="#{bindings.Remark1.inputValue}" label="Remarks"
+                        required="#{bindings.Remark1.hints.mandatory}" columns="#{bindings.Remark1.hints.displayWidth}"
+                        maximumLength="#{bindings.Remark1.hints.precision}"
+                        shortDesc="#{bindings.Remark1.hints.tooltip}" id="it28" rows="3"
+                        contentStyle="width:150px;color:green;font-weight:bold;"
+                        disabled="#{pageFlowScope.FARegisterBean.mode=='V' || pageFlowScope.FARegisterBean.dis=='V' || bindings.DocTypeSrc.inputValue==18521}"
+                        labelStyle="color:brown;font-weight:bold;">
+            <f:validator binding="#{bindings.Remark1.validator}"/>
+          </af:inputText>
+        </af:panelFormLayout>
+        <af:separator id="s6"/>
+        <af:panelFormLayout id="pfl12" styleClass="AFStretchWidth PanelForm"
+                            visible="#{pageFlowScope.FARegisterBean.dis!='V' &amp;&amp; (pageFlowScope.GLBL_LAW_TYP=='BO' || pageFlowScope.GLBL_LAW_TYP=='CO')}"
+                            partialTriggers="pc1:t4:l11 pc1:t4">
+          <af:panelLabelAndMessage label="Company Law Details" id="plam1" labelStyle="color:Green; font-weight:bold;"/>
+        </af:panelFormLayout>
+        <af:panelFormLayout id="pfl11" rows="1" maxColumns="4" styleClass="AFStretchWidth PanelForm"
+                            inlineStyle="padding:5px;" fieldWidth="150" labelWidth="150"
+                            visible="#{pageFlowScope.FARegisterBean.dis!='V' &amp;&amp; (pageFlowScope.GLBL_LAW_TYP=='BO' || pageFlowScope.GLBL_LAW_TYP=='CO')}"
+                            partialTriggers="pc1:t4:l11 pc1:t4">
+          <af:inputText value="#{bindings.ItmTotCostCo.inputValue}" label="Total Cost"
+                        required="#{bindings.ItmTotCostCo.hints.mandatory}"
+                        columns="#{bindings.ItmTotCostCo.hints.displayWidth}"
+                        maximumLength="#{bindings.ItmTotCostCo.hints.precision}"
+                        shortDesc="#{bindings.ItmTotCostCo.hints.tooltip}" id="it9"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;text-align:right;"
+                        disabled="true"
+                        labelStyle="color:brown;font-weight:bold;" partialTriggers="ilov2">
+            <f:validator binding="#{bindings.ItmTotCostCo.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.ItmTotCostCo.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+          <af:inputNumberSpinbox value="#{bindings.DepShftCoLaw.inputValue}" label="No.of shift"
+                                 required="#{bindings.DepShftCoLaw.hints.mandatory}"
+                                 columns="#{bindings.DepShftCoLaw.hints.displayWidth}"
+                                 shortDesc="#{bindings.DepShftCoLaw.hints.tooltip}" id="it7" minimum="1" maximum="3"
+                                 contentStyle="height:20px;width:10px;color:navy;font-weight:bold;"
+                                 labelStyle="color:brown;font-weight:bold;"
+                                 disabled="#{pageFlowScope.GLBL_SHIFT_ALW==&quot;N&quot;||pageFlowScope.FARegisterBean.dis=='V' || pageFlowScope.GLBL_LAW_TYP=='IT'}"
+                                 autoSubmit="true" partialTriggers="ilov2"
+                                 visible='#{pageFlowScope.GLBL_SHIFT_ALW=="Y"}' showRequired="true">
+            <f:validator binding="#{bindings.DepShftCoLaw.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.DepShftCoLaw.format}"/>
+          </af:inputNumberSpinbox>
+          <af:inputText value="#{bindings.DepPerCoLaw.inputValue}" label="Depreciation Percentage" required="false"
+                        columns="#{bindings.DepPerCoLaw.hints.displayWidth}"
+                        maximumLength="#{bindings.DepPerCoLaw.hints.precision}"
+                        shortDesc="#{bindings.DepPerCoLaw.hints.tooltip}" id="it12"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;text-align:right;"
+                        disabled="#{pageFlowScope.FARegisterBean.dis=='V' || pageFlowScope.GLBL_LAW_TYP=='IT'}"
+                        validator="#{pageFlowScope.FARegisterBean.depPRcntCOValidator}"
+                        labelStyle="color:brown;font-weight:bold;" partialTriggers="ilov2" showRequired="true">
+            <f:validator binding="#{bindings.DepPerCoLaw.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.DepPerCoLaw.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+          <af:spacer width="10" height="10" id="s8"/>
+          <af:inputText value="#{bindings.AccDepCo.inputValue}" label="Accumulated Depriciation"
+                        required="#{bindings.AccDepCo.hints.mandatory}"
+                        columns="#{bindings.AccDepCo.hints.displayWidth}"
+                        maximumLength="#{bindings.AccDepCo.hints.precision}"
+                        shortDesc="#{bindings.AccDepCo.hints.tooltip}" id="it16"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;text-align:right;"
+                        disabled="#{pageFlowScope.FARegisterBean.dis=='V' || pageFlowScope.GLBL_LAW_TYP=='IT'}"
+                        validator="#{pageFlowScope.FARegisterBean.accDprctnCO}"
+                        labelStyle="color:brown;font-weight:bold;" showRequired="true">
+            <f:validator binding="#{bindings.AccDepCo.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.AccDepCo.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+          <af:spacer width="10" height="10" id="s3"/>
+          <af:inputDate value="#{bindings.DepEffStrtDtCo.inputValue}" label="Effective Date"
+                        required="#{bindings.DepEffStrtDtCo.hints.mandatory}"
+                        columns="#{bindings.DepEffStrtDtCo.hints.displayWidth}"
+                        shortDesc="Put in use date " id="id3"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                        disabled="true"
+                        labelStyle="color:brown;font-weight:bold;" minValue="#{bindings.DocDtSrc.inputValue}">
+            <f:validator binding="#{bindings.DepEffStrtDtCo.validator}"/>
+            <af:convertDateTime pattern="#{bindings.DepEffStrtDtCo.format}"/>
+          </af:inputDate>
+        </af:panelFormLayout>
+        <af:separator id="s7"/>
+        <af:panelFormLayout id="pfl7" styleClass="AFStretchWidth PanelForm"
+                            visible="#{pageFlowScope.FARegisterBean.dis!='V' &amp;&amp; (pageFlowScope.GLBL_LAW_TYP=='BO' || pageFlowScope.GLBL_LAW_TYP=='IT')}"
+                            partialTriggers="pc1:t4:l11 pc1:t4">
+          <af:panelLabelAndMessage label="Income Tax Law Details" id="plam2"
+                                   labelStyle="color:Green; font-weight:bold;"/>
+        </af:panelFormLayout>
+        <af:panelFormLayout id="pfl6" rows="1" maxColumns="4" labelWidth="150" fieldWidth="150"
+                            styleClass="AFStretchWidth PanelForm" inlineStyle="padding:5px;"
+                            visible="#{pageFlowScope.FARegisterBean.dis!='V' &amp;&amp; (pageFlowScope.GLBL_LAW_TYP=='BO' || pageFlowScope.GLBL_LAW_TYP=='IT')}"
+                            rendered="true" partialTriggers="pc1:t4:l11 pc1:t4">
+          <af:inputText value="#{bindings.ItmTotCostIt.inputValue}" label="Total Cost"
+                        required="#{bindings.ItmTotCostIt.hints.mandatory}"
+                        columns="#{bindings.ItmTotCostIt.hints.displayWidth}"
+                        maximumLength="#{bindings.ItmTotCostIt.hints.precision}"
+                        shortDesc="#{bindings.ItmTotCostIt.hints.tooltip}" id="it8"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;text-align:right;"
+                        disabled="true"
+                        labelStyle="color:brown;font-weight:bold;" partialTriggers="ilov2">
+            <f:validator binding="#{bindings.ItmTotCostIt.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.ItmTotCostIt.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+          <af:inputText value="#{bindings.DepPerItLaw.inputValue}" label="Depreciation Percentage"
+                        required="false"
+                        columns="#{bindings.DepPerItLaw.hints.displayWidth}"
+                        maximumLength="#{bindings.DepPerItLaw.hints.precision}"
+                        shortDesc="#{bindings.DepPerItLaw.hints.tooltip}" id="it13"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;text-align:right;"
+                        disabled="#{pageFlowScope.FARegisterBean.dis=='V' || pageFlowScope.GLBL_LAW_TYP=='CO'}"
+                        validator="#{pageFlowScope.FARegisterBean.dprcntPrcntgItValidator}"
+                        labelStyle="color:brown;font-weight:bold;" partialTriggers="ilov2" showRequired="true">
+            <f:validator binding="#{bindings.DepPerItLaw.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.DepPerItLaw.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+          <af:inputText value="#{bindings.AccDepIt.inputValue}" label="Accumulated Depriciation"
+                        required="#{bindings.AccDepIt.hints.mandatory}"
+                        columns="#{bindings.AccDepIt.hints.displayWidth}"
+                        maximumLength="#{bindings.AccDepIt.hints.precision}"
+                        shortDesc="#{bindings.AccDepIt.hints.tooltip}" id="it15"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;text-align:right;"
+                        disabled="#{pageFlowScope.FARegisterBean.dis=='V' || pageFlowScope.GLBL_LAW_TYP=='CO'}"
+                        validator="#{pageFlowScope.FARegisterBean.addDepITValidator}"
+                        labelStyle="color:brown;font-weight:bold;" showRequired="true">
+            <f:validator binding="#{bindings.AccDepIt.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.AccDepIt.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+          <af:inputDate value="#{bindings.DepEffStrtDtIt.inputValue}" label="Effective Date"
+                        required="#{bindings.DepEffStrtDtIt.hints.mandatory}"
+                        columns="#{bindings.DepEffStrtDtIt.hints.displayWidth}"
+                        shortDesc="Put in use date " id="id5"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;"
+                        disabled="true"
+                        labelStyle="color:brown;font-weight:bold;" minValue="#{bindings.DocDtSrc.inputValue}">
+            <f:validator binding="#{bindings.DepEffStrtDtIt.validator}"/>
+            <af:convertDateTime pattern="#{bindings.DepEffStrtDtIt.format}"/>
+          </af:inputDate>
+        </af:panelFormLayout>
+        <af:panelFormLayout id="pfl10" rows="1" fieldWidth="150" labelWidth="150" maxColumns="3"
+                            styleClass="AFStretchWidth PanelForm" inlineStyle="padding:5px;"
+                            visible="#{(pageFlowScope.FARegisterBean.dis!='V' &amp;&amp; (pageFlowScope.GLBL_LAW_TYP=='BO' || pageFlowScope.GLBL_LAW_TYP=='IT'))&amp;&amp; pageFlowScope.GLBL_ADDTNL_DEP_ALW=='Y'}"
+                            partialTriggers="pc1:t4:l11 pc1:t4">
+          <af:selectBooleanCheckbox value="#{bindings.AddlDepFlg1.inputValue}" label="Additional Depreciation"
+                                    shortDesc="#{bindings.AddlDepFlg1.hints.tooltip}" id="sbc2"
+                                    autoSubmit="true" labelStyle="color:brown;font-weight:bold;"
+                                    disabled="#{pageFlowScope.FARegisterBean.dis=='V'}"
+                                    valueChangeListener="#{pageFlowScope.FARegisterBean.addtnlDeprctnVCL}"
+                                    partialTriggers="ilov2"/>
+          <af:inputText value="#{bindings.AddlDepPer.inputValue}" label="Additional Depriciation Percentage"
+                        required="#{bindings.AddlDepPer.hints.mandatory}"
+                        columns="#{bindings.AddlDepPer.hints.displayWidth}"
+                        maximumLength="#{bindings.AddlDepPer.hints.precision}"
+                        shortDesc="#{bindings.AddlDepPer.hints.tooltip}" id="it19"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;text-align:right;"
+                        labelStyle="color:brown;font-weight:bold;"
+                        disabled="#{pageFlowScope.FARegisterBean.dis=='V' || bindings.AddlDepFlg1.inputValue=='false'}"
+                        validator="#{pageFlowScope.FARegisterBean.addDepITValidator}"
+                        binding="#{pageFlowScope.FARegisterBean.addtnlDeprBinding}" showRequired="true">
+            <f:validator binding="#{bindings.AddlDepPer.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.AddlDepPer.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+          <af:inputText value="#{bindings.AddlAccDep.inputValue}" label="Additional Accumulated Depreciation"
+                        required="#{bindings.AddlAccDep.hints.mandatory}"
+                        columns="#{bindings.AddlAccDep.hints.displayWidth}"
+                        maximumLength="#{bindings.AddlAccDep.hints.precision}"
+                        shortDesc="#{bindings.AddlAccDep.hints.tooltip}" id="it20"
+                        contentStyle="height:20px;width:150px;color:navy;font-weight:bold;text-align:right;"
+                        labelStyle="color:brown;font-weight:bold;"
+                        disabled="#{pageFlowScope.FARegisterBean.dis=='V' || bindings.AddlDepFlg1.inputValue=='false'}"
+                        validator="#{pageFlowScope.FARegisterBean.addtnlAccDeprctnValidator}"
+                        binding="#{pageFlowScope.FARegisterBean.addtnlAccDepBinding}" showRequired="true">
+            <f:validator binding="#{bindings.AddlAccDep.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.AddlAccDep.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+        </af:panelFormLayout>
+      </af:panelGroupLayout>
+    </af:panelBox>
+    <af:panelBox text="Income Tax" id="pb1" partialTriggers="l7" rendered="false"/>
+    <af:panelBox text="Company Law" id="pb2" partialTriggers="l7" rendered="false"/>
+    <af:panelCollection id="pc1" styleClass="AFStretchWidth">
+      <f:facet name="menus"/>
+      <f:facet name="toolbar">
+        <af:toolbar id="t2">
+          <af:button text="Export" id="b4" disabled="#{pageFlowScope.FARegisterBean.mode!='V'}">
+            <af:fileDownloadActionListener contentType="excelhtml" filename="ItemRegister.xls"
+                                           method="#{pageFlowScope.FARegisterBean.exportData}"/>
+          </af:button>
+          <af:button text="Import" id="b3" action="import"
+                     disabled="#{pageFlowScope.FARegisterBean.mode=='V' || (pageFlowScope.FARegisterBean.dis!='V' || bindings.DocTypeSrc.inputValue!=5507) || bindings.MmFaItmChildIterator.estimatedRowCount==0}"/>
+        </af:toolbar>
+      </f:facet>
+      <f:facet name="statusbar"/>
+      <af:table value="#{bindings.MmFaItmLn11.collectionModel}" var="row" rows="#{bindings.MmFaItmLn11.rangeSize}"
+                emptyText="#{bindings.MmFaItmLn11.viewable ? 'No data to display.' : 'Access Denied.'}"
+                rowBandingInterval="0" fetchSize="#{bindings.MmFaItmLn11.rangeSize}" id="t4" selectedRowKeys="#{bindings.MmFaItmLn11.collectionModel.selectedRow}"
+                selectionListener="#{bindings.MmFaItmLn11.collectionModel.makeCurrent}"
+                rowSelection="#{pageFlowScope.FARegisterBean.dis=='V'?'single':'none'}"
+                autoHeightRows="10" partialTriggers=":::l9" binding="#{pageFlowScope.FARegisterBean.itemTableBinding}"
+                scrollPolicy="page">
+        <af:column headerText="Error" id="c2" width="40"
+                   inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}"
+                   visible="false">
+          <af:inputText value="#{row.bindings.TransErrorStatus.inputValue}"
+                        label="#{bindings.MmFaItmLn11.hints.TransErrorStatus.label}"
+                        required="#{bindings.MmFaItmLn11.hints.TransErrorStatus.mandatory}"
+                        columns="#{bindings.MmFaItmLn11.hints.TransErrorStatus.displayWidth}"
+                        maximumLength="#{bindings.MmFaItmLn11.hints.TransErrorStatus.precision}"
+                        shortDesc="#{bindings.MmFaItmLn11.hints.TransErrorStatus.tooltip}" id="it22" readOnly="true">
+            <f:validator binding="#{row.bindings.TransErrorStatus.validator}"/>
+          </af:inputText>
+        </af:column>
+        <af:column headerText="Item Group and Name" id="c8" width="140"
+                   sortProperty="#{bindings.MmFaItmLn11.hints.ItmGrp.name}" sortable="true"
+                   inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+          <af:selectOneChoice value="#{row.bindings.ItmGrp.inputValue}" label="#{row.bindings.ItmGrp.label}"
+                              required="#{bindings.MmFaItmLn11.hints.ItmGrp.mandatory}"
+                              shortDesc="#{bindings.MmFaItmLn11.hints.ItmGrp.tooltip}" id="soc4" readOnly="true"
+                              contentStyle="color:green;font-weight:bold;">
+            <f:selectItems value="#{row.bindings.ItmGrp.items}" id="si4"/>
+            <f:validator binding="#{row.bindings.ItmGrp.validator}"/>
+          </af:selectOneChoice>
+          <af:selectOneChoice value="#{row.bindings.ItmId.inputValue}" label="#{row.bindings.ItmId.label}"
+                              required="#{bindings.MmFaItmLn11.hints.ItmId.mandatory}"
+                              shortDesc="#{bindings.MmFaItmLn11.hints.ItmId.tooltip}" id="soc5" readOnly="true"
+                              contentStyle="color:navy;font-weight:bold;">
+            <f:selectItems value="#{row.bindings.ItmId.items}" id="si5"/>
+            <f:validator binding="#{row.bindings.ItmId.validator}"/>
+          </af:selectOneChoice>
+        </af:column>
+        <af:column headerText="Additional Cost" id="c14" width="70"
+                   sortProperty="#{bindings.MmFaItmLn11.hints.AddlCostBs.name}" sortable="true" align="right"
+                   inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+          <af:inputText value="#{row.bindings.AddlCostBs.inputValue}"
+                        label="#{bindings.MmFaItmLn11.hints.AddlCostBs.label}"
+                        required="#{bindings.MmFaItmLn11.hints.AddlCostBs.mandatory}"
+                        columns="#{bindings.MmFaItmLn11.hints.AddlCostBs.displayWidth}"
+                        maximumLength="#{bindings.MmFaItmLn11.hints.AddlCostBs.precision}"
+                        shortDesc="#{bindings.MmFaItmLn11.hints.AddlCostBs.tooltip}" id="it17" readOnly="true"
+                        contentStyle="color:purple;font-weight:bold;text-align:right;">
+            <f:validator binding="#{row.bindings.AddlCostBs.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.MmFaItmLn11.hints.AddlCostBs.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+        </af:column>
+        <af:column headerText="Status" id="c18" width="70"
+                   sortProperty="#{bindings.MmFaItmLn11.hints.ItmLineStatus.name}" sortable="true" rendered="false"
+                   inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+          <af:inputText value="#{row.bindings.ItmLineStatus.inputValue}"
+                        label="#{bindings.MmFaItmLn11.hints.ItmLineStatus.label}"
+                        required="#{bindings.MmFaItmLn11.hints.ItmLineStatus.mandatory}"
+                        columns="#{bindings.MmFaItmLn11.hints.ItmLineStatus.displayWidth}"
+                        maximumLength="#{bindings.MmFaItmLn11.hints.ItmLineStatus.precision}"
+                        shortDesc="#{bindings.MmFaItmLn11.hints.ItmLineStatus.tooltip}" id="it21" readOnly="true">
+            <f:validator binding="#{row.bindings.ItmLineStatus.validator}"/>
+          </af:inputText>
+        </af:column>
+        <af:column headerText="Label" id="c23" width="70" sortProperty="#{bindings.MmFaItmLn11.hints.ItmLblId.name}"
+                   sortable="true"
+                   inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+          <af:inputText value="#{row.bindings.ItmLblId.inputValue}" label="#{bindings.MmFaItmLn11.hints.ItmLblId.label}"
+                        required="#{bindings.MmFaItmLn11.hints.ItmLblId.mandatory}"
+                        columns="#{bindings.MmFaItmLn11.hints.ItmLblId.displayWidth}"
+                        maximumLength="#{bindings.MmFaItmLn11.hints.ItmLblId.precision}"
+                        shortDesc="#{bindings.MmFaItmLn11.hints.ItmLblId.tooltip}" id="it29" readOnly="true"
+                        contentStyle="color:purple;font-weight:bold;text-align:right;">
+            <f:validator binding="#{row.bindings.ItmLblId.validator}"/>
+          </af:inputText>
+        </af:column>
+        <af:column headerText="Quantity" id="c24" width="70" sortProperty="#{bindings.MmFaItmLn11.hints.ItmQty.name}"
+                   sortable="true" rendered="false"
+                   inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+          <af:inputText value="#{row.bindings.ItmQty.inputValue}" label="#{bindings.MmFaItmLn11.hints.ItmQty.label}"
+                        required="#{bindings.MmFaItmLn11.hints.ItmQty.mandatory}"
+                        columns="#{bindings.MmFaItmLn11.hints.ItmQty.displayWidth}"
+                        maximumLength="#{bindings.MmFaItmLn11.hints.ItmQty.precision}"
+                        shortDesc="#{bindings.MmFaItmLn11.hints.ItmQty.tooltip}" id="it34" readOnly="true">
+            <f:validator binding="#{row.bindings.ItmQty.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.MmFaItmLn11.hints.ItmQty.format}"/>
+          </af:inputText>
+        </af:column>
+        <af:column id="c12" headerText="Comapany Law" align="center" sortable="true"
+                   visible="#{pageFlowScope.GLBL_LAW_TYP=='BO' || pageFlowScope.GLBL_LAW_TYP=='CO'}">
+          <af:column headerText="Total Cost" id="c26" width="75"
+                     sortProperty="#{bindings.MmFaItmLn11.hints.ItmTotCostCo.name}" sortable="true" align="right"
+                     inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+            <af:inputText value="#{row.bindings.ItmTotCostCo.inputValue}"
+                          label="#{bindings.MmFaItmLn11.hints.ItmTotCostCo.label}"
+                          required="#{bindings.MmFaItmLn11.hints.ItmTotCostCo.mandatory}"
+                          columns="#{bindings.MmFaItmLn11.hints.ItmTotCostCo.displayWidth}"
+                          maximumLength="#{bindings.MmFaItmLn11.hints.ItmTotCostCo.precision}"
+                          shortDesc="#{bindings.MmFaItmLn11.hints.ItmTotCostCo.tooltip}" id="it44" readOnly="true"
+                          contentStyle="color:purple;font-weight:bold;text-align:right;">
+              <f:validator binding="#{row.bindings.ItmTotCostCo.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.MmFaItmLn11.hints.ItmTotCostCo.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+          </af:column>
+          <af:column headerText="Depreciation Percentage" id="c27" width="60"
+                     sortProperty="#{bindings.MmFaItmLn11.hints.DepPerCoLaw.name}" sortable="true" align="right"
+                     inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+            <af:inputText value="#{row.bindings.DepPerCoLaw.inputValue}"
+                          label="#{bindings.MmFaItmLn11.hints.DepPerCoLaw.label}"
+                          required="#{bindings.MmFaItmLn11.hints.DepPerCoLaw.mandatory}"
+                          columns="#{bindings.MmFaItmLn11.hints.DepPerCoLaw.displayWidth}"
+                          maximumLength="#{bindings.MmFaItmLn11.hints.DepPerCoLaw.precision}"
+                          shortDesc="#{bindings.MmFaItmLn11.hints.DepPerCoLaw.tooltip}" id="it45" readOnly="true"
+                          contentStyle="color:purple;font-weight:bold;text-align:right;">
+              <f:validator binding="#{row.bindings.DepPerCoLaw.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.MmFaItmLn11.hints.DepPerCoLaw.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+          </af:column>
+          <af:column headerText="Effective Date" id="c29" width="70"
+                     sortProperty="#{bindings.MmFaItmLn11.hints.DepEffStrtDtCo.name}" sortable="true"
+                     inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+            <af:inputDate value="#{row.bindings.DepEffStrtDtCo.inputValue}"
+                          label="#{bindings.MmFaItmLn11.hints.DepEffStrtDtCo.label}"
+                          required="#{bindings.MmFaItmLn11.hints.DepEffStrtDtCo.mandatory}"
+                          columns="#{bindings.MmFaItmLn11.hints.DepEffStrtDtCo.displayWidth}"
+                          shortDesc="#{bindings.MmFaItmLn11.hints.DepEffStrtDtCo.tooltip}" id="id15" readOnly="true"
+                          contentStyle="color:purple;font-weight:bold;">
+              <f:validator binding="#{row.bindings.DepEffStrtDtCo.validator}"/>
+              <af:convertDateTime pattern="#{bindings.MmFaItmLn11.hints.DepEffStrtDtCo.format}"/>
+            </af:inputDate>
+          </af:column>
+          <af:column headerText="No.of Shift" id="c31" width="40"
+                     sortProperty="#{bindings.MmFaItmLn11.hints.DepShftCoLaw.name}" sortable="true" align="right"
+                     visible='#{pageFlowScope.GLBL_SHIFT_ALW=="Y"}'
+                     inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+            <af:inputText value="#{row.bindings.DepShftCoLaw.inputValue}"
+                          required="#{bindings.MmFaItmLn11.hints.DepShftCoLaw.mandatory}"
+                          columns="#{bindings.MmFaItmLn11.hints.DepShftCoLaw.displayWidth}"
+                          maximumLength="#{bindings.MmFaItmLn11.hints.DepShftCoLaw.precision}"
+                          shortDesc="#{bindings.MmFaItmLn11.hints.DepShftCoLaw.tooltip}" id="it10"
+                          contentStyle="color:purple;font-weight:bold;text-align:right;" readOnly="true">
+              <f:validator binding="#{row.bindings.DepShftCoLaw.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.MmFaItmLn11.hints.DepShftCoLaw.format}"/>
+            </af:inputText>
+          </af:column>
+          <af:column headerText="Accumulated Depreciation" id="c33" width="75"
+                     sortProperty="#{bindings.MmFaItmLn11.hints.AccDepCo.name}" sortable="true" align="right"
+                     inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+            <af:inputText value="#{row.bindings.AccDepCo.inputValue}"
+                          label="#{bindings.MmFaItmLn11.hints.AccDepCo.label}"
+                          required="#{bindings.MmFaItmLn11.hints.AccDepCo.mandatory}"
+                          columns="#{bindings.MmFaItmLn11.hints.AccDepCo.displayWidth}"
+                          maximumLength="#{bindings.MmFaItmLn11.hints.AccDepCo.precision}"
+                          shortDesc="#{bindings.MmFaItmLn11.hints.AccDepCo.tooltip}" id="it47" readOnly="true"
+                          contentStyle="color:purple;font-weight:bold;text-align:right;">
+              <f:validator binding="#{row.bindings.AccDepCo.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.MmFaItmLn11.hints.AccDepCo.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+          </af:column>
+        </af:column>
+        <af:column id="c36" headerText="Income Tax Law" align="center" sortable="true"
+                   visible="#{pageFlowScope.GLBL_LAW_TYP=='BO' || pageFlowScope.GLBL_LAW_TYP=='IT'}"
+                   inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:Red':'background-color:white'}">
+          <af:column headerText="Total Cost" id="c25" width="75"
+                     sortProperty="#{bindings.MmFaItmLn11.hints.ItmTotCostIt.name}" sortable="true" align="right"
+                     inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+            <af:inputText value="#{row.bindings.ItmTotCostIt.inputValue}"
+                          label="#{bindings.MmFaItmLn11.hints.ItmTotCostIt.label}"
+                          required="#{bindings.MmFaItmLn11.hints.ItmTotCostIt.mandatory}"
+                          columns="#{bindings.MmFaItmLn11.hints.ItmTotCostIt.displayWidth}"
+                          maximumLength="#{bindings.MmFaItmLn11.hints.ItmTotCostIt.precision}"
+                          shortDesc="#{bindings.MmFaItmLn11.hints.ItmTotCostIt.tooltip}" id="it36" readOnly="true"
+                          contentStyle="color:purple;font-weight:bold;text-align:right;">
+              <f:validator binding="#{row.bindings.ItmTotCostIt.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.MmFaItmLn11.hints.ItmTotCostIt.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+          </af:column>
+          <af:column headerText="Depreciation Percentage" id="c28" width="60"
+                     sortProperty="#{bindings.MmFaItmLn11.hints.DepPerItLaw.name}" sortable="true" align="right"
+                     inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+            <af:inputText value="#{row.bindings.DepPerItLaw.inputValue}"
+                          label="#{bindings.MmFaItmLn11.hints.DepPerItLaw.label}"
+                          required="#{bindings.MmFaItmLn11.hints.DepPerItLaw.mandatory}"
+                          columns="#{bindings.MmFaItmLn11.hints.DepPerItLaw.displayWidth}"
+                          maximumLength="#{bindings.MmFaItmLn11.hints.DepPerItLaw.precision}"
+                          shortDesc="#{bindings.MmFaItmLn11.hints.DepPerItLaw.tooltip}" id="it37" readOnly="true"
+                          contentStyle="color:purple;font-weight:bold;text-align:right;">
+              <f:validator binding="#{row.bindings.DepPerItLaw.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.MmFaItmLn11.hints.DepPerItLaw.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+          </af:column>
+          <af:column headerText="Effective Date" id="c30" width="75"
+                     sortProperty="#{bindings.MmFaItmLn11.hints.DepEffStrtDtIt.name}" sortable="true"
+                     inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+            <af:inputDate value="#{row.bindings.DepEffStrtDtIt.inputValue}"
+                          label="#{bindings.MmFaItmLn11.hints.DepEffStrtDtIt.label}"
+                          required="#{bindings.MmFaItmLn11.hints.DepEffStrtDtIt.mandatory}"
+                          columns="#{bindings.MmFaItmLn11.hints.DepEffStrtDtIt.displayWidth}"
+                          shortDesc="#{bindings.MmFaItmLn11.hints.DepEffStrtDtIt.tooltip}" id="id13" readOnly="true"
+                          contentStyle="color:purple;font-weight:bold;text-align:right;">
+              <f:validator binding="#{row.bindings.DepEffStrtDtIt.validator}"/>
+              <af:convertDateTime pattern="#{bindings.MmFaItmLn11.hints.DepEffStrtDtIt.format}"/>
+            </af:inputDate>
+          </af:column>
+          <af:column headerText="Accumulated Depreciation" id="c32" width="75"
+                     sortProperty="#{bindings.MmFaItmLn11.hints.AccDepIt.name}" sortable="true" align="right"
+                     inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+            <af:inputText value="#{row.bindings.AccDepIt.inputValue}"
+                          label="#{bindings.MmFaItmLn11.hints.AccDepIt.label}"
+                          required="#{bindings.MmFaItmLn11.hints.AccDepIt.mandatory}"
+                          columns="#{bindings.MmFaItmLn11.hints.AccDepIt.displayWidth}"
+                          maximumLength="#{bindings.MmFaItmLn11.hints.AccDepIt.precision}"
+                          shortDesc="#{bindings.MmFaItmLn11.hints.AccDepIt.tooltip}" id="it39" readOnly="true"
+                          contentStyle="color:purple;font-weight:bold;text-align:right;">
+              <f:validator binding="#{row.bindings.AccDepIt.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.MmFaItmLn11.hints.AccDepIt.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+          </af:column>
+          <af:column headerText="Additional Depreciation (%)" id="c34" width="60"
+                     sortProperty="#{bindings.MmFaItmLn11.hints.AddlDepPer.name}" sortable="true" align="right"
+                     visible="#{pageFlowScope.GLBL_ADDTNL_DEP_ALW=='Y'}"
+                     inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+            <af:inputText value="#{row.bindings.AddlDepPer.inputValue}"
+                          label="#{bindings.MmFaItmLn11.hints.AddlDepPer.label}"
+                          required="#{bindings.MmFaItmLn11.hints.AddlDepPer.mandatory}"
+                          columns="#{bindings.MmFaItmLn11.hints.AddlDepPer.displayWidth}"
+                          maximumLength="#{bindings.MmFaItmLn11.hints.AddlDepPer.precision}"
+                          shortDesc="#{bindings.MmFaItmLn11.hints.AddlDepPer.tooltip}" id="it41" readOnly="true"
+                          contentStyle="color:purple;font-weight:bold;text-align:right;">
+              <f:validator binding="#{row.bindings.AddlDepPer.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.MmFaItmLn11.hints.AddlDepPer.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+          </af:column>
+          <af:column headerText="Additional Accumulated Depreciation" id="c35" width="75"
+                     sortProperty="#{bindings.MmFaItmLn11.hints.AddlAccDep.name}" sortable="true" align="right"
+                     visible="#{pageFlowScope.GLBL_ADDTNL_DEP_ALW=='Y'}"
+                     inlineStyle="#{(row.bindings.TransErrorStatus.inputValue eq 'E')? 'background-color:#ffbaba':'background-color:white'}">
+            <af:inputText value="#{row.bindings.AddlAccDep.inputValue}"
+                          label="#{bindings.MmFaItmLn11.hints.AddlAccDep.label}"
+                          required="#{bindings.MmFaItmLn11.hints.AddlAccDep.mandatory}"
+                          columns="#{bindings.MmFaItmLn11.hints.AddlAccDep.displayWidth}"
+                          maximumLength="#{bindings.MmFaItmLn11.hints.AddlAccDep.precision}"
+                          shortDesc="#{bindings.MmFaItmLn11.hints.AddlAccDep.tooltip}" id="it48" readOnly="true"
+                          contentStyle="color:purple;font-weight:bold;text-align:right;">
+              <f:validator binding="#{row.bindings.AddlAccDep.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.MmFaItmLn11.hints.AddlAccDep.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+          </af:column>
+        </af:column>
+        <af:column headerText="#{bindings.MmFaItmLn11.hints.ItmLineStatus.label}" id="c4" width="80">
+          <af:selectOneChoice value="#{row.bindings.ItmLineStatus.inputValue}"
+                              label="#{row.bindings.ItmLineStatus.label}"
+                              required="#{bindings.MmFaItmLn11.hints.ItmLineStatus.mandatory}"
+                              shortDesc="#{bindings.MmFaItmLn11.hints.ItmLineStatus.tooltip}" id="soc9" readOnly="true"
+                              contentStyle="color:black;font-weight:bold;">
+            <f:selectItems value="#{row.bindings.ItmLineStatus.items}" id="si9"/>
+            <f:validator binding="#{row.bindings.ItmLineStatus.validator}"/>
+          </af:selectOneChoice>
+        </af:column>
+        <af:column id="c1" width="32">
+          <af:link id="l12" icon="#{resource['images:enable_edit_blue.png']}"
+                   disabledIcon="#{resource['images:disabled_edit_white.png']}"
+                   action="#{pageFlowScope.FARegisterBean.editItemDetails}"
+                   disabled="#{pageFlowScope.FARegisterBean.mode=='V' ||pageFlowScope.FARegisterBean.dis!='V'}"
+                   shortDesc="edit Line Details"/>
+        </af:column>
+        <af:column id="c3" width="30">
+          <af:link id="l11" icon="#{resource['images:enable_group_blue.png']}"
+                   disabledIcon="#{resource['images:disable_group_blue.png']}"
+                   action="#{pageFlowScope.FARegisterBean.adjustment}" shortDesc="Item Addition"
+                   disabled="#{pageFlowScope.FARegisterBean.mode=='V' ||pageFlowScope.FARegisterBean.dis!='V'}"/>
+        </af:column>
+      </af:table>
+    </af:panelCollection>
+    <af:popup childCreation="deferred" autoCancel="disabled" id="p3"
+              binding="#{pageFlowScope.FARegisterBean.lineDetailBinding}">
+      <af:dialog id="d3" type="none" closeIconVisible="false">
+        <f:facet name="buttonBar">
+          <af:panelGroupLayout id="pgl7" layout="horizontal" halign="right" styleClass="AFStretchWidth">
+            <af:button text="Transfer" id="b1" action="#{pageFlowScope.FARegisterBean.transferItem}"/>
+            <af:button text="Cancel" id="b2" action="#{pageFlowScope.FARegisterBean.cancelPopupAction}"/>
+          </af:panelGroupLayout>
+        </f:facet>
+        <af:panelFormLayout id="pfl4" fieldWidth="150" labelWidth="150" maxColumns="1">
+          <af:selectOneChoice value="#{bindings.OrgId.inputValue}" label="Organisation"
+                              required="#{bindings.OrgId.hints.mandatory}" shortDesc="#{bindings.OrgId.hints.tooltip}"
+                              id="soc8" disabled="true" contentStyle="width:250px;height:20px;">
+            <f:selectItems value="#{bindings.OrgId.items}" id="si8"/>
+            <f:validator binding="#{bindings.OrgId.validator}"/>
+          </af:selectOneChoice>
+          <af:inputDate value="#{bindings.TransTrnsfrDate.inputValue}" label="Transfer Date" required="true"
+                        columns="#{bindings.TransTrnsfrDate.hints.displayWidth}"
+                        shortDesc="#{bindings.TransTrnsfrDate.hints.tooltip}" id="id9"
+                        contentStyle="width:150px;height:20px;">
+            <f:validator binding="#{bindings.TransTrnsfrDate.validator}"/>
+            <af:convertDateTime pattern="#{bindings.TransTrnsfrDate.format}"/>
+          </af:inputDate>
+          <af:inputListOfValues id="transOrgDescTrgtId"
+                                popupTitle="Search and Select: #{bindings.TransOrgDescTrgt.hints.label}"
+                                value="#{bindings.TransOrgDescTrgt.inputValue}" label="Target Organisation"
+                                model="#{bindings.TransOrgDescTrgt.listOfValuesModel}"
+                                required="#{bindings.TransOrgDescTrgt.hints.mandatory}"
+                                columns="#{bindings.TransOrgDescTrgt.hints.displayWidth}"
+                                shortDesc="#{bindings.TransOrgDescTrgt.hints.tooltip}"
+                                contentStyle="width:250px;height:20px;" autoSubmit="true">
+            <f:validator binding="#{bindings.TransOrgDescTrgt.validator}"/>
+            <af:autoSuggestBehavior suggestedItems="#{bindings.TransOrgDescTrgt.suggestedItems}"/>
+          </af:inputListOfValues>
+        </af:panelFormLayout>
+      </af:dialog>
+    </af:popup>
+  </af:panelGroupLayout>
+  <!--oracle-jdev-comment:preferred-managed-bean-name:FARegisterBean-->
+</jsp:root>
