@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="DelayedDeliveryDriverVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="trnpdashboardapp.model.views.DelayedDeliveryDriverVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <SQLQuery><![CDATA[SELECT  
+CLD_ID CLD_ID,  
+SLOC_ID SLOC_ID,  
+HO_ORG_ID HO_ORG_ID,  
+ORG_ID ORG_ID,  
+NVL(DRIVER_NM,'Driver') DRIVER_NM,   
+order_count order_count, 
+TOTAL_AMOUNT  TOTAL_AMOUNT from (  
+SELECT  
+CLD_ID ,  
+SLOC_ID ,  
+HO_ORG_ID ,  
+ORG_ID ,  
+DRIVER_NM ,   
+count(1) order_count, 
+sum(TOT_VAL_BS)  TOTAL_AMOUNT 
+FROM (      
+SELECT A.CLD_ID,      
+A.SLOC_ID,      
+A.HO_ORG_ID,      
+A.ORG_ID,      
+A.ROUTE_ID,      
+A.ROUTE_NM,      
+B.LR_ID,      
+B.LR_DT,      
+M.DEPARTURE_DATE LR_STRT,      
+M.ARRIVAL_DATE LR_END,      
+C.LO_ID,      
+C.LO_DT,      
+N.DEPARTURE_DATE LO_STRT,      
+N.ARRIVAL_DATE LO_END,      
+D.OL_ID,      
+D.OL_DT,  
+D.TOT_VAL_BS,  
+C.VEHICLE_NO,      
+NVL(C.DRIVER_EO_ID,C.TRNSP_ID) DRIVER_EO_ID,      
+NVL(E.EO_NM,C.DRIVER_NM) DRIVER_NM,      
+TRUNC(NVL(OL_DT,SYSDATE)) - TRUNC(NVL(M.ARRIVAL_DATE,N.ARRIVAL_DATE)) AS "DELAYED_DAYS"      
+FROM       
+SLS.SLS$TRNP$ROUTE$PRF A, SLS.SLS$TRNP$LR B,  SLS.SLS$TRNP$LR$ROUTE$DTL M,  SLS.SLS$TRNP$LO C, SLS.SLS$TRNP$LO$ROUTE$DTL N, SLS.SLS$TRNP$OL D, APP.APP$EO E      
+WHERE      
+A.DOC_ID = B.ROUTE_DOC_ID      
+AND B.DOC_ID = C.LR_ID      
+AND C.DOC_ID = D.LO_DOC_ID      
+AND  NVL(C.DRIVER_EO_ID,C.TRNSP_ID) = E.EO_ID(+)      
+AND B.DOC_ID = M.DOC_ID      
+AND M.DEPARTURE_DATE = (SELECT MIN(DEPARTURE_DATE)      
+                        FROM SLS.SLS$TRNP$LR$ROUTE$DTL P      
+                        WHERE P.DOC_ID = M.DOC_ID)      
+AND M.ARRIVAL_DATE = (SELECT MAX(ARRIVAL_DATE)      
+                        FROM SLS.SLS$TRNP$LR$ROUTE$DTL P      
+                        WHERE P.DOC_ID = M.DOC_ID)      
+AND C.DOC_ID = N.DOC_ID      
+AND N.DEPARTURE_DATE = (SELECT MIN(DEPARTURE_DATE)      
+                        FROM SLS.SLS$TRNP$LO$ROUTE$DTL P      
+                        WHERE P.DOC_ID = N.DOC_ID)      
+AND N.ARRIVAL_DATE = (SELECT MAX(ARRIVAL_DATE)      
+                        FROM SLS.SLS$TRNP$LO$ROUTE$DTL P      
+                        WHERE P.DOC_ID = N.DOC_ID)      
+UNION      
+SELECT A.CLD_ID,      
+A.SLOC_ID,      
+A.HO_ORG_ID,      
+A.ORG_ID,      
+A.ROUTE_ID,      
+A.ROUTE_NM,      
+NULL,      
+NULL,      
+NULL LR_STRT,      
+NULL LR_END,      
+C.LO_ID,      
+C.LO_DT,      
+N.DEPARTURE_DATE LO_STRT,      
+N.ARRIVAL_DATE LO_END,      
+D.OL_ID,      
+D.OL_DT,     
+D.TOT_VAL_BS,  
+C.VEHICLE_NO,      
+NVL(C.DRIVER_EO_ID,C.TRNSP_ID) DRIVER_EO_ID,      
+NVL(E.EO_NM,C.DRIVER_NM) DRIVER_NM,      
+TRUNC(NVL(OL_DT,SYSDATE)) - TRUNC(N.ARRIVAL_DATE) DELAYED_DAYS      
+FROM       
+SLS.SLS$TRNP$ROUTE$PRF A, SLS.SLS$TRNP$LO C,  SLS.SLS$TRNP$LO$ROUTE$DTL N, SLS.SLS$TRNP$OL D, APP.APP$EO E      
+WHERE      
+A.DOC_ID = C.ROUTE_ID      
+AND C.DOC_ID = D.LO_DOC_ID      
+AND  NVL(C.DRIVER_EO_ID,C.TRNSP_ID) = E.EO_ID(+)      
+AND C.DOC_ID = N.DOC_ID      
+AND C.LR_ID IS NULL      
+AND N.DEPARTURE_DATE = (SELECT MIN(DEPARTURE_DATE)      
+                        FROM SLS.SLS$TRNP$LO$ROUTE$DTL P      
+                        WHERE P.DOC_ID = N.DOC_ID)      
+AND N.ARRIVAL_DATE = (SELECT MAX(ARRIVAL_DATE)      
+                        FROM SLS.SLS$TRNP$LO$ROUTE$DTL P      
+                        WHERE P.DOC_ID = N.DOC_ID)      
+                        )      
+group by CLD_ID, SLOC_ID, HO_ORG_ID, ORG_ID, DRIVER_NM 
+)]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DriverNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="DRIVER_NM"
+    Expression="DRIVER_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrderCount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="ORDER_COUNT"
+    Expression="ORDER_COUNT"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="TotalAmount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="TOTAL_AMOUNT"
+    Expression="TOTAL_AMOUNT"
+    SQLType="NUMERIC"/>
+  <AttrArray Name="KeyAttributes">
+    <Item Value="CldId"/>
+    <Item Value="SlocId"/>
+    <Item Value="HoOrgId"/>
+    <Item Value="OrgId"/>
+  </AttrArray>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="trnpdashboardapp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="LoadingRequestVwVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full"
+  RowClass="trnpvhclschdlapp.model.views.LoadingRequestVwVORowImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Access"/>
+    <Attr Name="_isCodegen" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="trnpvhclschdlapp.model.views.LoadingRequestVwVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="cldIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="slocIdBind"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="orgIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="hoOrgIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="reqStDtBind"
+    Kind="where"
+    Type="java.sql.Timestamp"/>
+  <Variable
+    Name="reqEndDtBind"
+    Kind="where"
+    Type="java.sql.Timestamp"/>
+  <Variable
+    Name="routeIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="ownrSpBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="vhclTypBind"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="jrnyStDtBind"
+    Kind="where"
+    Type="java.sql.Timestamp"/>
+  <Variable
+    Name="jrnyEndDtBind"
+    Kind="where"
+    Type="java.sql.Timestamp"/>
+  <Variable
+    Name="bookIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="modeBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[SELECT A.CLD_ID,      
+A.SLOC_ID,      
+A.ORG_ID,       
+A.HO_ORG_ID,      
+A.DOC_ID,      
+A.LR_ID,      
+A.LR_DT ,    
+(SELECT MIN(DEPARTURE_DATE) FROM SLS$TRNP$LR$ROUTE$DTL B WHERE         
+B.CLD_ID = A.CLD_ID        
+AND B.SLOC_ID = A.SLOC_ID        
+AND B.ORG_ID = A.ORG_ID        
+AND B.DOC_ID = A.DOC_ID        
+) STRT_DT,   
+(SELECT MAX(ARRIVAL_DATE) FROM SLS$TRNP$LR$ROUTE$DTL B WHERE         
+B.CLD_ID = A.CLD_ID        
+AND B.SLOC_ID = A.SLOC_ID        
+AND B.ORG_ID = A.ORG_ID        
+AND B.DOC_ID = A.DOC_ID        
+) END_DT,   
+sum(NVL(c.ITM_WT,0)) TOT_WT    
+FROM SLS.SLS$TRNP$LR A ,  SLS$TRNP$LR$PROD$DTL C   
+WHERE      
+A.CLD_ID = C.CLD_ID AND    
+A.ORG_ID = C.ORG_ID AND     
+A.DOC_ID = C.DOC_ID AND     
+A.SLOC_ID = C.SLOC_ID AND     
+A.HO_ORG_ID = C.HO_ORg_ID AND     
+ A.CLD_ID = :cldIdBind      
+AND A.SLOC_ID = :slocIdBind      
+AND A.ORG_ID = :orgIdBind      
+AND A.HO_ORG_ID = :hoOrgIdBind      
+AND TRUNC(A.LR_DT) BETWEEN NVL(:reqStDtBind,TRUNC(A.LR_DT)) AND NVL(:reqEndDtBind, TRUNC(A.LR_DT))      
+AND A.ROUTE_DOC_ID = NVL(:routeIdBind, ROUTE_DOC_ID)      
+AND A.REQ_TYP = NVL(:ownrSpBind,A.REQ_TYP)      
+AND A.VEHICLE_TYP = NVL(:vhclTypBind, VEHICLE_TYP)       
+AND NVL(:jrnyStDtBind,'01-01-1400') < (SELECT MIN(DEPARTURE_DATE) FROM SLS.SLS$TRNP$LR$ROUTE$DTL B      
+    WHERE B.DOC_ID = A.DOC_ID AND B.ORG_ID = A.ORG_ID AND B.CLD_ID = A.CLD_ID AND B.SLOC_ID = A.SLOC_ID)      
+AND NVL(:jrnyEndDtBind, '31-12-9999') > (SELECT MAX(ARRIVAL_DATE) FROM SLS.SLS$TRNP$LR$ROUTE$DTL B      
+    WHERE B.DOC_ID = A.DOC_ID AND B.ORG_ID = A.ORG_ID AND B.CLD_ID = A.CLD_ID AND B.SLOC_ID = A.SLOC_ID)    
+AND (CASE WHEN :modeBind = 'V'  and A.DOC_ID IN (SELECT y.LR_DOC_ID FROM SLS.SLS$TRNP$VHCL$SCHDL X , SLS.SLS$TRNP$VHCL$SCHDL$DTL Y   
+                                                        WHERE X.DOC_ID = Y.DOC_ID   
+                                                        AND X.DOC_ID = :bookIdBind) THEN 1   
+        WHEN :modeBind = 'A' AND a.doc_id not in (SELECT y.LR_DOC_ID FROM SLS.SLS$TRNP$VHCL$SCHDL X , SLS.SLS$TRNP$VHCL$SCHDL$DTL Y   
+                                                        WHERE X.DOC_ID = Y.DOC_ID) then 1   
+        WHEN :modeBind = 'E' and (a.doc_id not in (SELECT y.LR_DOC_ID FROM SLS.SLS$TRNP$VHCL$SCHDL X , SLS.SLS$TRNP$VHCL$SCHDL$DTL Y   
+                                                        WHERE X.DOC_ID = Y.DOC_ID)  
+                         or A.DOC_ID IN (SELECT y.LR_DOC_ID FROM SLS.SLS$TRNP$VHCL$SCHDL X , SLS.SLS$TRNP$VHCL$SCHDL$DTL Y   
+                                                        WHERE X.DOC_ID = Y.DOC_ID   
+                                                        AND X.DOC_ID = :bookIdBind)) then 1  
+    end) = 1   
+    group by A.CLD_ID, A.SLOC_ID, A.ORG_ID, A.HO_ORG_ID, A.DOC_ID, A.LR_ID, A.LR_DT 
+    order by lr_id]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="DOC_ID"
+    Expression="DOC_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="LrId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="LR_ID"
+    Expression="LR_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="20"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="LrDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="LR_DT"
+    Expression="LR_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="StrtDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="STRT_DT"
+    Expression="STRT_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="EndDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="END_DT"
+    Expression="END_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="TotWt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="TOT_WT"
+    Expression="TOT_WT"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="TransSelectCB"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="VIEW_ATTR"
+    SQLType="VARCHAR"/>
+  <AttrArray Name="KeyAttributes">
+    <Item Value="CldId"/>
+    <Item Value="SlocId"/>
+    <Item Value="OrgId"/>
+    <Item Value="HoOrgId"/>
+    <Item Value="DocId"/>
+  </AttrArray>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="trnpvhclschdlapp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>
