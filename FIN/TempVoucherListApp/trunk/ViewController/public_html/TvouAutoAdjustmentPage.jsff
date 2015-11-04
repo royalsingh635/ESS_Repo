@@ -1,0 +1,711 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<jsp:root xmlns:jsp="http://java.sun.com/JSP/Page" version="2.1" xmlns:af="http://xmlns.oracle.com/adf/faces/rich"
+          xmlns:f="http://java.sun.com/jsf/core">
+  <af:panelGroupLayout id="pgl1" rendered="true" halign="left" valign="top" layout="vertical">
+    <af:panelGroupLayout id="pgl7" layout="horizontal" styleClass="AFStretchWidth">
+      <af:panelFormLayout id="pfl2" styleClass="AFStretchWidth MainHeader">
+        <af:outputLabel value="#{bundle['LBL.3230']}" id="ol1"/>
+        <af:outputText value="#{pageFlowScope.ADJ_DATA_FETCH_DISABLE}" id="ot11" rendered="false"/>
+      </af:panelFormLayout>
+      <af:panelGroupLayout id="pgl8" styleClass="AFStretchWidth MainHeader" layout="horizontal"
+                           visible="#{pageFlowScope.GLBL_ORG_PROJ_ALW=='Y'}">
+        <af:selectOneRadio value="#{bindings.TvouPrjwAdjFlg.inputValue}"
+                           required="#{bindings.TvouPrjwAdjFlg.hints.mandatory}"
+                           shortDesc="#{bindings.TvouPrjwAdjFlg.hints.tooltip}" id="sor1" layout="horizontal"
+                           autoSubmit="true" disabled="#{bindings.TvouAdjAutoVO.estimatedRowCount>0}"
+                           valueChangeListener="#{pageFlowScope.TvouAutoAdjustBean.projectVCL}">
+          <f:selectItems value="#{bindings.TvouPrjwAdjFlg.items}" id="si4"/>
+          <f:validator binding="#{bindings.TvouPrjwAdjFlg.validator}"/>
+        </af:selectOneRadio>
+        <af:selectOneChoice value="#{bindings.TvouPrjId1.inputValue}" label="Project"
+                            required="#{bindings.TvouPrjId1.hints.mandatory}"
+                            shortDesc="#{bindings.TvouPrjId1.hints.tooltip}" id="soc4"
+                            disabled="#{bindings.TvouPrjwAdjFlg.inputValue=='O' || bindings.TvouAdjAutoVO.estimatedRowCount>0}" partialTriggers="sor1"
+                            contentStyle="color:green;" autoSubmit="true">
+          <f:selectItems value="#{bindings.TvouPrjId1.items}" id="si5"/>
+          <f:validator binding="#{bindings.TvouPrjId1.validator}"/>
+        </af:selectOneChoice>
+      </af:panelGroupLayout>
+    </af:panelGroupLayout>
+    <af:panelCollection id="pc1" inlineStyle="width:1250px;" featuresOff="freeze statusBar viewMenu detach wrap">
+      <f:facet name="menus"/>
+      <f:facet name="toolbar">
+        <af:toolbar id="t3">
+          <af:group id="g3">
+            <af:inputText label="#{bundle['LBL.2739']}" id="it3" labelStyle="font-size:small;"
+                          value="#{pageFlowScope.TvouAutoAdjustBean.searchValue}"
+                          disabled='#{pageFlowScope.PARAM_GLBL_MODE == "S" || pageFlowScope.PARAM_GLBL_MODE == "V"}'
+                          contentStyle="width:125px;"/>
+            <af:commandToolbarButton text="#{bundle['LBL.889']}" id="ctb1"
+                                     actionListener="#{pageFlowScope.TvouAutoAdjustBean.gotoPressed}"
+                                     disabled='#{pageFlowScope.PARAM_GLBL_MODE == "S" || pageFlowScope.PARAM_GLBL_MODE == "V"}'/>
+          </af:group>
+          <af:group id="g4" rendered="#{pageFlowScope.TVOU_TYP_ID ne 15}">
+            <af:inputText label="Enter Instrument Amount" id="it6" labelStyle="width:150px;"
+                          value="#{pageFlowScope.TvouAutoAdjustBean.bnkInstrmntAmt}"
+                          disabled='#{pageFlowScope.PARAM_GLBL_MODE == "S" || pageFlowScope.PARAM_GLBL_MODE == "V"}'
+                          contentStyle="width:125px;">
+              <af:convertNumber minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+            <af:commandToolbarButton text="Assign Amount" id="ctb2"
+                                     actionListener="#{bindings.assignBnkInstrmtAmt.execute}"
+                                     disabled='#{pageFlowScope.PARAM_GLBL_MODE == "S" || pageFlowScope.PARAM_GLBL_MODE == "V"}'/>
+          </af:group>
+          <af:inputText value="#{bindings.TvouCurrCcTrx.inputValue}" label="#{bindings.TvouCurrCcTrx.hints.label}"
+                        required="#{bindings.TvouCurrCcTrx.hints.mandatory}"
+                        columns="#{bindings.TvouCurrCcTrx.hints.displayWidth}"
+                        maximumLength="#{bindings.TvouCurrCcTrx.hints.precision}"
+                        shortDesc="#{bindings.TvouCurrCcTrx.hints.tooltip}" id="it7"
+                        binding="#{pageFlowScope.TvouAutoAdjustBean.tvouCurrCctrxBinding}" visible="false">
+            <f:validator binding="#{bindings.TvouCurrCcTrx.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouCurrCcTrx.format}"/>
+          </af:inputText>
+          <af:selectOneChoice value="#{bindings.TvouCurrIdTrx.inputValue}" label="Line/Trx. Currency"
+                              required="#{bindings.TvouCurrIdTrx.hints.mandatory}"
+                              shortDesc="#{bindings.TvouCurrIdTrx.hints.tooltip}" id="soc1"
+                              contentStyle="width:150px;font-weight:bold;color:navy" readOnly="true">
+            <f:selectItems value="#{bindings.TvouCurrIdTrx.items}" id="si1"/>
+            <f:validator binding="#{bindings.TvouCurrIdTrx.validator}"/>
+          </af:selectOneChoice>
+          <af:inputText value="#{bindings.TvouCurrCcTrx.inputValue}" label="Line/Trx. Rate"
+                        required="#{bindings.TvouCurrCcTrx.hints.mandatory}"
+                        columns="#{bindings.TvouCurrCcTrx.hints.displayWidth}"
+                        maximumLength="#{bindings.TvouCurrCcTrx.hints.precision}"
+                        shortDesc="#{bindings.TvouCurrCcTrx.hints.tooltip}" id="it11"
+                        contentStyle="width:20px;font-weight:bold;color:navy" readOnly="true">
+            <f:validator binding="#{bindings.TvouCurrCcTrx.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouCurrCcTrx.format}"/>
+          </af:inputText>
+        </af:toolbar>
+      </f:facet>
+      <f:facet name="statusbar"/>
+      <af:table value="#{bindings.TvouAdjAutoVO.collectionModel}" var="row" rows="#{bindings.TvouAdjAutoVO.rangeSize}"
+                emptyText="#{bindings.TvouAdjAutoVO.viewable ? 'No data to display.' : 'Access Denied.'}"
+                fetchSize="#{bindings.TvouAdjAutoVO.rangeSize}" rowBandingInterval="0"
+                selectedRowKeys="#{bindings.TvouAdjAutoVO.collectionModel.selectedRow}"
+                selectionListener="#{bindings.TvouAdjAutoVO.collectionModel.makeCurrent}" id="t1" width="1245" columnSelection="single"
+                verticalGridVisible="false" partialTriggers="cil1 cil2 ::ctb2" rowSelection="single"
+                binding="#{pageFlowScope.TvouAutoAdjustBean.invTable}" displayRow="selected">
+        <af:column sortProperty="#{bindings.TvouAdjAutoVO.hints.completeAdjChkBoxTrans.name}" sortable="false" id="c70"
+                   width="40">
+          <f:facet name="header">
+            <af:group id="g1">
+              <af:commandImageLink id="cil1" partialSubmit="true" icon="#{resource['images:stock_form_checkbox.png']}"
+                                   action="#{pageFlowScope.TvouAutoAdjustBean.selectAllInvoiceAction}"
+                                   shortDesc="#{bundle['LBL.890']}"
+                                   disabled='#{pageFlowScope.PARAM_GLBL_MODE == "S" || pageFlowScope.PARAM_GLBL_MODE== "V"}'/>
+              <af:commandImageLink id="cil2" partialSubmit="true" icon="#{resource['images:checkbox_no.png']}"
+                                   action="#{pageFlowScope.TvouAutoAdjustBean.deSelectAllInvoiceAction}"
+                                   shortDesc="#{bundle['LBL.2655']}"
+                                   disabled='#{pageFlowScope.PARAM_GLBL_MODE == "S" || pageFlowScope.PARAM_GLBL_MODE== "V"}'/>
+            </af:group>
+          </f:facet>
+          <af:selectBooleanCheckbox value="#{row.bindings.TvouAdjChkFlg.inputValue}"
+                                    label="#{row.bindings.TvouAdjChkFlg.label}"
+                                    shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouAdjChkFlg.tooltip}" id="sbc1"
+                                    autoSubmit="true"
+                                    valueChangeListener="#{pageFlowScope.TvouAutoAdjustBean.checkBoxAdjustVCE}"
+                                    disabled='#{pageFlowScope.PARAM_GLBL_MODE == "S" || pageFlowScope.PARAM_GLBL_MODE== "V"}'/>
+        </af:column>
+        <af:column headerText="#{pageFlowScope.GLBL_ORG_PROJ_ALW=='Y' ?'Project/ Reference Id':'Reference Id'}" id="c18" width="75">
+          <af:selectOneChoice value="#{row.bindings.TvouPrjId.inputValue}" label="#{row.bindings.TvouPrjId.label}"
+                              required="#{bindings.TvouAdjAutoVO.hints.TvouPrjId.mandatory}"
+                              shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouPrjId.tooltip}" id="soc5" readOnly="true"
+                              contentStyle="font-weight:bold; color:Green;"
+                              visible="#{pageFlowScope.GLBL_ORG_PROJ_ALW=='Y'}">
+            <f:selectItems value="#{row.bindings.TvouPrjId.items}" id="si6"/>
+            <f:validator binding="#{row.bindings.TvouPrjId.validator}"/>
+          </af:selectOneChoice>
+          <af:selectOneChoice value="#{row.bindings.TvouReqId.inputValue}" label="#{row.bindings.TvouReqId.label}"
+                              required="#{bindings.TvouAdjAutoVO.hints.TvouReqId.mandatory}"
+                              shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouReqId.tooltip}" id="soc7" readOnly="true"
+                              autoSubmit="true">
+            <f:selectItems value="#{row.bindings.TvouReqId.items}" id="si8"/>
+            <f:validator binding="#{row.bindings.TvouReqId.validator}"/>
+          </af:selectOneChoice>
+        </af:column>
+        <af:column sortProperty="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDocNo.name}"
+                   headerText="Document Detail"
+                   id="c10" width="80" sortable="true" align="left">
+          <af:inputText value="#{row.bindings.TvouAdjExtDocNo.inputValue}"
+                        label="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDocNo.label}"
+                        required="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDocNo.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDocNo.displayWidth}"
+                        maximumLength="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDocNo.precision}"
+                        shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDocNo.tooltip}" id="it9" readOnly="true"
+                        contentStyle="font-weight:bold; color:Green;">
+            <f:validator binding="#{row.bindings.TvouAdjExtDocNo.validator}"/>
+          </af:inputText>
+          <af:inputDate value="#{row.bindings.TvouAdjExtDocDt.inputValue}"
+                        label="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDocDt.label}"
+                        required="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDocDt.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDocDt.displayWidth}"
+                        shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDocDt.tooltip}" id="id1" readOnly="true">
+            <f:validator binding="#{row.bindings.TvouAdjExtDocDt.validator}"/>
+            <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+          </af:inputDate>
+        </af:column>
+        <af:column sortable="true" headerText="#{bundle['LBL.2330']}" id="c9" width="60" rendered="false"/>
+        <af:column sortProperty="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDueDt.name}" sortable="true"
+                   headerText="#{bundle['LBL.3231']}" id="c11" width="60">
+          <af:inputDate value="#{row.bindings.TvouAdjExtDueDt.inputValue}"
+                        label="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDueDt.label}"
+                        required="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDueDt.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDueDt.displayWidth}"
+                        shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouAdjExtDueDt.tooltip}" id="id2" readOnly="true">
+            <f:validator binding="#{row.bindings.TvouAdjExtDueDt.validator}"/>
+            <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+          </af:inputDate>
+        </af:column>
+        <af:column sortProperty="#{bindings.TvouAdjAutoVO.hints.TvouRadjAmtSp.name}" sortable="true"
+                   headerText="#{bundle['LBL.3157']}*" id="c33" width="95" align="right">
+          <af:inputText value="#{row.bindings.TvouRadjAmtSp.inputValue}"
+                        label="#{bindings.TvouAdjAutoVO.hints.TvouRadjAmtSp.label}"
+                        required="#{bindings.TvouAdjAutoVO.hints.TvouRadjAmtSp.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.TvouRadjAmtSp.displayWidth}"
+                        maximumLength="#{bindings.TvouAdjAutoVO.hints.TvouRadjAmtSp.precision}"
+                        shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouRadjAmtSp.tooltip}" id="it29" readOnly="true">
+            <f:validator binding="#{row.bindings.TvouRadjAmtSp.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+        </af:column>
+        <af:column sortProperty="#{bindings.TvouAdjAutoVO.hints.TvouCcCurr.name}" sortable="true"
+                   headerText="Currency Detail" id="c23" width="50" align="right">
+          <af:selectOneChoice value="#{row.bindings.TvouAdjCurrIdSp.inputValue}"
+                              label="#{row.bindings.TvouAdjCurrIdSp.label}"
+                              required="#{bindings.TvouAdjAutoVO.hints.TvouAdjCurrIdSp.mandatory}"
+                              shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouAdjCurrIdSp.tooltip}" id="soc2"
+                              readOnly="true" contentStyle="font-weight:bold; color:Green;">
+            <f:selectItems value="#{row.bindings.TvouAdjCurrIdSp.items}" id="si2"/>
+            <f:validator binding="#{row.bindings.TvouAdjCurrIdSp.validator}"/>
+          </af:selectOneChoice>
+          <af:inputText value="#{row.bindings.TvouCcCurr.inputValue}"
+                        label="#{bindings.TvouAdjAutoVO.hints.TvouCcCurr.label}"
+                        required="#{bindings.TvouAdjAutoVO.hints.TvouCcCurr.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.TvouCcCurr.displayWidth}"
+                        maximumLength="#{bindings.TvouAdjAutoVO.hints.TvouCcCurr.precision}"
+                        shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouCcCurr.tooltip}" id="it20" readOnly="true"
+                        visible="false">
+            <f:validator binding="#{row.bindings.TvouCcCurr.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdjAutoVO.hints.TvouCcCurr.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_CURR_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_CURR_DIGIT}"/>
+          </af:inputText>
+          <af:inputText value="#{row.bindings.TvouCcOld.inputValue}"
+                        required="#{bindings.TvouAdjAutoVO.hints.TvouCcOld.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.TvouCcOld.displayWidth}"
+                        maximumLength="#{bindings.TvouAdjAutoVO.hints.TvouCcOld.precision}"
+                        shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouCcOld.tooltip}" id="it12" autoSubmit="true"
+                        readOnly="true" binding="#{pageFlowScope.TvouAutoAdjustBean.tvouCcCurrBinding}">
+            <f:validator binding="#{row.bindings.TvouCcOld.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdjAutoVO.hints.TvouCcOld.format}"/>
+          </af:inputText>
+        </af:column>
+        <af:column sortProperty="#{bindings.TvouAdjAutoVO.hints.TvouRadjAmtAdj.name}" sortable="true"
+                   headerText="Amount Adjusted *" id="c32" width="85" align="right"
+                   inlineStyle=" background-color: #{row.bindings.TvouRadjAmtAdj.inputValue != pageFlowScope.TvouAutoAdjustBean.zero ? 'Orange' : ''};">
+          <af:inputText value="#{row.bindings.TvouRadjAmtAdj.inputValue}"
+                        label="#{bindings.TvouAdjAutoVO.hints.TvouRadjAmtAdj.label}"
+                        required="#{bindings.TvouAdjAutoVO.hints.TvouRadjAmtAdj.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.TvouRadjAmtAdj.displayWidth}"
+                        maximumLength="#{bindings.TvouAdjAutoVO.hints.TvouRadjAmtAdj.precision}"
+                        shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouRadjAmtAdj.tooltip}" id="it28" readOnly="true"
+                        binding="#{pageFlowScope.TvouAutoAdjustBean.advanceAssignedBinding}" autoSubmit="true">
+            <f:validator binding="#{row.bindings.TvouRadjAmtAdj.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+        </af:column>
+        <af:column sortProperty="#{bindings.TvouAdjAutoVO.hints.TvouAmtTrx.name}" sortable="true"
+                   headerText="Transaction Amount (Trx) **" id="c21" width="100" align="right"
+                   inlineStyle="background-color: #{row.bindings.TvouAmtTrx.inputValue != pageFlowScope.TvouAutoAdjustBean.zero ? 'Yellow' : ''};">
+          <af:inputText value="#{row.bindings.TvouAmtTrx.inputValue}"
+                        required="#{bindings.TvouAdjAutoVO.hints.TvouAmtTrx.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.TvouAmtTrx.displayWidth}"
+                        maximumLength="#{bindings.TvouAdjAutoVO.hints.TvouAmtTrx.precision}"
+                        shortDesc="Transaction Amount" id="it18" styleClass="AFFieldNumberMarker" autoSubmit="true"
+                        validator="#{pageFlowScope.TvouAutoAdjustBean.InvoiceTrxAmtValidator}"
+                        valueChangeListener="#{pageFlowScope.TvouAutoAdjustBean.InvoiceTrxAmtVCE}"
+                        binding="#{pageFlowScope.TvouAutoAdjustBean.transactionAmountBinding}"
+                        readOnly="#{row.bindings.TvouAdjChkFlg.inputValue=='false'}"
+                        contentStyle="width:80px; background-color: #{row.bindings.TvouAmtTrx.inputValue != pageFlowScope.TvouAutoAdjustBean.zero ? 'Yellow' : ''};"
+                        disabled="#{pageFlowScope.TVOU_TYP_ID eq 15 || pageFlowScope.PARAM_GLBL_MODE == &quot;S&quot; || pageFlowScope.PARAM_GLBL_MODE == &quot;V&quot;}" inlineStyle="font-size:small; font-weight:bold;">
+            <f:validator binding="#{row.bindings.TvouAmtTrx.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+        </af:column>
+        <af:column sortProperty="#{bindings.TvouAdjAutoVO.hints.TvouAdjAmtAdjThs.name}" sortable="true"
+                   headerText="Transaction Amount *" id="c2" width="95" align="right" visible="true" rendered="true">
+          <af:inputText value="#{row.bindings.TvouAdjAmtAdjThs.inputValue}"
+                        label="#{bindings.TvouAdjAutoVO.hints.TvouAdjAmtAdjThs.label}"
+                        required="#{bindings.TvouAdjAutoVO.hints.TvouAdjAmtAdjThs.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.TvouAdjAmtAdjThs.displayWidth}"
+                        maximumLength="#{bindings.TvouAdjAutoVO.hints.TvouAdjAmtAdjThs.precision}"
+                        shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouAdjAmtAdjThs.tooltip}" id="it2" readOnly="true"
+                        binding="#{pageFlowScope.TvouAutoAdjustBean.tvouAdjAmtAdjThsBind}">
+            <f:validator binding="#{row.bindings.TvouAdjAmtAdjThs.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+        </af:column>
+        <af:column headerText="#{bundle['LBL.670']}*" id="c1" visible="true" align="right" width="95">
+          <af:outputText value="#{row.TvouAdjAmtOT}" shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouAdjAmtOT.tooltip}"
+                         id="ot1" binding="#{pageFlowScope.TvouAutoAdjustBean.tvouAdjAmtOTBind}">
+            <af:convertNumber minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:outputText>
+        </af:column>
+        <af:column headerText="#{bundle['LBL.1484']} *" id="c5" align="right" width="95">
+          <af:outputText value="#{row.unPostedAmount}"
+                         shortDesc="#{bindings.TvouAdjAutoVO.hints.unPostedAmount.tooltip}" id="ot4">
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdjAutoVO.hints.unPostedAmount.format}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:outputText>
+        </af:column>
+        <af:column id="c75" headerText="#{bundle['LBL.3232']} *" align="right" width="85">
+          <af:inputText value="#{row.bindings.RemainingBalanceTrans.inputValue}"
+                        required="#{bindings.TvouAdjAutoVO.hints.RemainingBalanceTrans.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.RemainingBalanceTrans.displayWidth}"
+                        maximumLength="#{bindings.TvouAdjAutoVO.hints.RemainingBalanceTrans.precision}"
+                        shortDesc="#{bindings.TvouAdjAutoVO.hints.RemainingBalanceTrans.tooltip}" id="it4"
+                        readOnly="true" binding="#{pageFlowScope.TvouAutoAdjustBean.remainingBalanceBinding}">
+            <f:validator binding="#{row.bindings.RemainingBalanceTrans.validator}"/>
+            <af:convertNumber minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+        </af:column>
+        <af:column headerText="Remaining Balance (Trx) **" id="c16" align="right" width="85">
+          <af:inputText value="#{row.bindings.TransVouBaseAmount.inputValue}"
+                        label="#{bindings.TvouAdjAutoVO.hints.TransVouBaseAmount.label}"
+                        required="#{bindings.TvouAdjAutoVO.hints.TransVouBaseAmount.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.TransVouBaseAmount.displayWidth}"
+                        maximumLength="#{bindings.TvouAdjAutoVO.hints.TransVouBaseAmount.precision}"
+                        shortDesc="#{bindings.TvouAdjAutoVO.hints.TransVouBaseAmount.tooltip}" id="it8" readOnly="true"
+                        binding="#{pageFlowScope.TvouAutoAdjustBean.remTrancationAmtBinding}">
+            <f:validator binding="#{row.bindings.TransVouBaseAmount.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdjAutoVO.hints.TransVouBaseAmount.format}"
+                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+          </af:inputText>
+        </af:column>
+        <af:column headerText="#{bundle['LBL.1127']}" id="c8" width="80">
+          <af:outputText value="#{row.TvouRadjDispId}"
+                         shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouRadjDispId.tooltip}" id="ot2"
+                         inlineStyle="font-weight:bold; color:Green;"/>
+          <af:inputDate value="#{row.bindings.TvouRadjVouDt.inputValue}"
+                        label="#{bindings.TvouAdjAutoVO.hints.TvouRadjVouDt.label}"
+                        required="#{bindings.TvouAdjAutoVO.hints.TvouRadjVouDt.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.TvouRadjVouDt.displayWidth}"
+                        shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouRadjVouDt.tooltip}" id="id5" readOnly="true">
+            <f:validator binding="#{row.bindings.TvouRadjVouDt.validator}"/>
+            <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+          </af:inputDate>
+        </af:column>
+        <af:column sortProperty="#{bindings.TvouAdjAutoVO.hints.TvouRadjVouDt.name}" sortable="true"
+                   headerText="#{bundle['LBL.1120']}" id="c37" width="60" rendered="false"/>
+        <af:column sortProperty="#{bindings.TvouAdjAutoVO.hints.TvouAmtTyp.name}" sortable="true"
+                   headerText="#{bundle['LBL.72']}" id="c22" width="50">
+          <af:inputText value="#{row.bindings.TvouAmtTyp.inputValue}"
+                        label="#{bindings.TvouAdjAutoVO.hints.TvouAmtTyp.label}"
+                        required="#{bindings.TvouAdjAutoVO.hints.TvouAmtTyp.mandatory}"
+                        columns="#{bindings.TvouAdjAutoVO.hints.TvouAmtTyp.displayWidth}"
+                        maximumLength="#{bindings.TvouAdjAutoVO.hints.TvouAmtTyp.precision}"
+                        shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouAmtTyp.tooltip}" id="it19" readOnly="true">
+            <f:validator binding="#{row.bindings.TvouAmtTyp.validator}"/>
+          </af:inputText>
+        </af:column>
+        <af:column headerText="#{bindings.TvouAdjAutoVO.hints.TvouTmpInvSum1.label}" id="c13" rendered="false">
+          <af:outputText value="#{row.TvouTmpInvSum1}"
+                         shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouTmpInvSum1.tooltip}" id="ot8">
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdjAutoVO.hints.TvouTmpInvSum1.format}"/>
+          </af:outputText>
+        </af:column>
+        <af:column headerText="#{bindings.TvouAdjAutoVO.hints.TvouTmpInvSum2.label}" id="c14" rendered="false">
+          <af:outputText value="#{row.TvouTmpInvSum2}"
+                         shortDesc="#{bindings.TvouAdjAutoVO.hints.TvouTmpInvSum2.tooltip}" id="ot9">
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdjAutoVO.hints.TvouTmpInvSum2.format}"/>
+          </af:outputText>
+        </af:column>
+      </af:table>
+    </af:panelCollection>
+    <af:spacer width="10" height="10" id="s8"/>
+    <af:panelSplitter id="ps1" splitterPosition="875" styleClass="AFStretchWidth" inlineStyle="height:270px;"
+                      dimensionsFrom="children">
+      <f:facet name="first">
+        <af:panelGroupLayout layout="scroll" id="pgl2">
+          <af:table value="#{bindings.TvouAdvDtlAutoVO.collectionModel}" var="row"
+                    rows="#{bindings.TvouAdvDtlAutoVO.rangeSize}"
+                    emptyText="#{bindings.TvouAdvDtlAutoVO.viewable ? 'No data to display.' : 'Access Denied.'}"
+                    fetchSize="#{bindings.TvouAdvDtlAutoVO.rangeSize}" rowBandingInterval="0"
+                    selectedRowKeys="#{bindings.TvouAdvDtlAutoVO.collectionModel.selectedRow}"
+                    selectionListener="#{bindings.TvouAdvDtlAutoVO.collectionModel.makeCurrent}"
+                    id="t2" styleClass="AFStretch" rendered="true" width="850" inlineStyle="height:250px;"
+                    partialTriggers="cil3 cil4 ::pc1:ctb2">
+            <af:column sortProperty="#{bindings.TvouAdvDtlAutoVO.hints.completeAdvChkBoxTrans.name}" sortable="false"
+                       id="c71" width="40" headerText="">
+              <f:facet name="header">
+                <af:group id="g2">
+                  <af:commandImageLink id="cil3" icon="#{resource['images:stock_form_checkbox.png']}" partialSubmit="true"
+                                       action="#{pageFlowScope.TvouAutoAdjustBean.selectAllAdvAction}"
+                                       shortDesc="#{bundle['LBL.890']}"
+                                       disabled='#{pageFlowScope.PARAM_GLBL_MODE == "S" || pageFlowScope.PARAM_GLBL_MODE == "V"}'/>
+                  <af:commandImageLink id="cil4"
+                                       icon="#{resource['images:checkbox_no.png']}" partialSubmit="true"
+                                       action="#{pageFlowScope.TvouAutoAdjustBean.deSelectAllAdvAction}"
+                                       shortDesc="#{bundle['LBL.2655']}"
+                                       disabled='#{pageFlowScope.PARAM_GLBL_MODE == "S" || pageFlowScope.PARAM_GLBL_MODE == "V"}'/>
+                </af:group>
+              </f:facet>
+              <af:selectBooleanCheckbox value="#{row.bindings.TvouAdjAdvChkFlg.inputValue}"
+                                        label="#{row.bindings.TvouAdjAdvChkFlg.label}"
+                                        shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAdvChkFlg.tooltip}"
+                                        id="sbc2" autoSubmit="true"
+                                        valueChangeListener="#{pageFlowScope.TvouAutoAdjustBean.checkBoxAdvVCE}"
+                                        disabled='#{pageFlowScope.PARAM_GLBL_MODE == "S" || pageFlowScope.PARAM_GLBL_MODE == "V"}'/>
+            </af:column>
+            <af:column headerText="#{pageFlowScope.GLBL_ORG_PROJ_ALW=='Y' ?'Project/ Reference Id':'Reference Id'}" id="c19" width="70">
+              <af:selectOneChoice value="#{row.bindings.TvouPrjId.inputValue}" label="#{row.bindings.TvouPrjId.label}"
+                                  required="#{bindings.TvouAdvDtlAutoVO.hints.TvouPrjId.mandatory}"
+                                  shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouPrjId.tooltip}" id="soc6"
+                                  readOnly="true"
+                                  contentStyle="font-weight:bold; color:Green;"
+                                  visible="#{pageFlowScope.GLBL_ORG_PROJ_ALW=='Y'}">
+                <f:selectItems value="#{row.bindings.TvouPrjId.items}" id="si7"/>
+                <f:validator binding="#{row.bindings.TvouPrjId.validator}"/>
+              </af:selectOneChoice>
+              <af:selectOneChoice value="#{row.bindings.TvouReqId.inputValue}" label="#{row.bindings.TvouReqId.label}"
+                                  required="#{bindings.TvouAdvDtlAutoVO.hints.TvouReqId.mandatory}"
+                                  shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouReqId.tooltip}" id="soc8"
+                                  autoSubmit="true" readOnly="true">
+                <f:selectItems value="#{row.bindings.TvouReqId.items}" id="si9"/>
+                <f:validator binding="#{row.bindings.TvouReqId.validator}"/>
+              </af:selectOneChoice>
+            </af:column>
+            <af:column headerText="Document Detail" id="c7" width="100" filterable="true">
+              <af:outputText value="#{row.TvouAdjExtDocNo}"
+                             shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjExtDocNo.tooltip}" id="ot6"
+                             inlineStyle="font-weight:bold; color:Green;"/>
+              <af:outputText value="#{row.TvouAdjExtDocDt}"
+                             shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjExtDocDt.tooltip}" id="ot5">
+                <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+              </af:outputText>
+            </af:column>
+            <af:column headerText="#{bundle['LBL.2330']}" id="c6" width="60" filterable="true" rendered="false"/>
+            <af:column headerText="External Doc.Due Date" id="c12" width="60" filterable="true" rendered="false">
+              <af:outputText value="#{row.TvouAdjExtDueDt}"
+                             shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjExtDueDt.tooltip}" id="ot7">
+                <af:convertDateTime pattern="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjExtDueDt.format}"/>
+              </af:outputText>
+            </af:column>
+            <af:column sortProperty="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtSp.name}" sortable="true"
+                       headerText="#{bundle['LBL.2110']} *" id="c47" width="75" align="right">
+              <af:inputText value="#{row.bindings.TvouAdvAmtSp.inputValue}"
+                            label="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtSp.label}"
+                            required="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtSp.mandatory}"
+                            columns="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtSp.displayWidth}"
+                            maximumLength="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtSp.precision}"
+                            shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtSp.tooltip}" id="it40"
+                            readOnly="true">
+                <f:validator binding="#{row.bindings.TvouAdvAmtSp.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:inputText>
+              <af:inputText value="#{row.bindings.TvouAdvAmtTyp.inputValue}"
+                            label="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtTyp.label}"
+                            required="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtTyp.mandatory}"
+                            columns="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtTyp.displayWidth}"
+                            maximumLength="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtTyp.precision}"
+                            shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtTyp.tooltip}" id="it61"
+                            readOnly="true">
+                <f:validator binding="#{row.bindings.TvouAdvAmtTyp.validator}"/>
+              </af:inputText>
+            </af:column>
+            <af:column sortProperty="#{bindings.TvouAdvDtlAutoVO.hints.TvouAmtTrx.name}" sortable="true"
+                       headerText="Transaction Amount (Trx) **" id="c59" width="100" align="right">
+              <af:inputText value="#{row.bindings.TvouAmtTrx.inputValue}"
+                            label="#{bindings.TvouAdvDtlAutoVO.hints.TvouAmtTrx.label}"
+                            required="#{bindings.TvouAdvDtlAutoVO.hints.TvouAmtTrx.mandatory}"
+                            columns="#{bindings.TvouAdvDtlAutoVO.hints.TvouAmtTrx.displayWidth}"
+                            maximumLength="#{bindings.TvouAdvDtlAutoVO.hints.TvouAmtTrx.precision}"
+                            shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouAmtTrx.tooltip}" id="it52"
+                            inlineStyle="text-align:right;" styleClass="AFFieldNumberMarker" readOnly="true">
+                <f:validator binding="#{row.bindings.TvouAmtTrx.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:inputText>
+            </af:column>
+            <af:column sortProperty="#{bindings.TvouAdvDtlAutoVO.hints.TvouCcCurr.name}" sortable="false"
+                       headerText="Currency Detail" id="c60" width="50" align="right">
+              <af:selectOneChoice value="#{row.bindings.TvouAdvCurrIdSp.inputValue}"
+                                  label="#{row.bindings.TvouAdvCurrIdSp.label}"
+                                  required="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvCurrIdSp.mandatory}"
+                                  shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvCurrIdSp.tooltip}" id="soc3"
+                                  readOnly="true" contentStyle="font-weight:bold; color:Green;">
+                <f:selectItems value="#{row.bindings.TvouAdvCurrIdSp.items}" id="si3"/>
+                <f:validator binding="#{row.bindings.TvouAdvCurrIdSp.validator}"/>
+              </af:selectOneChoice>
+              <af:inputText value="#{row.bindings.TvouCcCurr.inputValue}"
+                            label="#{bindings.TvouAdvDtlAutoVO.hints.TvouCcCurr.label}"
+                            required="#{bindings.TvouAdvDtlAutoVO.hints.TvouCcCurr.mandatory}"
+                            columns="#{bindings.TvouAdvDtlAutoVO.hints.TvouCcCurr.displayWidth}"
+                            maximumLength="#{bindings.TvouAdvDtlAutoVO.hints.TvouCcCurr.precision}"
+                            shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouCcCurr.tooltip}" id="it53" readOnly="true"
+                            visible="false">
+                <f:validator binding="#{row.bindings.TvouCcCurr.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdjAutoVO.hints.TvouCcCurr.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_CURR_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_CURR_DIGIT}"/>
+              </af:inputText>
+              <af:inputText value="#{row.bindings.TvouCcOld.inputValue}"
+                            required="#{bindings.TvouAdvDtlAutoVO.hints.TvouCcOld.mandatory}"
+                            columns="#{bindings.TvouAdvDtlAutoVO.hints.TvouCcOld.displayWidth}"
+                            maximumLength="#{bindings.TvouAdvDtlAutoVO.hints.TvouCcOld.precision}"
+                            shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouCcOld.tooltip}" id="it13"
+                            autoSubmit="true" readOnly="true">
+                <f:validator binding="#{row.bindings.TvouCcOld.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdvDtlAutoVO.hints.TvouCcOld.format}"/>
+              </af:inputText>
+            </af:column>
+            <af:column sortProperty="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtAdj.name}" sortable="true"
+                       headerText="Transaction Amount *" id="c46" width="75" align="right">
+              <af:inputText value="#{row.bindings.TvouAdvAmtAdj.inputValue}"
+                            label="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtAdj.label}"
+                            required="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtAdj.mandatory}"
+                            columns="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtAdj.displayWidth}"
+                            maximumLength="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtAdj.precision}"
+                            shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtAdj.tooltip}" id="it39"
+                            readOnly="true">
+                <f:validator binding="#{row.bindings.TvouAdvAmtAdj.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:inputText>
+            </af:column>
+            <af:column headerText="#{bundle['LBL.670']} *" id="c73" width="75" align="right" sortable="true">
+              <af:inputText value="#{row.bindings.OutstandingAdvAmtTrans.inputValue}"
+                            label="#{bindings.TvouAdvDtlAutoVO.hints.OutstandingAdvAmtTrans.label}"
+                            required="#{bindings.TvouAdvDtlAutoVO.hints.OutstandingAdvAmtTrans.mandatory}"
+                            columns="#{bindings.TvouAdvDtlAutoVO.hints.OutstandingAdvAmtTrans.displayWidth}"
+                            maximumLength="#{bindings.TvouAdvDtlAutoVO.hints.OutstandingAdvAmtTrans.precision}"
+                            shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.OutstandingAdvAmtTrans.tooltip}" id="it51"
+                            readOnly="true">
+                <f:validator binding="#{row.bindings.OutstandingAdvAmtTrans.validator}"/>
+                <af:convertNumber groupingUsed="false" minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:inputText>
+            </af:column>
+            <af:column headerText="Remaining Balance (Trx.) **" id="c17" width="70" align="right">
+              <af:inputText value="#{row.bindings.TransVouBaseAmt.inputValue}"
+                            label="#{bindings.TvouAdvDtlAutoVO.hints.TransVouBaseAmt.label}"
+                            required="#{bindings.TvouAdvDtlAutoVO.hints.TransVouBaseAmt.mandatory}"
+                            columns="#{bindings.TvouAdvDtlAutoVO.hints.TransVouBaseAmt.displayWidth}"
+                            maximumLength="#{bindings.TvouAdvDtlAutoVO.hints.TransVouBaseAmt.precision}"
+                            shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TransVouBaseAmt.tooltip}" id="it10"
+                            readOnly="true">
+                <f:validator binding="#{row.bindings.TransVouBaseAmt.validator}"/>
+                <af:convertNumber groupingUsed="false"
+                                  pattern="#{bindings.TvouAdvDtlAutoVO.hints.TransVouBaseAmt.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:inputText>
+            </af:column>
+            <af:column headerText="#{bundle['LBL.1484']} *" id="c15" width="75" align="right">
+              <af:outputText value="#{row.UnPostedAmt}"
+                             shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.UnPostedAmt.tooltip}" id="ot12">
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdvDtlAutoVO.hints.UnPostedAmt.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:outputText>
+            </af:column>
+            <af:column headerText="Voucher Detail" id="c3" width="60">
+              <af:outputText value="#{row.TvouAdvDispId}"
+                             shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvDispId.tooltip}" id="ot3"
+                             inlineStyle="font-weight:bold; color:Green;"/>
+              <af:inputDate value="#{row.bindings.TvouAdvVouDt.inputValue}"
+                            label="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvVouDt.label}"
+                            required="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvVouDt.mandatory}"
+                            columns="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvVouDt.displayWidth}"
+                            shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvVouDt.tooltip}" id="id10"
+                            readOnly="true">
+                <f:validator binding="#{row.bindings.TvouAdvVouDt.validator}"/>
+                <af:convertDateTime pattern="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvVouDt.format}"/>
+              </af:inputDate>
+            </af:column>
+            <af:column headerText="#{bundle['LBL.1120']}" id="c48" width="60" rendered="false"/>
+            <af:column sortProperty="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdvAmtTyp.name}" sortable="false"
+                       headerText="#{bundle['LBL.72']}" id="c72" width="50" rendered="false"/>
+            <af:column sortProperty="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.name}" sortable="true"
+                       headerText="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.label}" id="c45" width="80"
+                       align="right" visible="false">
+              <af:inputText value="#{row.bindings.TvouAdjAmtOT.inputValue}"
+                            label="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.label}"
+                            required="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.mandatory}"
+                            columns="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.displayWidth}"
+                            maximumLength="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.precision}"
+                            shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.tooltip}" id="it38"
+                            readOnly="true">
+                <f:validator binding="#{row.bindings.TvouAdjAmtOT.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdvDtlAutoVO.hints.TvouAdjAmtOT.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:inputText>
+            </af:column>
+            <af:column headerText="#{bindings.TvouAdvDtlAutoVO.hints.TvouRemainOt.label}" id="c50" width="74"
+                       visible="false">
+              <af:inputText value="#{row.bindings.TvouRemainOt.inputValue}"
+                            label="#{bindings.TvouAdvDtlAutoVO.hints.TvouRemainOt.label}"
+                            required="#{bindings.TvouAdvDtlAutoVO.hints.TvouRemainOt.mandatory}"
+                            columns="#{bindings.TvouAdvDtlAutoVO.hints.TvouRemainOt.displayWidth}"
+                            maximumLength="#{bindings.TvouAdvDtlAutoVO.hints.TvouRemainOt.precision}"
+                            shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.TvouRemainOt.tooltip}" id="it42">
+                <f:validator binding="#{row.bindings.TvouRemainOt.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.TvouAdvDtlAutoVO.hints.TvouRemainOt.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:inputText>
+            </af:column>
+            <af:column headerText="#{bindings.TvouAdvDtlAutoVO.hints.OutstandingThisAmt.label}" id="c4"
+                       rendered="false">
+              <af:inputText value="#{row.bindings.OutstandingThisAmt.inputValue}"
+                            label="#{bindings.TvouAdvDtlAutoVO.hints.OutstandingThisAmt.label}"
+                            required="#{bindings.TvouAdvDtlAutoVO.hints.OutstandingThisAmt.mandatory}"
+                            columns="#{bindings.TvouAdvDtlAutoVO.hints.OutstandingThisAmt.displayWidth}"
+                            maximumLength="#{bindings.TvouAdvDtlAutoVO.hints.OutstandingThisAmt.precision}"
+                            shortDesc="#{bindings.TvouAdvDtlAutoVO.hints.OutstandingThisAmt.tooltip}" id="it1">
+                <f:validator binding="#{row.bindings.OutstandingThisAmt.validator}"/>
+                <af:convertNumber groupingUsed="false"
+                                  pattern="#{bindings.TvouAdvDtlAutoVO.hints.OutstandingThisAmt.format}"/>
+              </af:inputText>
+            </af:column>
+          </af:table>
+        </af:panelGroupLayout>
+      </f:facet>
+      <f:facet name="second">
+        <af:panelGroupLayout id="pgl3" halign="left" valign="top" layout="horizontal" styleClass="AFStretchWidth">
+          <af:panelBox text="Summary" id="pb1" showDisclosure="false" inlineStyle="height:241px;">
+            <f:facet name="toolbar"/>
+            <af:panelFormLayout id="pfl1" inlineStyle="height:215px;">
+              <f:facet name="footer">
+                <af:panelGroupLayout id="pgl4" layout="horizontal" halign="right">
+                  <af:commandButton text="Refresh" id="cb5"
+                                    actionListener="#{pageFlowScope.TvouAutoAdjustBean.refreshButtonAction}"
+                                    partialSubmit="true"
+                                    disabled="#{!(pageFlowScope.TvouAutoAdjustBean.disableAdjustment eq 'Y') || pageFlowScope.PARAM_GLBL_MODE == &quot;S&quot; || pageFlowScope.PARAM_GLBL_MODE == &quot;V&quot;}"
+                                    binding="#{pageFlowScope.TvouAutoAdjustBean.refreshButtonBinding}"/>
+                  <af:spacer width="10" height="10" id="s7"/>
+                  <af:commandButton text="Fetch Data" id="cb2"
+                                    disabled="#{((bindings.TvouAdjAutoVOIterator.estimatedRowCount ne 0) and pageFlowScope.ADJ_DATA_FETCH_DISABLE eq 'Y') || pageFlowScope.PARAM_GLBL_MODE == &quot;S&quot; || pageFlowScope.PARAM_GLBL_MODE == &quot;V&quot;}"
+                                    action="#{pageFlowScope.TvouAutoAdjustBean.fetchAdjDataAction}"/>
+                  <af:spacer width="10" height="10" id="s2"/>
+                  <af:commandButton text="Adjust" id="cb3" action="#{pageFlowScope.TvouAutoAdjustBean.adjustAction}"
+                                    disabled="#{(pageFlowScope.TVOU_TYP_ID eq 15 ? ( pageFlowScope.TvouAutoAdjustBean.disableAdjustment eq 'Y') : ( bindings.SumAdjustableAdvAmtTrans.inputValue ge bindings.SumAdjustableAmtTrans.inputValue or pageFlowScope.TvouAutoAdjustBean.disableAdjustment eq 'Y')) || pageFlowScope.PARAM_GLBL_MODE == &quot;S&quot; || pageFlowScope.PARAM_GLBL_MODE == &quot;V&quot;}"
+                                    partialTriggers="t2:sbc2 t2:cil3 t2:cil4 cb5 pc1:t1:sbc1 pc1:t1:cil1 pc1:t1:cil2"/>
+                  <af:spacer width="10" height="10" id="s1"/>
+                  <af:commandButton text="Back" id="cb1" action="#{pageFlowScope.TvouAutoAdjustBean.backAction}" immediate="false"
+                                    visible="#{bindings.TvouAdjAutoVO.estimatedRowCount ne 0}"/>
+                  <af:commandButton text="Back" id="cb4" action="back" immediate="true" partialSubmit="true"
+                                    visible="#{bindings.TvouAdjAutoVO.estimatedRowCount eq 0}"/>
+                </af:panelGroupLayout>
+              </f:facet>
+              <af:panelLabelAndMessage label="Invoice From Date" id="plam6">
+                <af:panelGroupLayout id="pgl5" layout="horizontal">
+                  <af:inputDate value="#{bindings.TvouSerAdjFrmDt.inputValue}"
+                                required="#{( pageFlowScope.TVOU_LN_COA_BEHAV eq 'C' ) and ( bindings.TvouAdjAutoVO.estimatedRowCount eq 0) and ( bindings.TvouAdvDtlAutoVO.estimatedRowCount eq 0)}"
+                                columns="#{bindings.TvouSerAdjFrmDt.hints.displayWidth}"
+                                shortDesc="#{bindings.TvouSerAdjFrmDt.hints.tooltip}" id="id3"
+                                showRequired="#{pageFlowScope.TVOU_LN_COA_BEHAV eq 'C'}" contentStyle="width:60px;"
+                                disabled='#{((bindings.TvouAdjAutoVOIterator.estimatedRowCount ne 0) and pageFlowScope.ADJ_DATA_FETCH_DISABLE eq &apos;Y&apos;) || pageFlowScope.PARAM_GLBL_MODE == "S" || pageFlowScope.PARAM_GLBL_MODE == "V"}'
+                                autoSubmit="true" binding="#{pageFlowScope.TvouAutoAdjustBean.frmDateBinding}">
+                    <f:validator binding="#{bindings.TvouSerAdjFrmDt.validator}"/>
+                    <af:convertDateTime pattern="#{bindings.TvouSerAdjFrmDt.format}"/>
+                  </af:inputDate>
+                  <af:inputDate value="#{bindings.TvouSerAdjToDt.inputValue}"
+                                required="#{( pageFlowScope.TVOU_LN_COA_BEHAV eq 'C' ) and ( bindings.TvouAdjAutoVO.estimatedRowCount eq 0) and ( bindings.TvouAdvDtlAutoVO.estimatedRowCount eq 0)}"
+                                columns="#{bindings.TvouSerAdjToDt.hints.displayWidth}"
+                                shortDesc="#{bindings.TvouSerAdjToDt.hints.tooltip}" id="id4" label="To"
+                                showRequired="#{pageFlowScope.TVOU_LN_COA_BEHAV eq 'C'}" contentStyle="width:60px;"
+                                autoSubmit="true"
+                                disabled='#{((bindings.TvouAdjAutoVOIterator.estimatedRowCount ne 0) and pageFlowScope.ADJ_DATA_FETCH_DISABLE eq &apos;Y&apos;) || pageFlowScope.PARAM_GLBL_MODE == "S" || pageFlowScope.PARAM_GLBL_MODE == "V"}'
+                                binding="#{pageFlowScope.TvouAutoAdjustBean.toDateBinding}"
+                                minValue="#{bindings.TvouSerAdjFrmDt.inputValue}">
+                    <f:validator binding="#{bindings.TvouSerAdjToDt.validator}"/>
+                    <af:convertDateTime pattern="#{bindings.TvouSerAdjToDt.format}"/>
+                  </af:inputDate>
+                </af:panelGroupLayout>
+              </af:panelLabelAndMessage>
+              <af:panelLabelAndMessage label="Total Invoice Amount" id="plam9">
+                <af:outputText value="#{bindings.SumTransAmtInvoice.inputValue}"
+                               shortDesc="#{bindings.SumTransAmtInvoice.hints.tooltip}" id="ot13" partialTriggers="cb5" inlineStyle="font-weight:bold;">
+                  <af:convertNumber groupingUsed="true" minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:outputText>
+              </af:panelLabelAndMessage>
+              <af:panelLabelAndMessage label="Total Others Amount" id="plam10">
+                <af:outputText value="#{bindings.SumTransAmtOthers.inputValue}"
+                               shortDesc="#{bindings.SumTransAmtOthers.hints.tooltip}" id="ot14" partialTriggers="cb5"
+                               inlineStyle="font-weight:bold;">
+                  <af:convertNumber groupingUsed="true"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:outputText>
+              </af:panelLabelAndMessage>
+              <af:separator id="s3"/>
+              <af:panelLabelAndMessage label="Total" id="plam2">
+                <af:outputText value="#{bindings.SumAdjustableAmtTrans.inputValue}"
+                               shortDesc="#{bindings.SumAdjustableAmtTrans.hints.tooltip}" id="ot10"
+                               inlineStyle="font-weight:bold;" partialTriggers="cb5">
+                  <af:convertNumber minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:outputText>
+              </af:panelLabelAndMessage>
+              <af:spacer width="10" height="10" id="s4"/>
+              <af:panelLabelAndMessage label="Selected Advance Amount " id="plam4">
+                <af:outputText value="#{bindings.SumAdjustableAdvAmtTrans.inputValue}"
+                               shortDesc="#{bindings.SumAdjustableAdvAmtTrans.hints.tooltip}" id="ot15"
+                               partialTriggers="cb5" inlineStyle="font-weight:bold;">
+                  <af:convertNumber minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:outputText>
+              </af:panelLabelAndMessage>
+              <af:panelLabelAndMessage label="Net Amount" id="plam8">
+                <af:inputText id="it5" readOnly="true" value="#{pageFlowScope.TvouAutoAdjustBean.balanceAmt}"
+                              partialTriggers="cb5 pc1:ctb2">
+                  <af:convertNumber minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+              </af:panelLabelAndMessage>
+              <af:panelLabelAndMessage label="Instrument Amount" id="plam5">
+                <af:inputText value="#{bindings.SumTrxAmt.inputValue}" required="#{bindings.SumTrxAmt.hints.mandatory}"
+                              columns="#{bindings.SumTrxAmt.hints.displayWidth}"
+                              maximumLength="#{bindings.SumTrxAmt.hints.precision}"
+                              shortDesc="#{bindings.SumTrxAmt.hints.tooltip}" id="it33" styleClass="AFFieldNumberMarker"
+                              binding="#{pageFlowScope.TvouAutoAdjustBean.sumTrxAmtBind}" contentStyle="width:100px;"
+                              readOnly="true" partialTriggers="pc1:ctb2">
+                  <f:validator binding="#{bindings.SumTrxAmt.validator}"/>
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.SumTrxAmt.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+              </af:panelLabelAndMessage>
+              <af:separator id="s6" styleClass="AFStretchWidth"/>
+            </af:panelFormLayout>
+          </af:panelBox>
+        </af:panelGroupLayout>
+      </f:facet>
+    </af:panelSplitter>
+    <af:panelGroupLayout id="pgl6" layout="horizontal" halign="right" styleClass="AFStretchWidth">
+      <af:panelLabelAndMessage label="** Line/Trx. Currency     * Invoice/Advance  Currency" id="plam1"
+                               inlineStyle="color:Red;width:300px;" labelStyle="color:Red;width:300px;"/>
+    </af:panelGroupLayout>
+  </af:panelGroupLayout>
+</jsp:root>

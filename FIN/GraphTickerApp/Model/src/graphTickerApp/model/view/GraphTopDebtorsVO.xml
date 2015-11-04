@@ -1,0 +1,731 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="GraphTopDebtorsVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="graphTickerApp.model.view.GraphTopDebtorsVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="Cld_Id"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="Org_Id"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="Ho_Org_Id"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[select ORG_ID, ORG_DESC, COA_ID, COA_NM,    
+   
+AR_AMT_BS, AMT_OS   
+   
+from (select ORG_ID,ORG_DESC,COA_ID,COA_NM,   
+   
+sum(AR_AMT_BS) AR_AMT_BS,sum(AMT_OS_SIGNED) AMT_OS   
+   
+from (SELECT A.ORG_ID,B.ORG_DESC,A.COA_ID,C.COA_NM,   
+   
+A.CURR_ID_SP,E.GLBL_CURR_NOTATION_ALIAS CURR_NM,   
+   
+sum(A.AMT_SP) AMT_SP,   
+   
+sum(A.AMT_SP_SIGNED) AR_AMT_SP,   
+   
+sum(A.AMT_SP_SIGNED * A.AR_CC) AR_AMT_BS,   
+   
+sum(A.AMT_ADJ) AMT_ADJ,   
+   
+sum(A.AMT_ADJ_SIGNED) AMT_ADJ_SIGNED,   
+   
+sum(A.AMT_OS) AMT_OS,   
+   
+sum(A.AMT_OS_SIGNED) AMT_OS_SIGNED,   
+   
+sum(A.AMT_OS_SIGNED / A.AR_CC) AMT_OS_SIGNED_SP,   
+   
+sum(DECODE(SIGN(30 - OS_DAYS) * SIGN(OS_DAYS),-1, 0,   
+   
+decode('O','A', A.AMT_SP_SIGNED,'O',AMT_OS_SIGNED))) OS_30_DAYS,   
+   
+sum(DECODE(SIGN(60 - OS_DAYS) * SIGN(OS_DAYS - 31),-1,0,   
+   
+decode('O','A',A.AMT_SP_SIGNED,'O',AMT_OS_SIGNED))) OS_60_DAYS,   
+   
+sum(DECODE(SIGN(90 - OS_DAYS) * SIGN(OS_DAYS - 61),-1,0,   
+   
+decode('O','A',A.AMT_SP_SIGNED,'O',AMT_OS_SIGNED))) OS_90_DAYS,   
+   
+sum(DECODE(SIGN(120 - OS_DAYS) * SIGN(OS_DAYS - 91),-1,0,   
+   
+decode('O','A', A.AMT_SP_SIGNED,'O',AMT_OS_SIGNED))) OS_120_DAYS,   
+   
+sum(DECODE(SIGN(150 - OS_DAYS) * SIGN(OS_DAYS - 121), -1,0,   
+   
+decode('O','A', A.AMT_SP_SIGNED,'O',AMT_OS_SIGNED))) OS_150_DAYS,   
+   
+sum(DECODE(SIGN(180 - OS_DAYS) * SIGN(OS_DAYS - 151), -1,0,   
+   
+decode('O','A',A.AMT_SP_SIGNED, 'O',AMT_OS_SIGNED))) OS_180_DAYS,   
+   
+sum(DECODE(SIGN(365 - OS_DAYS) * SIGN(OS_DAYS - 181),-1, 0,   
+   
+decode('O','A',A.AMT_SP_SIGNED,'O',AMT_OS_SIGNED))) OS_1_YR,   
+   
+sum(DECODE(SIGN(OS_DAYS - 366),-1, 0,   
+   
+decode('O','A',A.AMT_SP_SIGNED,'O',AMT_OS_SIGNED))) OS_GREATER_1_YR,   
+   
+i.avg_cr_days avg_cr_days,i.cr_limit cr_limit,   
+   
+x2.eo_nm rep_nm,x3.eo_mst_nm entity_grp   
+   
+FROM (SELECT a.CLD_ID,a.SLOC_ID,            
+   
+a.HO_ORG_ID,a.ORG_ID,               
+   
+a.COA_ID,a.CURR_ID_SP,              
+   
+a.AR_TYPE_ID,a.AR_CC,                  
+   
+a.AR_VOU_DUE_DT,a.VOU_ID,                         
+   
+a.VOU_DT,a.AR_GL_SL_NO,                    
+   
+a.EXT_DOC_TYP,a.EXT_DOC_NO,                    
+   
+a.EXT_DOC_DT,a.EXT_DOC_DUE_DT,                 
+   
+a.SLS_INV_DOC_ID,a.SLS_INV_ID,                 
+   
+a.SLS_INV_DT,a.AMT_SP,a.AMT_TYP,   
+   
+a.ar_sl_no,AMT_SP_SIGNED,                    
+   
+abs(NVL(a1.ADJ_AMT_DTL * AR_CC, 0)) AMT_ADJ,   
+   
+NVL(a1.ADJ_AMT_DTL * AR_CC, 0) AMT_ADJ_SIGNED,                                  
+   
+NVL(a.AMT_SP * a.AR_CC, 0) -NVL(abs(a1.ADJ_AMT_DTL) *    
+   
+a.AR_CC, 0) AMT_OS,   
+   
+CASE a.AMT_TYP WHEN 'Dr' THEN   
+   
+NVL(a.AMT_SP * a.AR_CC, 0) +NVL(a1.ADJ_AMT_DTL * a.AR_CC, 0)   
+   
+WHEN 'Cr' THEN-NVL(a.AMT_SP * a.AR_CC, 0) +   
+   
+NVL(a1.ADJ_AMT_DTL * a.AR_CC, 0)   
+   
+END AMT_OS_SIGNED,a.OS_DAYS   
+   
+FROM (SELECT a.GL_CLD_ID CLD_ID,   
+   
+a.AR_SLOC_ID SLOC_ID,   
+   
+a.GL_HO_ORG_ID HO_ORG_ID,   
+   
+a.AR_ORG_ID ORG_ID,   
+   
+a.AR_COA_ID COA_ID,   
+   
+a.AR_CURR_ID_SP CURR_ID_SP,   
+   
+a.AR_TYPE_ID,a.AR_CC,    
+   
+a.AR_VOU_DUE_DT,a.AR_VOU_ID VOU_ID,   
+   
+a.AR_VOU_DT VOU_DT,a.AR_GL_SL_NO,   
+   
+a.AR_EXT_DOC_TYP EXT_DOC_TYP,   
+   
+a.AR_EXT_DOC_NO EXT_DOC_NO,   
+   
+a.AR_EXT_DOC_DT EXT_DOC_DT,   
+   
+a.AR_VOU_DUE_DT EXT_DOC_DUE_DT,   
+   
+a.AR_DOC_ID_REF1 SLS_INV_DOC_ID,   
+   
+a.AR_TXN_ID_REF1 SLS_INV_ID,   
+   
+a.AR_TXN_DT_REF1 SLS_INV_DT,   
+   
+a.AR_AMT_SP AMT_SP,a.AR_AMT_TYP AMT_TYP,   
+   
+a.AR_SL_NO,DECODE(a.AR_AMT_TYP,'Dr',NVL(a.AR_AMT_SP, 0),   
+   
+'Cr',-NVL(a.AR_AMT_SP, 0),NVL(a.AR_AMT_SP, 0)) AMT_SP_SIGNED,   
+   
+DECODE('D','D',(DECODE('I','V',TRUNC(SYSDATE - a.AR_VOU_DT),'I',   
+   
+TRUNC(SYSDATE -NVL(a.AR_EXT_DOC_DT,a.AR_VOU_DT)),'D',   
+   
+TRUNC(SYSDATE - NVL(a.AR_VOU_DUE_DT,a.AR_VOU_DT)),   
+   
+TRUNC(SYSDATE - a.AR_VOU_DT)) + 1),'M',(DECODE('I','V',30*   
+   
+months_between(last_day(SYSDATE),   
+   
+last_day(to_date(a.AR_VOU_DT))) + 1,'I',30 *months_between(   
+   
+last_day(SYSDATE),last_day(NVL(a.AR_EXT_DOC_DT,   
+   
+a.AR_VOU_DT))) + 1, 'D',30 *months_between(last_day(SYSDATE),   
+   
+last_day(NVL(a.AR_VOU_DUE_DT,a.AR_VOU_DT))) + 1,30 *   
+   
+months_between(last_day(SYSDATE),last_day(a.AR_VOU_DT)) + 1))) OS_DAYS   
+   
+from ar a   
+   
+WHERE a.GL_CLD_ID = :Cld_Id   
+   
+and a.AR_ORG_ID = nvl(:Org_Id, AR_ORG_ID)   
+   
+and DECODE('I','V',TRUNC(a.AR_VOU_DT),'I',   
+   
+TRUNC(NVL(a.AR_EXT_DOC_DT,a.AR_VOU_DT)),'D',   
+   
+TRUNC(NVL(a.AR_VOU_DUE_DT, a.AR_VOU_DT)),   
+   
+TRUNC(a.AR_VOU_DT)) <= SYSDATE    
+   
+and AR_COA_ID = nvl(null, AR_COA_ID)   
+   
+union   
+   
+SELECT a.TVOU_CLD_ID CLD_ID,   
+   
+a.TVOU_SLOC_ID SLOC_ID,   
+   
+a.TVOU_HO_ORG_ID HO_ORG_ID,    
+   
+a.TVOU_ORG_ID ORG_ID,   
+   
+a.TVOU_COA_ID COA_ID,a.TVOU_CURR_ID_SP CURR_ID_SP,   
+   
+a.TVOU_TYPE_ID,a.TVOU_CC, a.TVOU_DUE_DT,a.TVOU_ID VOU_ID,                                           
+   
+a.TVOU_DT VOU_DT,a.TVOU_SL_NO,null EXT_DOC_TYP,   
+   
+a.TVOU_BILL_NO EXT_DOC_NO,a.TVOU_BILL_DATE EXT_DOC_DT,   
+   
+a.TVOU_DUE_DT EXT_DOC_DUE_DT,null SLS_INV_DOC_ID,   
+   
+null SLS_INV_ID,null SLS_INV_DT,a.TVOU_AMT_SP AMT_SP,   
+   
+a.TVOU_AMT_TYP AMT_TYP,a.TVOU_SL_NO,DECODE(a.TVOU_AMT_TYP,   
+   
+'Dr',NVL(a.TVOU_AMT_SP, 0), 'Cr',-NVL(a.TVOU_AMT_SP, 0),   
+   
+NVL(a.TVOU_AMT_SP, 0)) AMT_SP_SIGNED,DECODE('D','D',(   
+   
+DECODE('I','V',TRUNC(SYSDATE - a.TVOU_DT),'I',   
+   
+TRUNC(SYSDATE -NVL(a.TVOU_BILL_DATE,a.TVOU_DT)),'D',   
+   
+TRUNC(SYSDATE -NVL(a.TVOU_DUE_DT, a.TVOU_DT)),   
+   
+TRUNC(SYSDATE - a.TVOU_DT)) + 1),'M',           
+   
+(DECODE('I','V',30 *   
+   
+months_between(last_day(SYSDATE),   
+   
+last_day(to_date(a.TVOU_DT))) + 1,'I',30 *   
+   
+months_between(last_day(SYSDATE),last_day(NVL(a.TVOU_BILL_DATE,   
+   
+a.TVOU_DT))) + 1,'D',30 *months_between(last_day(SYSDATE),   
+   
+last_day(NVL(a.TVOU_DUE_DT,a.TVOU_DT))) + 1,30 *   
+   
+months_between(last_day(SYSDATE),last_day(a.TVOU_DT)) + 1))) OS_DAYS   
+   
+from tvou_lines a,app.app$eo b   
+   
+WHERE a.TVOU_CLD_ID = :Cld_Id   
+   
+and a.TVOU_ORG_ID =nvl(:Org_Id, TVOU_ORG_ID)   
+   
+and DECODE('I','V',TRUNC(a.TVOU_DT),'I',   
+   
+TRUNC(NVL(a.TVOU_BILL_DATE,a.TVOU_DT)),'D',   
+   
+TRUNC(NVL(a.TVOU_DUE_DT, a.TVOU_DT)),   
+   
+TRUNC(a.TVOU_DT)) <= SYSDATE   
+   
+and TVOU_COA_ID = nvl(null, TVOU_COA_ID)   
+   
+and a.tvou_cld_id = b.eo_cld_id   
+   
+and a.tvou_sloc_id = b.eo_sloc_id   
+   
+and a.tvou_ho_org_id = b.eo_ho_org_id   
+   
+and a.tvou_eo_id = b.eo_id   
+   
+and b.eo_bhav = 'D'   
+   
+and a.tvou_id =decode('P','P','1','A',a.tvou_id,a.tvou_id)) a,   
+   
+(select adj_cld_id,adj_org_id,adj_appl_inst_id,adj_vou_id,   
+   
+adj_vou_dt,adj_arap_sl_no,adj_sl_no,adj_coa_id,   
+   
+sum(DECODE(adj_amt_typ,'Dr',radj_amt_adj, 'Cr',-radj_amt_adj)) adj_amt_dtl   
+   
+from (select a.adj_cld_id,a.adj_org_id,   
+   
+a.adj_appl_inst_id,a.adj_vou_id,trunc(b.gl_vou_dt) adj_vou_dt,a.adj_arap_sl_no,   
+   
+a.adj_sl_no,a.adj_coa_id,a.adj_amt_typ,a.radj_amt_adj    
+   
+From gl_adj a,gl_lines b   
+   
+WHERE a.ADJ_CLD_ID = :Cld_Id   
+   
+and a.ADJ_ORG_ID =nvl(:Org_Id, a.ADJ_ORG_ID)   
+   
+and TRUNC(a.ADJ_MST_VOU_DT) <=SYSDATE    
+   
+and TRUNC(a.RADJ_VOU_DT) <= SYSDATE   
+   
+and a.ADJ_COA_ID =nvl(null, a.ADJ_COA_ID)   
+   
+and b.GL_CLD_ID = a.ADJ_CLD_ID   
+   
+and a.ADJ_ORG_ID = b.gl_ORG_ID   
+   
+and a.ADJ_VOU_ID = b.gl_vou_id   
+   
+and a.ADJ_SL_NO = b.gl_SL_NO   
+   
+and a.ADJ_COA_ID = b.gl_coa_id   
+   
+union all   
+   
+select b.tvou_cld_id adj_cld_id,   
+   
+b.tvou_adj_org_id adj_org_id,   
+   
+b.tvou_adj_appl_inst_id adj_appl_inst_id,   
+   
+b.tvou_adj_vou_id adj_vou_id,   
+   
+trunc(b.tvou_adj_vou_dt) adj_vou_dt,    
+   
+b.tvou_adj_arap_sl_no adj_arap_sl_no,    
+   
+b.tvou_adj_sl_no adj_sl_no,b.tvou_adj_coa_id adj_coa_id,    
+   
+b.tvou_amt_typ adj_amt_typ,b.tvou_adj_amt_adj_ths radj_amt_adj   
+   
+from tvou_adj b     
+   
+where b.tvou_cld_id = :Cld_Id   
+   
+and b.tvou_adj_org_id =nvl(:Org_Id, b.TVOU_ADJ_ORG_ID)    
+   
+and TRUNC(b.tvou_mst_vou_dt) <=SYSDATE   
+   
+and TRUNC(b.tvou_radj_vou_dt) <=SYSDATE    
+   
+and b.tvou_adj_coa_id =nvl(null, b.tvou_adj_coa_id)   
+   
+and b.tvou_mst_vou_id =   
+   
+decode('P', 'P','1','A', b.tvou_mst_vou_id, b.tvou_mst_vou_id)   
+   
+union all    
+   
+select b.tvou_cld_id adj_cld_id,b.tvou_adj_org_id adj_org_id,    
+   
+b.tvou_adj_appl_inst_id adj_appl_inst_id,    
+   
+b.tvou_radj_vou_id adj_vou_id,trunc(b.tvou_radj_vou_dt) adj_vou_dt,   
+   
+b.tvou_radj_arap_sl_no adj_arap_sl_no,b.tvou_radj_sl_no adj_sl_no,   
+   
+b.tvou_adj_coa_id adj_coa_id,   
+   
+DECODE(b.tvou_amt_typ,'Cr','Dr','Dr','Cr') adj_amt_typ,   
+   
+b.tvou_adj_amt_adj_ths radj_amt_adj   
+   
+from ar a,tvou_adj b   
+   
+where b.tvou_cld_id = :Cld_Id   
+   
+and b.tvou_adj_org_id =nvl(:Org_Id, b.TVOU_ADJ_ORG_ID)   
+   
+and TRUNC(b.tvou_mst_vou_dt) <=SYSDATE     
+   
+and TRUNC(b.tvou_radj_vou_dt) <=SYSDATE   
+   
+and b.tvou_adj_coa_id =nvl(null, b.tvou_adj_coa_id)   
+   
+and a.gl_cld_id = b.tvou_cld_id   
+   
+and a.ar_sloc_id = b.tvou_adj_sloc_id   
+   
+and a.ar_org_id = b.tvou_adj_org_id   
+   
+and a.ar_coa_id = b.tvou_adj_coa_id    
+   
+and a.ar_vou_id = b.tvou_radj_vou_id    
+   
+and a.AR_GL_SL_NO = b.TVOU_RADJ_SL_NO   
+   
+and a.AR_SL_NO =b.TVOU_RADJ_ARAP_SL_NO   
+   
+and b.tvou_mst_vou_id =decode('P','P',   
+   
+'1','A',b.tvou_mst_vou_id,b.tvou_mst_vou_id)   
+   
+union all   
+   
+select c.tvou_cld_id adj_cld_id,c.tvou_adj_org_id adj_org_id,   
+   
+c.TVOU_ADJ_APPL_INST_ID adj_appl_inst_id,    
+   
+c.tvou_adj_vou_id adj_vou_id,trunc(c.tvou_adj_vou_dt) adj_vou_dt,   
+   
+c.tvou_adj_arap_sl_no adj_arap_sl_no,c.tvou_adj_sl_no adj_sl_no,   
+   
+c.tvou_adj_coa_id adj_coa_id,c.tvou_amt_typ adj_amt_typ,   
+   
+c.tvou_adj_amt_adj radj_amt_adj    
+   
+from ar a, tvou_adj_dtl c   
+   
+where a.gl_cld_id = :Cld_Id    
+   
+and a.ar_org_id =nvl(:Org_Id, a.ar_org_id)   
+   
+and a.ar_coa_id =nvl(null, a.ar_coa_id)   
+   
+and TRUNC(c.tvou_mst_vou_dt) <=SYSDATE    
+   
+and TRUNC(c.tvou_adj_vou_dt) <= SYSDATE    
+   
+and a.gl_cld_id = c.tvou_cld_id    
+   
+and a.ar_sloc_id = c.tvou_adj_sloc_id    
+   
+and a.ar_org_id = c.tvou_adj_org_id   
+   
+and a.gl_ho_org_id = c.tvou_ho_org_id    
+   
+and a.ar_coa_id = c.tvou_adj_coa_id   
+   
+and a.ar_vou_id = c.tvou_adj_vou_id   
+   
+and a.AR_GL_SL_NO = c.TVOU_ADJ_SL_NO    
+   
+and a.AR_SL_NO =c.TVOU_ADJ_ARAP_SL_NO    
+   
+and c.tvou_mst_vou_id =decode('P','P', '1','A',c.tvou_mst_vou_id,   
+   
+c.tvou_mst_vou_id)   
+   
+union all   
+   
+select c.tvou_cld_id adj_cld_id,   
+   
+c.tvou_adj_org_id adj_org_id,   
+   
+c.TVOU_ADJ_APPL_INST_ID adj_appl_inst_id,   
+   
+c.tvou_radj_vou_id adj_vou_id,   
+   
+trunc(c.tvou_radj_vou_dt) adj_vou_dt,    
+   
+c.tvou_radj_arap_sl_no adj_arap_sl_no,    
+   
+c.tvou_radj_sl_no adj_sl_no,   
+   
+c.tvou_adj_coa_id adj_coa_id,   
+   
+DECODE(c.tvou_amt_typ,'Cr','Dr','Dr','Cr') adj_amt_typ,   
+   
+c.tvou_radj_amt_adj radj_amt_adj           
+   
+from ar a,tvou_adj_dtl c    
+   
+where a.gl_cld_id = :Cld_Id     
+   
+and a.ar_org_id =nvl(:Org_Id, a.ar_org_id)   
+   
+and a.ar_coa_id = nvl(null, a.ar_coa_id)   
+   
+and TRUNC(c.tvou_mst_vou_dt) <=SYSDATE           
+   
+and TRUNC(c.tvou_radj_vou_dt) <=SYSDATE   
+   
+and a.gl_cld_id = c.tvou_cld_id     
+   
+and a.ar_sloc_id = c.tvou_adj_sloc_id   
+   
+and a.ar_org_id = c.tvou_adj_org_id   
+   
+and a.gl_ho_org_id = c.tvou_ho_org_id    
+   
+and a.ar_coa_id = c.tvou_adj_coa_id    
+   
+and a.ar_vou_id = c.tvou_radj_vou_id    
+   
+and a.AR_GL_SL_NO = c.TVOU_RADJ_SL_NO    
+   
+and a.AR_SL_NO =c.TVOU_RADJ_ARAP_SL_NO    
+   
+and c.tvou_mst_vou_id =   
+   
+decode('P','P','1','A', c.tvou_mst_vou_id,c.tvou_mst_vou_id))   
+   
+group by adj_cld_id,adj_org_id,adj_appl_inst_id,   
+   
+adj_vou_id,adj_vou_dt,adj_arap_sl_no,adj_sl_no,adj_coa_id) a1   
+   
+WHERE a.CLD_ID = :Cld_Id   
+   
+and a.ORG_ID = nvl(:Org_Id, ORG_ID)   
+   
+and DECODE('I','V',   
+   
+TRUNC(a.VOU_DT),'I',TRUNC(NVL(a.EXT_DOC_DT, a.VOU_DT)),   
+   
+'D',TRUNC(NVL(a.AR_VOU_DUE_DT, a.VOU_DT)),   
+   
+TRUNC(a.VOU_DT)) <= SYSDATE    
+   
+and a.coa_id = nvl(null, a.coa_id)    
+   
+and a.cld_id = a1.adj_cld_id(+)   
+   
+and a.org_id = a1.adj_org_id(+)   
+   
+and a.coa_id = a1.adj_coa_id(+)   
+   
+and a.vou_id = a1.adj_vou_id(+)   
+   
+and a.ar_gl_sl_no = a1.adj_sl_no(+)   
+   
+and a.ar_sl_no = a1.adj_arap_sl_no(+)   
+   
+and 0 < CASE a.AMT_TYP WHEN 'Dr' THEN   
+   
+NVL(a.AMT_SP * a.AR_CC, 0) +NVL(a1.ADJ_AMT_DTL * a.AR_CC, 0)   
+   
+WHEN 'Cr' THEN ABS(-NVL(a.AMT_SP * a.AR_CC, 0) +     
+   
+   NVL(a1.ADJ_AMT_DTL * a.AR_CC, 0))   
+   
+END) A,                  
+   
+APP.ORG B,                
+   
+FIN$COA C,                
+   
+APP.APP$DOC$TXN D,        
+   
+APP.APP$GLBL$CURR E,      
+   
+FIN.FIN$ACC$NA X1,      
+   
+APP.APP$EO X2,        
+   
+app.app$eo$mst x3,        
+   
+app.app$eo$prf i   
+   
+WHERE A.OS_DAYS >= 0    
+   
+and A.AMT_OS <> 0   
+   
+and B.ORG_ID = A.ORG_ID   
+   
+and B.ORG_CLD_ID = A.CLD_ID    
+   
+and c.COA_CLD_ID = a.CLD_ID   
+   
+and c.COA_SLOC_ID = a.SLOC_ID   
+   
+and c.COA_HO_ORG_ID = nvl(:Ho_Org_Id, c.COA_HO_ORG_ID)   
+   
+and c.COA_ID = a.COA_ID   
+   
+and c.COA_COG_ID = nvl(null, c.COA_COG_ID)   
+   
+AND d.DOC_CLD_ID = a.CLD_ID   
+   
+and d.DOC_ORG_ID = A.ORG_ID   
+   
+and d.DOC_SLOC_ID = a.SLOC_ID   
+   
+and d.DOC_TXN_ID = a.VOU_ID   
+   
+AND E.GLBL_CURR_ID = A.CURR_ID_SP   
+   
+AND X1.ACC_CLD_ID = c.COA_CLD_ID   
+   
+AND X1.ACC_SLOC_ID = c.COA_SLOC_ID   
+   
+AND X1.HO_ORG_ID = c.COA_HO_ORG_ID   
+   
+AND X1.ACC_ID = C.COA_ACC_ID   
+   
+AND X2.EO_CLD_ID = X1.ACC_CLD_ID   
+   
+AND X2.EO_SLOC_ID = X1.ACC_SLOC_ID   
+   
+AND X2.EO_HO_ORG_ID = X1.HO_ORG_ID   
+   
+AND X2.EO_ID = X1.ACC_TYPE_ID   
+   
+AND X2.EO_TYPE = X1.ACC_TYPE   
+   
+and X2.eo_cld_id = i.eo_cld_id(+)   
+   
+and X2.eo_sloc_id = i.eo_sloc_id(+)   
+   
+and X2.eo_ho_org_id = i.eo_ho_org_id(+)   
+   
+and X2.eo_id = i.eo_id(+)   
+   
+AND X2.EO_MST_ID = nvl(Null, X2.EO_MST_ID)   
+   
+and x3.eo_cld_id = X2.EO_CLD_ID   
+   
+and x3.eo_mst_sloc_id = X2.EO_SLOC_ID   
+   
+and x3.eo_ho_org_id = X2.EO_HO_ORG_ID   
+   
+AND x3.eo_mst_id = X2.EO_MST_ID   
+   
+and x3.eo_mst_id = nvl(Null, x3.eo_mst_id)   
+   
+AND i.eo_type =68     
+   
+and DECODE('I','V',TRUNC(a.VOU_DT),   
+   
+'I',TRUNC(NVL(a.EXT_DOC_DT, a.VOU_DT)),   
+   
+'D',TRUNC(NVL(a.AR_VOU_DUE_DT, a.VOU_DT)),   
+   
+TRUNC(a.VOU_DT)) <= SYSDATE    
+   
+group by A.ORG_ID,B.ORG_DESC, A.COA_ID,   
+   
+  C.COA_NM,A.CURR_ID_SP,   
+   
+  E.GLBL_CURR_NOTATION_ALIAS,   
+   
+  i.avg_cr_days,i.cr_limit,   
+   
+  x2.eo_nm,x3.eo_mst_nm)   
+   
+group by ORG_ID, ORG_DESC, COA_ID, COA_NM   
+   
+ORDER BY AMT_OS DESC)   
+   
+where rownum <= 5]]></SQLQuery>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_DESC"
+    Expression="ORG_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="COA_ID"
+    Expression="COA_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="CoaNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_NM"
+    Expression="COA_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ArAmtBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="AR_AMT_BS"
+    Expression="AR_AMT_BS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="AmtOs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="AMT_OS"
+    Expression="AMT_OS"
+    SQLType="NUMERIC"/>
+  <ResourceBundle>
+    <JavaResourceBundle
+      MsgBundleClass="graphTickerApp.view.bundle.Resource"/>
+  </ResourceBundle>
+</ViewObject>

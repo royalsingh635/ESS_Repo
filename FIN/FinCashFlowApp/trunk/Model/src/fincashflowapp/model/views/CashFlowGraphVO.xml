@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="CashFlowGraphVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full"
+  UseGlueCode="false"
+  ComponentClass="fincashflowapp.model.views.CashFlowGraphVOImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Coll|VarAccess"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="fincashflowapp.model.views.CashFlowGraphVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindFyId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <SQLQuery><![CDATA[select	gl_cld_id cld_id,
+	gl_org_id org_id,
+	c.org_fy_id,
+	voucher_date,
+	inflow,
+	outflow,
+	NetFlow NetFlow,
+	sum(inflow) over (partition by gl_cld_id,gl_org_id,c.org_fy_id order by gl_cld_id,gl_org_id,c.org_fy_id,voucher_date) InflowAmount,
+	sum(outflow) over (partition by gl_cld_id,gl_org_id,c.org_fy_id order by gl_cld_id,gl_org_id,c.org_fy_id,voucher_date) OutflowAmount,
+	sum(NetFlow) over (partition by gl_cld_id,gl_org_id,c.org_fy_id order by gl_cld_id,gl_org_id,c.org_fy_id,voucher_date) NetFlowAmount
+from 	(
+	select	a.gl_cld_id,
+		a.gl_org_id,
+		a.gl_vou_dt voucher_date,
+		a.gl_fy_id,
+		sum(decode(a.gl_amt_typ, 'Dr', round(a.gl_amt_bs,2), 0)) inflow,
+		sum(decode(a.gl_amt_typ, 'Cr', round(a.gl_amt_bs,2), 0)) outflow,
+		sum(decode(a.gl_amt_typ, 'Dr', round(a.gl_amt_bs,2), 0)) - sum(decode(a.gl_amt_typ, 'Cr', round(a.gl_amt_bs,2), 0)) NetFlow
+	from    (
+		select	a.gl_cld_id,
+			a.gl_org_id,
+			a.gl_vou_dt,
+			a.gl_fy_id,
+			a.gl_coa_id,
+			a.gl_amt_typ,
+			a.gl_amt_bs
+		from 	fin.gl_lines a
+		where 	exists (select 1
+				from fin$acc$na fc
+				where fc.ACC_CLD_ID = a.GL_CLD_ID
+				and fc.ACC_SLOC_ID = a.GL_SLOC_ID
+				and fc.HO_ORG_ID = a.GL_HO_ORG_ID
+				and fc.acc_id = a.gl_na_id
+				and fc.acc_type in (78, 79)
+				)
+/*
+              	union
+		select a.org_coa_cld_id gl_cld_id,
+			a.org_id gl_org_id,
+			b.fy_strt gl_vou_dt,
+			a.org_fy_id gl_fy_id,
+			a.org_coa_id gl_coa_id,
+			nvl(a.org_coa_op_bal_typ,'Dr') gl_amt_typ,
+			a.org_coa_op_bal gl_amt_bs
+	        from 	fin.org$coa$fy a,
+			app.org$fy b,
+			fin.fin$coa c
+		where	nvl(a.org_coa_op_bal,0) > 0
+		and	b.cld_id = a.org_coa_cld_id
+		and b.org_id = a.org_id
+		and b.org_fy_id = a.org_fy_id
+		and b.fy_type = 'FY'
+		and c.coa_cld_id = a.org_coa_cld_id
+		and c.coa_ho_org_id = nvl(app.fn_get_parent_org_l0(a.org_coa_cld_id,a.org_id),a.org_id)
+		and c.coa_id = a.org_coa_id
+		and 	exists (select 1
+				from fin$acc$na fc
+				where fc.acc_cld_id = c.coa_cld_id
+				and fc.acc_sloc_id = c.coa_sloc_id
+				and fc.ho_org_id = c.coa_ho_org_id
+				and fc.acc_id = c.coa_acc_id
+				and fc.acc_type in (78, 79)
+				)
+*/  
+             ) a
+	group by a.gl_cld_id,
+		a.gl_org_id,
+		a.gl_vou_dt,
+		a.gl_fy_id
+	) a ,
+	(
+	select	a.cld_id,
+		a.org_id,
+		a.org_fy_id org_fy_id,
+		trunc(a.fy_strt) fy_strt,
+		trunc(a.fy_end) fy_end
+	from	app.org$fy a
+	where a.FY_TYPE = 'FY'
+	) c
+where c.cld_id = a.gl_cld_id
+and c.org_id = a.gl_org_id
+and c.org_fy_id = a.gl_fy_id
+and c.cld_id = :BindCldId
+and c.org_id = :BindOrgId
+and c.org_fy_id = :BindFyId
+
+order by 1,2,3,4]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgFyId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="ORG_FY_ID"
+    Expression="ORG_FY_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="VoucherDate"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="VOUCHER_DATE"
+    Expression="VOUCHER_DATE"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="Inflow"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="INFLOW"
+    Expression="INFLOW"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Outflow"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OUTFLOW"
+    Expression="OUTFLOW"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Netflow"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="NETFLOW"
+    Expression="NETFLOW"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Inflowamount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="INFLOWAMOUNT"
+    Expression="INFLOWAMOUNT"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Outflowamount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OUTFLOWAMOUNT"
+    Expression="OUTFLOWAMOUNT"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Netflowamount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="NETFLOWAMOUNT"
+    Expression="NETFLOWAMOUNT"
+    SQLType="NUMERIC"/>
+  <ViewCriteria
+    Name="CashFlowGraphVOCriteria"
+    ViewObjectName="fincashflowapp.model.views.CashFlowGraphVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="InAdvancedMode"/>
+        <Property
+          Name="autoExecute"
+          Value="false"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="CashFlowGraphVOCriteria_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="CashFlowGraphVOCriteria_CashFlowGraphVOCriteria_row_0_CldId"
+        ViewAttribute="CldId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindCldId"
+        IsBindVarValue="true"
+        Required="Optional">
+        <Properties>
+          <CustomProperties>
+            <Property
+              Name="renderedMode"
+              Value="Never"/>
+          </CustomProperties>
+        </Properties>
+      </ViewCriteriaItem>
+      <ViewCriteriaItem
+        Name="OrgId"
+        ViewAttribute="OrgId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindOrgId"
+        IsBindVarValue="true"
+        Required="Optional">
+        <Properties>
+          <CustomProperties>
+            <Property
+              Name="renderedMode"
+              Value="Never"/>
+          </CustomProperties>
+        </Properties>
+      </ViewCriteriaItem>
+      <ViewCriteriaItem
+        Name="OrgFyId"
+        ViewAttribute="OrgFyId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindFyId"
+        IsBindVarValue="true"
+        Required="Optional"/>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="fincashflowapp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

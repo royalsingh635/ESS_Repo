@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="bankStatusVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  RowClass="brslistingapp.model.view.bankStatusVORowImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Access"/>
+    <Attr Name="_isCodegen" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="brslistingapp.model.view.bankStatusVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSlocId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindHoOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindBankId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <SQLQuery><![CDATA[SELECT   
+GL_CLD_ID GL_CLD_ID,      
+GL_SLOC_ID GL_SLOC_ID,      
+GL_APPL_INST_ID GL_APPL_INST_ID,      
+GL_HO_ORG_ID GL_HO_ORG_ID,       
+GL_COA_BNK_ID GL_COA_BNK_ID,      
+BANK_COA_NM BANK_COA_NM,      
+DECODE(STATUS,'BOUNCED','BOUNCED/CANCELLED','CANCELLED','BOUNCED/CANCELLED',STATUS)STATUS ,  
+SUM(GL_AMT_SP) GL_AMT_SP  
+FROM  (SELECT  gli.GL_CLD_ID GL_CLD_ID,                      
+gli.GL_SLOC_ID GL_SLOC_ID,                      
+gli.GL_APPL_INST_ID GL_APPL_INST_ID,                      
+gli.GL_HO_ORG_ID GL_HO_ORG_ID,                      
+gli.GL_TYPE_ID GL_TYPE_ID,   
+gli.GL_COA_BNK_ID GL_COA_BNK_ID,                      
+Initcap(fc2.coa_nm) bank_coa_nm,                      
+nvl(gli.GL_INSTRMNT_STAT,0) GL_INSTRMNT_STAT,   
+NVL((select decode(att_nm,'RE-ISSUED','DEPOSITED','RE-VALIDATE','DEPOSITED',att_nm) from                      
+app.app$ds$att where att_type_id=24 and att_actv='Y'                      
+and att_id=gli.GL_INSTRMNT_STAT),'DEPOSITED') STATUS,                      
+sum(gli.GL_AMT_SP) GL_AMT_SP  
+FROM FIN.GL_LINE_INSTRUMNT gli,                      
+      app.app$doc$txn adt,                      
+      app.app$doc$txn adt2,                      
+      fin.fin$coa fc,                      
+      Fin.Fin$coa Fc2,                      
+     App.App$curr_Vw Cv,                      
+      (Select Gl.Gl_Desc,G.Gl_Narr,                      
+              gl.gl_cld_id,                      
+              gl.gl_sloc_id,                      
+              gl.gl_ho_org_id,                      
+              gl.gl_vou_id                       
+        from fin.gl_lines g, fin.gl                      
+       where gl.gl_Vou_id=g.gl_vou_id                      
+       and gl.gl_cld_id=g.gl_cld_id                      
+       and gl.gl_sloc_id=g.gl_sloc_id                      
+       and gl.gl_ho_org_id=g.gl_ho_org_id                      
+       and g.gl_sl_no=1) glnarr                      
+where  gli.gl_cld_id=:BindCldId                      
+and gli.gl_sloc_id=:BindSlocId                      
+and gli.gl_ho_org_id=:BindHoOrgId                      
+and gli.gl_org_id=:BindOrgId                      
+and gli.gl_cld_id=adt.doc_cld_id                      
+and gli.gl_sloc_id=adt.doc_sloc_id                      
+and gli.gl_org_id=adt.doc_org_id                      
+and gli.gl_vou_id=adt.doc_txn_id                      
+and gli.gl_cld_id=fc.coa_cld_id                      
+and gli.gl_sloc_id=fc.coa_sloc_id                      
+and gli.gl_ho_org_id=fc.coa_ho_org_id                      
+and gli.gl_coa_id=fc.coa_id                      
+and adt.doc_id='56'                      
+and cv.CURR_ID=gli.gl_curr_id_sp                      
+and gli.gl_cld_id=fc2.coa_cld_id                      
+and gli.gl_sloc_id=fc2.coa_sloc_id                      
+and gli.gl_ho_org_id=fc2.coa_ho_org_id                      
+and gli.gl_coa_bnk_id=fc2.coa_id                      
+and gli.gl_cld_id=adt2.doc_cld_id(+)                      
+and gli.gl_sloc_id=adt2.doc_sloc_id(+)                      
+and gli.gl_org_id=adt2.doc_org_id(+)                      
+and gli.GL_REV_VOU_ID=adt2.doc_txn_id(+)                      
+and glnarr.gl_cld_id=gli.gl_cld_id                      
+and glnarr.gl_sloc_id=gli.gl_sloc_id                      
+and glnarr.gl_ho_org_id=gli.gl_ho_org_id                      
+and glnarr.gl_vou_id =gli.gl_vou_id                      
+and exists (select 1 from fin.gl g                      
+where g.gl_cld_id=gli.gl_cld_id                      
+and g.gl_sloc_id=gli.gl_sloc_id                      
+And G.Gl_Ho_Org_Id=Gli.Gl_Ho_Org_Id                      
+and g.gl_vou_id=gli.gl_vou_id  
+and gli.gl_coa_bnk_id=:BindBankId  
+)             
+group by gli.GL_CLD_ID,                      
+gli.GL_SLOC_ID,                      
+gli.GL_APPL_INST_ID,                      
+gli.GL_HO_ORG_ID,gli.GL_TYPE_ID ,                      
+gli.GL_COA_BNK_ID ,                      
+Initcap(fc2.coa_nm),                      
+nvl(DECODE(gli.GL_INSTRMNT_STAT,110,0,186,0,gli.GL_INSTRMNT_STAT),0),gli.GL_INSTRMNT_STAT,                      
+gli.GL_INSTRMNT_TYP_STAT)                      
+GROUP BY GL_CLD_ID,GL_SLOC_ID,GL_APPL_INST_ID,GL_HO_ORG_ID,       
+GL_COA_BNK_ID,BANK_COA_NM,DECODE(STATUS,'BOUNCED','BOUNCED/CANCELLED','CANCELLED','BOUNCED/CANCELLED',STATUS)]]></SQLQuery>
+  <ViewAttribute
+    Name="GlCldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_CLD_ID"
+    Expression="GL_CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlSlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="GL_SLOC_ID"
+    Expression="GL_SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="GlApplInstId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="1"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="GL_APPL_INST_ID"
+    Expression="GL_APPL_INST_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="GlHoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_HO_ORG_ID"
+    Expression="GL_HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlCoaBnkId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.math.BigInteger"
+    ColumnType="NUMBER"
+    AliasName="GL_COA_BNK_ID"
+    Expression="GL_COA_BNK_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="BankCoaNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="BANK_COA_NM"
+    Expression="BANK_COA_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Status"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="STATUS"
+    Expression="STATUS"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlAmtSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="GL_AMT_SP"
+    Expression="GL_AMT_SP"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="TransBookBalance"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.String"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="VARCHAR"/>
+  <ViewAttribute
+    Name="TransOrgId"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="VIEW_ATTR"
+    SQLType="VARCHAR"/>
+  <ViewAttribute
+    Name="transTotalDebit"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="VIEW_ATTR"
+    SQLType="VARCHAR"/>
+  <ViewAttribute
+    Name="TransTotalCredit"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="VIEW_ATTR"
+    SQLType="VARCHAR"/>
+  <ViewAttribute
+    Name="TranGetBal"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="VIEW_ATTR"
+    SQLType="VARCHAR"/>
+  <ViewAttribute
+    Name="TransBookBalanceNumber"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="VIEW_ATTR"
+    SQLType="VARCHAR"/>
+  <AttrArray Name="KeyAttributes">
+    <Item Value="GlCldId"/>
+    <Item Value="GlSlocId"/>
+    <Item Value="GlHoOrgId"/>
+    <Item Value="GlCoaBnkId"/>
+    <Item Value="Status"/>
+  </AttrArray>
+</ViewObject>

@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="LovLatestCurrVO"
+  Version="12.1.3.10.8"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  ComponentClass="templateVoucher.model.view.LovLatestCurrVOImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Coll"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="templateVoucher.model.view.LovLatestCurrVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCurrid"
+    Kind="viewcriteria"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindCurrIdTxn"
+    Kind="viewcriteria"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String">
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYHINT
+          Value="Hide"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </Variable>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String">
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYHINT
+          Value="Hide"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </Variable>
+  <Variable
+    Name="BindHoOrgId"
+    Kind="where"
+    Type="java.lang.String">
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYHINT
+          Value="Hide"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </Variable>
+  <Variable
+    Name="BindVouDt"
+    Kind="where"
+    Type="oracle.jbo.domain.Date">
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYHINT
+          Value="Hide"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </Variable>
+  <SQLQuery><![CDATA[select a.cc_cld_id cld_id,    
+       a.cc_ho_org_id ho_org_id,    
+       a.CC_ORG_ID org_id,    
+       null cc_cntry_id,    
+       null cntry_desc,    
+       a.cc_curr_id,    
+       c1.glbl_curr_desc curr_desc,    
+       c1.glbl_curr_notation_alias curr_notation_alias,    
+       a.cc_curr_flg,    
+       a.cc_curr_id_txn,    
+       c2.glbl_curr_desc curr_desc_txn,    
+       c2.glbl_curr_notation_alias curr_notation_alias_txn,    
+       a.cc_eff_date,    
+       a.cc_buy,    
+       a.cc_sell,    
+       a.cc_buy_rev,    
+       a.cc_sell_rev    
+from app.org x,    
+app.app$curr_conv a,    
+       app.app$curr b1,    
+       app.app$curr b2,    
+       app.app$glbl$curr c1,    
+       app.app$glbl$curr c2    
+where x.org_cld_id = :BindCldId    
+and x.org_id = :BindOrgId    
+and a.cc_cld_id = x.org_cld_id    
+and a.CC_ORG_ID = x.org_id    
+and a.cc_curr_id = x.org_curr_id_bs    
+    
+and a.cc_cld_id = b1.cld_id    
+and a.cc_curr_id = b1.curr_id    
+and b1.curr_actv = 'Y'    
+and b1.curr_id = c1.glbl_curr_id    
+and a.cc_cld_id = b2.cld_id    
+and a.cc_curr_id_txn = b2.curr_id    
+and b2.curr_actv = 'Y'    
+and b2.curr_id = c2.glbl_curr_id    
+and to_char(a.cc_eff_date, 'yyyymmddHH24MISS') =    
+                       (select max(to_char(b.cc_eff_date, 'yyyymmddHH24MISS'))    
+                       from app.app$curr_conv b    
+                       where b.cc_cld_id = a.cc_cld_id    
+                       and b.cc_ho_org_id = a.cc_ho_org_id    
+                       and b.cc_org_id = a.cc_org_id    
+                       and b.cc_curr_id = a.cc_curr_id    
+                       and b.cc_curr_id_txn = a.cc_curr_id_txn    
+                       and trunc(to_date(cc_eff_date,'dd-mm-yyyy'))<=nvl(trunc(to_date(:BindVouDt,'dd-mm-yyyy')),trunc(sysdate))    
+                       )    
+ and   a.cc_cld_id = :BindCldId    
+   and    a.cc_ho_org_id =:BindHoOrgId    
+   and    a.CC_ORG_ID =:BindOrgId    
+union    
+select distinct a.cld_id cld_id,    
+       a.ho_org_id,    
+       a.org_id,    
+       null cc_cntry_id,    
+       null cntry_desc,    
+       a.curr_id cc_curr_id,    
+       a.curr_desc,    
+       b.glbl_curr_notation_alias curr_notation_alias,    
+       'Y' cc_curr_flg,    
+       a.curr_id cc_curr_id_txn,    
+       b.glbl_curr_desc curr_desc_txn,    
+       b.glbl_curr_notation_alias curr_notation_alias_txn,    
+       to_date('01-01-1900', 'dd-mm-rrrr') cc_eff_date,    
+       1 cc_buy,    
+       1 cc_sell,    
+       1 cc_buy_rev,    
+       1 cc_sell_rev    
+from app.org x,    
+app.app$curr$cc_bs_vw a,    
+       app.app$glbl$curr b    
+where  x.org_cld_id = :BindCldId    
+and x.org_id = :BindOrgId    
+and a.cld_id = x.org_cld_id    
+and a.ORG_ID = x.org_id    
+and a.curr_id = x.org_curr_id_bs    
+and a.curr_id = b.glbl_curr_id    
+and b.glbl_curr_used_in_app = 'Y'    
+and not exists (select 1 from app.app$curr_conv x    
+                                       where x.cc_cld_id = a.cld_id    
+                                       and x.cc_ho_org_id = a.ho_org_id    
+                                       and x.cc_curr_id = a.curr_id    
+                                       and x.cc_curr_id_txn = a.curr_id    
+                                         )    
+and a.cld_id =:BindCldId    
+and  a.ho_org_id=:BindHoOrgId    
+and  a.org_id=:BindOrgId                                            
+order by 1,2,5,4,8,10]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="4"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR"
+    IsQueriable="false"/>
+  <ViewAttribute
+    Name="CcCntryId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CC_CNTRY_ID"
+    Expression="CC_CNTRY_ID"
+    SQLType="VARCHAR"/>
+  <ViewAttribute
+    Name="CntryDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CNTRY_DESC"
+    Expression="CNTRY_DESC"
+    SQLType="VARCHAR"
+    IsQueriable="false"/>
+  <ViewAttribute
+    Name="CcCurrId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="CC_CURR_ID"
+    Expression="CC_CURR_ID"
+    SQLType="INTEGER"
+    IsQueriable="false"/>
+  <ViewAttribute
+    Name="CurrDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CURR_DESC"
+    Expression="CURR_DESC"
+    SQLType="VARCHAR"
+    IsQueriable="false">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CurrNotationAlias"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CURR_NOTATION_ALIAS"
+    Expression="CURR_NOTATION_ALIAS"
+    SQLType="VARCHAR"
+    IsQueriable="false">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="5"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CcCurrFlg"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="1"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CC_CURR_FLG"
+    Expression="CC_CURR_FLG"
+    SQLType="VARCHAR"
+    IsQueriable="false">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="1"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CcCurrIdTxn"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="CC_CURR_ID_TXN"
+    Expression="CC_CURR_ID_TXN"
+    SQLType="INTEGER"
+    IsQueriable="false"/>
+  <ViewAttribute
+    Name="CurrDescTxn"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CURR_DESC_TXN"
+    Expression="CURR_DESC_TXN"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYWIDTH
+          Value="20"/>
+        <LABEL
+          ResId="LBL.286"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CurrNotationAliasTxn"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CURR_NOTATION_ALIAS_TXN"
+    Expression="CURR_NOTATION_ALIAS_TXN"
+    SQLType="VARCHAR"
+    IsQueriable="false">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="5"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CcEffDate"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Date"
+    ColumnType="DATE"
+    AliasName="CC_EFF_DATE"
+    Expression="CC_EFF_DATE"
+    SQLType="DATE"
+    IsQueriable="false"/>
+  <ViewAttribute
+    Name="CcBuy"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="CC_BUY"
+    Expression="CC_BUY"
+    SQLType="NUMERIC">
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYWIDTH
+          Value="10"/>
+        <LABEL
+          ResId="LBL.2864"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CcSell"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="CC_SELL"
+    Expression="CC_SELL"
+    SQLType="NUMERIC"
+    IsQueriable="false"/>
+  <ViewAttribute
+    Name="CcBuyRev"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="CC_BUY_REV"
+    Expression="CC_BUY_REV"
+    SQLType="INTEGER"
+    IsQueriable="false"/>
+  <ViewAttribute
+    Name="CcSellRev"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="CC_SELL_REV"
+    Expression="CC_SELL_REV"
+    SQLType="INTEGER"
+    IsQueriable="false"/>
+  <ViewCriteria
+    Name="LovLatestCurrVOCriteria"
+    ViewObjectName="templateVoucher.model.view.LovLatestCurrVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="Never"/>
+        <Property
+          Name="autoExecute"
+          Value="true"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="LovLatestCurrVOCriteria_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="CcCurrId"
+        ViewAttribute="CcCurrId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindCurrid"
+        IsBindVarValue="true"
+        Required="Optional">
+        <Properties>
+          <CustomProperties>
+            <Property
+              Name="renderedMode"
+              Value="Never"/>
+          </CustomProperties>
+        </Properties>
+      </ViewCriteriaItem>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+  <ViewCriteria
+    Name="LovLatestCurrVOCriteria1"
+    ViewObjectName="templateVoucher.model.view.LovLatestCurrVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="InAdvancedMode"/>
+        <Property
+          Name="autoExecute"
+          Value="true"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="LovLatestCurrVOCriteria1_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="CcCurrIdTxn"
+        ViewAttribute="CcCurrIdTxn"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindCurrIdTxn"
+        IsBindVarValue="true"
+        Required="Optional">
+        <Properties>
+          <SchemaBasedProperties>
+            <DISPLAYWIDTH
+              Value="35"/>
+          </SchemaBasedProperties>
+        </Properties>
+      </ViewCriteriaItem>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+  <AttrArray Name="KeyAttributes">
+    <Item Value="OrgId"/>
+    <Item Value="CcCurrId"/>
+    <Item Value="CcCurrIdTxn"/>
+  </AttrArray>
+</ViewObject>

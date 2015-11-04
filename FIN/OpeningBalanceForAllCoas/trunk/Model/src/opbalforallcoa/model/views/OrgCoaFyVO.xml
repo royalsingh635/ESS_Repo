@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="OrgCoaFyVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  UseGlueCode="false"
+  RowClass="opbalforallcoa.model.views.OrgCoaFyVORowImpl"
+  ComponentClass="opbalforallcoa.model.views.OrgCoaFyVOImpl"
+  FetchSize="10"
+  FetchMode="FETCH_AS_NEEDED"
+  QueryHint="FIRST_ROWS">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Access|Coll|VarAccess"/>
+    <Attr Name="_isCodegen" Value="true"/>
+  </DesignTime>
+  <Variable
+    Name="BindSlocId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindFyId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindCoaId"
+    Kind="where"
+    Type="java.lang.Integer">
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYHINT
+          Value="Hide"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </Variable>
+  <Variable
+    Name="BindHoOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <ViewAccessor
+    Name="LovAmttypeVO1"
+    ViewObjectName="opbalforallcoa.model.views.LovAmttypeVO"
+    RowLevelBinds="true"/>
+  <ListBinding
+    Name="LOV_OrgCoaOpBalTyp"
+    ListVOName="LovAmttypeVO1"
+    ListRangeSize="-1"
+    NullValueFlag="none"
+    MRUCount="0">
+    <AttrArray Name="AttrNames">
+      <Item Value="OrgCoaOpBalTyp"/>
+    </AttrArray>
+    <AttrArray Name="ListAttrNames">
+      <Item Value="Value"/>
+    </AttrArray>
+    <AttrArray Name="ListDisplayAttrNames">
+      <Item Value="Value"/>
+    </AttrArray>
+    <DisplayCriteria/>
+  </ListBinding>
+  <SQLQuery><![CDATA[SELECT   a.org_sloc_id, a.org_id, a.org_fy_id,
+          a.org_coa_id, a.org_coa_cog_id,
+          a.org_coa_na_id, a.org_coa_cc_id,
+          a.org_coa_seg_id, a.org_coa_eo_mst_id,
+          a.org_coa_eo_id, a.org_coa_op_bal,
+          a.org_coa_op_bal_typ, a.org_coa_enc_op_bal,
+          a.org_coa_enc_cf, a.org_coa_enc_tot_bal,
+          a.org_coa_enc_amt, a.org_coa_enc_amt_rem,
+          a.org_coa_bgt_op_bal, a.org_coa_bgt_cf,
+          a.org_coa_bgt_tot_bal, a.org_coa_bgt_amt,
+          a.org_coa_bgt_amt_rem, a.org_coa_fy_ent_id,
+          a.usr_id_create, a.usr_id_create_dt,
+          a.usr_id_mod, a.usr_id_mod_dt,
+          a.org_coa_dr_bal, a.org_coa_cr_bal,
+          a.org_coa_dr_bal_tmp, a.org_coa_cr_bal_tmp,
+          a.org_coa_cl_bal, a.org_coa_cl_bal_typ,
+          a.org_coa_cl_bal_wth_tmp,
+          a.org_coa_cl_bal_typ_wth_tmp,
+          a.org_coa_alw_opbal_upd_frm_pfy,
+          a.org_coa_alw_opbal_upd_to_nfy,
+          a.org_coa_dr_bal_np, a.org_coa_cr_bal_np,
+          a.org_coa_cld_id, a.org_coa_ho_org_id, b.coa_nm,
+          b.coa_pnl_item,
+          0 gl_count,
+          --fin.fn_check_ob_bal_allow(a.org_coa_cld_id,a.org_sloc_id, a.org_coa_ho_org_id, a.org_id,a.org_coa_id,a.org_fy_id,'S') as AllowAddEdit,
+          CASE
+           -- if fy id < starting_fy_id then 'N' else
+            when a.org_fy_id < e.starting_fy_id then 'N'
+             else
+            -- OPENING BALANCE UPDATE IS ENABLED WHEN BEHAVIOUR IN ASSET/LIABILITY
+            -- AND NO LINES ARE PRESENT IN GL_LINES (common to all)
+            case
+          when not(((COA_GRP_TYPE = 'A') or (COA_GRP_TYPE = 'L')) and (nvl(f.row_count,0) = 0)) then 'N'
+          else
+            case
+                  -- if there is 1 fy and book closing flag = N then ok
+                  when ((d.cnt_fy = 1) and (c.org_fy_bc_stat =  'N')) then 'Y'
+                  --if there is 2 fy then and fy selected is the minimum fy id and its book closing flay = 'N' then ok
+                  when ((d.cnt_fy = 2) and (c.org_fy_bc_stat =  'N') and (a.org_fy_id = e.starting_fy_id)) then 'Y'
+                  -- if there is >2 fy then not ok
+                  else 'N'
+            end
+            end
+          END as AllowAddEdit,
+          c.org_fy_bc_stat
+from org$coa$fy a,
+            fin$coa b,
+            app.org$fy c,
+            (select cld_id,org_id,
+                                    nvl(count(org_fy_id),0) cnt_fy
+            from app.org$fy a
+            where a.cld_id = :BindCldId
+            and a.org_id = :BindOrgId --new
+            and a.fy_type = 'FY'
+            and a.org_fy_id > = (select min(org_fy_id)
+                                  from app.org$fy b
+                                  where b.CLD_ID = a.cld_id
+                                  and b.org_id = a.org_id
+                                  and fy_type = 'FY'
+                                  and org_fy_strt_flg = 'Y')
+                                   group by cld_id,org_id) d,
+            (select cld_id,org_id,
+             min(org_fy_id) starting_fy_id
+            from app.org$fy a
+            where a.cld_id = :BindCldId
+            and a.org_id = :BindOrgId --new
+            and a.fy_type = 'FY'
+            and a.org_fy_strt_flg = 'Y'
+            group by a.cld_id,a.org_id) e,
+            (
+            select gl_cld_id,gl_ho_org_id,gl_sloc_id,gl_org_id,gl_fy_id,gl_coa_id,
+                                    nvl(count(gl_vou_id),0) row_count
+            from gl_lines
+            where gl_cld_id = :BindCldId
+            and gl_ho_org_id = :BindHoOrgId
+            and gl_sloc_id = :BindSlocId
+            and gl_org_id = :BindOrgId
+            and gl_txn_typ_mig in ('O','MO')
+            group by gl_cld_id,gl_ho_org_id,gl_sloc_id,gl_org_id,gl_fy_id,gl_coa_id
+    ) f
+where a.org_coa_cld_id = :BindCldId
+and  a.org_sloc_id = :BindSlocId
+and a.org_coa_ho_org_id = :BindHoOrgId
+and a.org_id  = :BindOrgId --new
+and a.org_fy_id = :BindFyId --new
+and a.org_coa_id=nvl(:BindCoaId,a.org_coa_id) --new
+
+and a.org_coa_cld_id = b.coa_cld_id
+and a.org_sloc_id = b.coa_sloc_id
+and a.org_coa_ho_org_id = b.coa_ho_org_id
+and a.org_coa_id = b.coa_id
+
+and a.org_coa_cld_id = c.cld_id
+and a.org_id = c.org_id
+and a.org_fy_id = c.org_fy_id
+and c.fy_type = 'FY' --added
+
+and c.cld_id = d.cld_id
+and c.org_id = d.org_id
+
+and c.cld_id = e.cld_id
+and c.org_id = e.org_id
+
+and a.org_coa_cld_id = f.gl_cld_id(+)
+and a.org_sloc_id = f.gl_sloc_id(+)
+and a.org_coa_ho_org_id = f.gl_ho_org_id(+)
+and a.org_id = f.gl_org_id(+)
+and a.org_fy_id = f.gl_fy_id(+)
+and a.org_coa_id = f.gl_coa_id(+)]]></SQLQuery>
+  <EntityUsage
+    Name="OrgCoaFyEO"
+    Entity="opbalforallcoa.model.entities.OrgCoaFyEO"/>
+  <ViewAttribute
+    Name="OrgSlocId"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgSlocId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_SLOC_ID"/>
+  <ViewAttribute
+    Name="OrgId"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_ID"/>
+  <ViewAttribute
+    Name="OrgFyId"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgFyId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_FY_ID"/>
+  <ViewAttribute
+    Name="OrgCoaId"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_ID"/>
+  <ViewAttribute
+    Name="OrgCoaCogId"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaCogId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_COG_ID"/>
+  <ViewAttribute
+    Name="OrgCoaNaId"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaNaId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_NA_ID"/>
+  <ViewAttribute
+    Name="OrgCoaCcId"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaCcId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_CC_ID"/>
+  <ViewAttribute
+    Name="OrgCoaSegId"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaSegId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_SEG_ID"/>
+  <ViewAttribute
+    Name="OrgCoaEoMstId"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaEoMstId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_EO_MST_ID"/>
+  <ViewAttribute
+    Name="OrgCoaEoId"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaEoId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_EO_ID"/>
+  <ViewAttribute
+    Name="OrgCoaOpBal"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaOpBal"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_OP_BAL"/>
+  <ViewAttribute
+    Name="OrgCoaOpBalTyp"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaOpBalTyp"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_OP_BAL_TYP"
+    LOVName="LOV_OrgCoaOpBalTyp">
+    <Properties>
+      <SchemaBasedProperties>
+        <CONTROLTYPE
+          Value="choice"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgCoaEncOpBal"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaEncOpBal"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_ENC_OP_BAL"/>
+  <ViewAttribute
+    Name="OrgCoaEncCf"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaEncCf"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_ENC_CF"/>
+  <ViewAttribute
+    Name="OrgCoaEncTotBal"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaEncTotBal"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_ENC_TOT_BAL"/>
+  <ViewAttribute
+    Name="OrgCoaEncAmt"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaEncAmt"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_ENC_AMT"/>
+  <ViewAttribute
+    Name="OrgCoaEncAmtRem"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaEncAmtRem"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_ENC_AMT_REM"/>
+  <ViewAttribute
+    Name="OrgCoaBgtOpBal"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaBgtOpBal"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_BGT_OP_BAL"/>
+  <ViewAttribute
+    Name="OrgCoaBgtCf"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaBgtCf"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_BGT_CF"/>
+  <ViewAttribute
+    Name="OrgCoaBgtTotBal"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaBgtTotBal"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_BGT_TOT_BAL"/>
+  <ViewAttribute
+    Name="OrgCoaBgtAmt"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaBgtAmt"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_BGT_AMT"/>
+  <ViewAttribute
+    Name="OrgCoaBgtAmtRem"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaBgtAmtRem"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_BGT_AMT_REM"/>
+  <ViewAttribute
+    Name="OrgCoaFyEntId"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaFyEntId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_FY_ENT_ID"/>
+  <ViewAttribute
+    Name="UsrIdCreate"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="UsrIdCreate"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="USR_ID_CREATE"/>
+  <ViewAttribute
+    Name="UsrIdCreateDt"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="UsrIdCreateDt"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="USR_ID_CREATE_DT"/>
+  <ViewAttribute
+    Name="UsrIdMod"
+    PrecisionRule="true"
+    EntityAttrName="UsrIdMod"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="USR_ID_MOD"/>
+  <ViewAttribute
+    Name="UsrIdModDt"
+    PrecisionRule="true"
+    EntityAttrName="UsrIdModDt"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="USR_ID_MOD_DT"/>
+  <ViewAttribute
+    Name="OrgCoaDrBal"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaDrBal"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_DR_BAL"/>
+  <ViewAttribute
+    Name="OrgCoaCrBal"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaCrBal"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_CR_BAL"/>
+  <ViewAttribute
+    Name="OrgCoaDrBalTmp"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaDrBalTmp"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_DR_BAL_TMP"/>
+  <ViewAttribute
+    Name="OrgCoaCrBalTmp"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaCrBalTmp"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_CR_BAL_TMP"/>
+  <ViewAttribute
+    Name="OrgCoaClBal"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaClBal"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_CL_BAL"/>
+  <ViewAttribute
+    Name="OrgCoaClBalTyp"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaClBalTyp"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_CL_BAL_TYP"/>
+  <ViewAttribute
+    Name="OrgCoaClBalWthTmp"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaClBalWthTmp"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_CL_BAL_WTH_TMP"/>
+  <ViewAttribute
+    Name="OrgCoaClBalTypWthTmp"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaClBalTypWthTmp"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_CL_BAL_TYP_WTH_TMP"/>
+  <ViewAttribute
+    Name="OrgCoaAlwOpbalUpdFrmPfy"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaAlwOpbalUpdFrmPfy"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_ALW_OPBAL_UPD_FRM_PFY"/>
+  <ViewAttribute
+    Name="OrgCoaAlwOpbalUpdToNfy"
+    IsNotNull="true"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaAlwOpbalUpdToNfy"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_ALW_OPBAL_UPD_TO_NFY"/>
+  <ViewAttribute
+    Name="OrgCoaDrBalNp"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaDrBalNp"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_DR_BAL_NP"/>
+  <ViewAttribute
+    Name="OrgCoaCrBalNp"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaCrBalNp"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_CR_BAL_NP"/>
+  <ViewAttribute
+    Name="OrgCoaCldId"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaCldId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_CLD_ID"/>
+  <ViewAttribute
+    Name="OrgCoaHoOrgId"
+    PrecisionRule="true"
+    EntityAttrName="OrgCoaHoOrgId"
+    EntityUsage="OrgCoaFyEO"
+    AliasName="ORG_COA_HO_ORG_ID"/>
+  <ViewAttribute
+    Name="CoaNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_NM"
+    Expression="COA_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaPnlItem"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="1"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_PNL_ITEM"
+    Expression="COA_PNL_ITEM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="1"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlCount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="GL_COUNT"
+    Expression="GL_COUNT"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="Allowaddedit"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="4000"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ALLOWADDEDIT"
+    Expression="ALLOWADDEDIT"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4000"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgFyBcStat"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="1"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_FY_BC_STAT"
+    Expression="ORG_FY_BC_STAT"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="1"/>
+    </DesignTime>
+  </ViewAttribute>
+</ViewObject>

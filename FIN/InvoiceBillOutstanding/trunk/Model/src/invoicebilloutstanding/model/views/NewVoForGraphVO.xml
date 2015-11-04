@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="NewVoForGraphVO"
+  Version="11.1.2.60.81"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  UseGlueCode="false">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="invoicebilloutstanding.model.views.NewVoForGraphVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <SQLQuery><![CDATA[SELECT
+org_id,
+coa_id,
+ORG_DESC,
+COA_NM,
+OS_DAYS,
+SUM(AP_AMT_SP) AP_AMT_SP,
+SUM(AP_AMT_ADJ) AP_AMT_ADJ,
+SUM(AP_AMT_OS) AP_AMT_OS,
+ap_sloc_id,
+gl_cld_id
+FROM (
+SELECT b.org_id,
+    c.coa_id,
+    B.ORG_DESC,
+         c.COA_NM,
+         a.AP_AMT_SP,
+          a.AP_AMT_ADJ,
+          NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0) AP_AMT_OS,
+        case  
+        when sysdate - a.ap_vou_dt <= 30 then '30 Days'
+        when sysdate- a.ap_vou_dt > 30  and sysdate- a.ap_vou_dt <= 60 then '60 Days'
+        when sysdate- a.ap_vou_dt > 60  and sysdate- a.ap_vou_dt <= 90 then '90 Days'
+        when sysdate- a.ap_vou_dt > 90  and sysdate- a.ap_vou_dt <= 120 then '120 days'
+        else 'More than 120' 
+        end "OS_DAYS",
+        a.ap_sloc_id,
+        a.gl_cld_id
+FROM
+AP a, APP.ORG b,FIN$COA c,app.app$doc$txn d
+WHERE
+a.AP_VOU_ID=d.DOC_TXN_ID
+and NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0) > 0
+and
+A.AP_ORG_ID=B.ORG_ID
+and
+a.ap_sloc_id = c.coa_sloc_id
+and
+a.gl_cld_id = c.coa_cld_id
+and
+a.gl_cld_id = b.org_cld_id
+and
+a.AP_COA_ID=C.COA_ID
+and
+a.AP_TXN_TYP_ADV='N'
+and
+a.ap_type_id in (8))
+GROUP BY org_id,
+ORG_DESC,
+COA_NM,
+coa_id,
+OS_DAYS,
+ap_sloc_id ,
+gl_cld_id
+order by
+ORG_DESC,COA_NM]]></SQLQuery>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="INTEGER"
+    AliasName="COA_ID"
+    Expression="COA_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="OrgDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_DESC"
+    Expression="ORG_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_NM"
+    Expression="COA_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OsDays"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="13"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="OS_DAYS"
+    Expression="OS_DAYS"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="13"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApAmtSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_SP"
+    Expression="AP_AMT_SP"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtAdj"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_ADJ"
+    Expression="AP_AMT_ADJ"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtOs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_OS"
+    Expression="AP_AMT_OS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApSlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="AP_SLOC_ID"
+    Expression="AP_SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="GlCldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="4"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_CLD_ID"
+    Expression="GL_CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="invoicebilloutstanding.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

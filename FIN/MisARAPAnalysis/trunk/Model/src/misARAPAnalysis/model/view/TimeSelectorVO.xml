@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="TimeSelectorVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  UseGlueCode="false"
+  ComponentClass="misARAPAnalysis.model.view.TimeSelectorVOImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Coll|VarAccess"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="misARAPAnalysis.model.view.TimeSelectorVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindCoaId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindUserId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindHoOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSlocId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindStartRange"
+    Kind="where"
+    Type="oracle.jbo.domain.Number"/>
+  <Variable
+    Name="BindEndRange"
+    Kind="where"
+    Type="oracle.jbo.domain.Number"/>
+  <SQLQuery><![CDATA[select 
+        sum(Ap_Amt_Os),
+   
+        x_date
+From
+    (select gl_cld_id ,
+       ap_sloc_id,
+       gl_ho_org_id,
+       ap_org_id,
+       ap.ap_vou_id,
+       substr(adt.doc_txn_id_disp,3) VOUCHER_ID,
+       ap_coa_id,
+       ap_amt_typ,
+       fc.coa_nm,
+       curr_desc,
+       curr_notation_alias,
+       ap.ap_cc OLD_RATE,
+       Ap_Amt_Sp_Orig,
+       decode(ap_amt_typ,'Cr',ap_amt_sp_orig,'Dr',-ap_amt_sp_orig) ap_amt_sp_orig_to_sum,
+       nvl(ap_amt_sp, 0) ap_amt_sp,
+       nvl(ap_amt_adj, 0) ap_amt_adj,
+       nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0) ap_amt_os,
+       ((Trunc(Sysdate)) - Nvl(Ap_Ext_Doc_Dt, Ap_Vou_Dt)) Os_Days,
+       case when (trunc(sysdate)) - ap_vou_dt between nvl(0, 100) and nvl(1000, 280) then nvl(nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0), 0) else 0 end as range_os,
+       ap_ext_doc_typ,
+       Ap_Ext_Doc_No,
+       Ap_Ext_Doc_Dt,
+       trunc(ap.ap_vou_dt) x_date
+        from fin.ap, 
+             fin.fin$coa fc, 
+             App.App$curr_Vw Ac,
+             App.App$doc$txn Adt,
+             fin.org$usr$ageing_bkt oab
+             
+      where nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0) > 0
+         and ap.ap_coa_id = fc.coa_id
+         and ap.ap_sloc_id = fc.coa_sloc_id
+         and ap.gl_ho_org_id=fc.coa_ho_org_id
+         And Ap.Gl_Cld_Id = Fc.Coa_Cld_Id
+         And Ac.Curr_Id = Ap.Ap_Curr_Id_Sp
+          And Ap.Gl_Cld_Id=Oab.Bkt_Cld_Id
+          AND Ap.AP_ORG_ID=OAB.BKT_ORG_ID
+          And Oab.Bkt_Active='Y'
+          And Oab.Bkt_Default='Y'
+          and OAB.BKT_USER_ID= :BindUserId 
+         And Ap.Ap_Org_Id = :BindOrgId
+         And Ap.Gl_Ho_Org_Id=:BindHoOrgId
+         And Ap.Ap_Sloc_Id=:BindSlocId
+         And Ap.Gl_Cld_Id = :BindCldId
+         And Ap.Ap_Coa_Id= nvl(:BindCoaId,Ap.Ap_Coa_Id )
+         And Ap.Ap_Sloc_Id=Adt.Doc_Sloc_Id
+         And Ap.Ap_Vou_Id=Adt.Doc_Txn_Id
+         And Ap.Gl_Cld_Id=Adt.Doc_Cld_Id)
+
+    Where Os_Days Between Nvl(:BindStartRange,0) And Nvl(:BindEndRange,366)
+         
+         Group By X_Date
+         order by X_date asc]]></SQLQuery>
+  <ViewAttribute
+    Name="SumApAmtOs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName='"SUM(AP_AMT_OS)"'
+    Expression='"SUM(AP_AMT_OS)"'
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="XDate"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="X_DATE"
+    Expression="X_DATE"
+    SQLType="DATE"/>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="misARAPAnalysis.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

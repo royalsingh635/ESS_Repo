@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="CashInflowOutflowVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  FetchSize="10"
+  PageIterMode="Full"
+  UseGlueCode="false">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="graphTickerApp.model.views.CashInflowOutflowVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldID"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSlocID"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindHoOrgID"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgID"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindAppInstID"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <SQLQuery><![CDATA[select     x.gl_org_id,
+           x.gl_sloc_id,
+           gl_vou_dt,
+           sum(decode(x.gl_amt_typ,'Dr',x.gl_amt_bs,'Cr',0,0)) sum_amt_inflow,
+            sum(decode(x.gl_amt_typ,'Cr',x.gl_amt_bs,'Dr',0,0)) sum_amt_outflow,
+            sum(decode(x.gl_amt_typ,'Dr',x.gl_amt_bs,'Cr',-x.gl_amt_bs,x.gl_amt_bs))  sum_amt_netflow,
+           x.gl_curr_id_bs
+from (select a.gl_org_id,
+      a.gl_sloc_id,
+      a.gl_appl_inst_id,
+      trunc(a.gl_vou_dt) gl_vou_dt,
+      b.gl_amt_typ,
+      b.gl_amt_bs ,
+      b.gl_curr_id_bs         
+      from fin.gl         a,
+           fin.gl_lines   b,
+           fin.fin$coa    c,
+           fin.fin$acc$na d,
+           (select org_id ,fy_strt,fy_end from app.org$fy 
+            where fy_type='FY' and org_id=:BindOrgID
+            and sysdate between nvl(fy_strt,sysdate) and nvl(fy_end,sysdate) and rownum=1) zz
+     where a.gl_vou_id = b.gl_vou_id
+       AND a.gl_sloc_id=b.gl_sloc_id
+       and a.gl_appl_inst_id=b.gl_appl_inst_id
+       and a.gl_ho_org_id=b.gl_ho_org_id
+       and a.gl_type_id in (4, 5, 6)
+
+       and b.gl_cld_id=c.coa_cld_id
+       and b.gl_sloc_id = c.coa_sloc_id
+       and b.gl_ho_org_id=c.coa_ho_org_id
+       and b.gl_coa_id = c.coa_id
+
+       and a.gl_cld_id =:BindCldID
+       and a.gl_sloc_id =:BindSlocID
+       and a.gl_ho_org_id =:BindHoOrgID
+       and a.gl_org_id = :BindOrgID
+       and a.gl_appl_inst_id =:BindAppInstID
+
+  
+       and c.coa_cld_id=d.acc_cld_id
+       and c.coa_sloc_id = d.acc_sloc_id
+       and c.coa_ho_org_id=d.ho_org_id
+       and c.coa_acc_id = d.acc_id
+       and d.acc_type in (79) 
+         and b.gl_na_id in (select  acc_id from fin.fin$acc$na a where a.acc_type= 79)         --79 bank account, 79 cash account
+       and b.gl_vou_dt between zz.fy_strt and zz.fy_end) x
+
+     group by x.gl_curr_id_bs,
+             x.gl_sloc_id,
+              x.gl_appl_inst_id, 
+              x.gl_org_id,
+              x.gl_Vou_dt
+     order by x.gl_vou_dt]]></SQLQuery>
+  <ViewAttribute
+    Name="GlOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_ORG_ID"
+    Expression="GL_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlSlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="GL_SLOC_ID"
+    Expression="GL_SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="GlVouDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="GL_VOU_DT"
+    Expression="GL_VOU_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="SumAmtInflow"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="SUM_AMT_INFLOW"
+    Expression="SUM_AMT_INFLOW"
+    SQLType="NUMERIC">
+    <Properties>
+      <SchemaBasedProperties>
+        <LABEL
+          ResId="LBL.2080"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SumAmtOutflow"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="SUM_AMT_OUTFLOW"
+    Expression="SUM_AMT_OUTFLOW"
+    SQLType="NUMERIC">
+    <Properties>
+      <SchemaBasedProperties>
+        <LABEL
+          ResId="LBL.2081"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SumAmtNetflow"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="SUM_AMT_NETFLOW"
+    Expression="SUM_AMT_NETFLOW"
+    SQLType="NUMERIC">
+    <Properties>
+      <SchemaBasedProperties>
+        <LABEL
+          ResId="LBL.614"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlCurrIdBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="GL_CURR_ID_BS"
+    Expression="GL_CURR_ID_BS"
+    SQLType="NUMERIC"/>
+</ViewObject>

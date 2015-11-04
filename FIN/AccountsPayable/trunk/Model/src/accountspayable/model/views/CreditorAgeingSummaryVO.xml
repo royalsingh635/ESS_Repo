@@ -1,0 +1,624 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="CreditorAgeingSummaryVO"
+  Version="12.1.3.10.8"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  ComponentClass="accountspayable.model.views.CreditorAgeingSummaryVOImpl"
+  RowClass="accountspayable.model.views.CreditorAgeingSummaryVORowImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Access|Coll|VarAccess"/>
+    <Attr Name="_isCodegen" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="accountspayable.model.views.CreditorAgeingSummaryVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindDtType"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindDate"
+    Kind="where"
+    Type="oracle.jbo.domain.Timestamp"/>
+  <ViewAccessor
+    Name="CreditorAgeingSummaryVO1"
+    ViewObjectName="accountspayable.model.views.CreditorAgeingSummaryVO"
+    RowLevelBinds="true"/>
+  <SQLQuery><![CDATA[select cld_id, 
+       org_id, 
+       org_desc, 
+       coa_id, 
+       coa_nm, 
+       curr_id, 
+       curr_nm, 
+       sum(ap_amt_bs_org) ap_amt_bs_org, 
+       sum(ap_amt_sp_signed) ap_amt_sp, 
+       sum(ap_amt_adj_signed) ap_amt_adj, 
+       sum(ap_amt_os_signed) ap_amt_os, 
+       sum(os_30_days) os_30_days, 
+       sum(os_60_days) os_60_days, 
+       sum(os_90_days) os_90_days, 
+       sum(os_120_days) os_120_days, 
+       sum(os_180_days) os_180_days, 
+       sum(os_1_yr) os_1_yr, 
+       sum(os_greater_1_yr) os_greater_1_yr 
+  from (select a.gl_cld_id cld_id, 
+               a.ap_org_id org_id, 
+               b.org_desc, 
+               a.ap_coa_id coa_id, 
+               c.coa_nm, 
+               a.curr_id_sp curr_id, 
+               e.glbl_curr_desc curr_nm, 
+               a.ap_vou_id, 
+               a.ap_vou_dt, 
+               ap_amt_bs_org, 
+               a.ap_amt_sp, 
+               a.ap_amt_sp_signed, 
+               a.ap_amt_adj, 
+               a.ap_amt_adj_signed, 
+               ap_amt_os, 
+               ap_amt_os_signed, 
+               os_days, 
+               decode(sign(30 - os_days), -1, 0, ap_amt_os_signed) os_30_days, 
+               decode(sign(60 - os_days) * sign(os_days - 31), 
+                      -1, 
+                      0, 
+                      ap_amt_os_signed) os_60_days, 
+               decode(sign(90 - os_days) * sign(os_days - 61), 
+                      -1, 
+                      0, 
+                      ap_amt_os_signed) os_90_days, 
+               decode(sign(120 - os_days) * sign(os_days - 91), 
+                      -1, 
+                      0, 
+                      ap_amt_os_signed) os_120_days, 
+               decode(sign(180 - os_days) * sign(os_days - 121), 
+                      -1, 
+                      0, 
+                      ap_amt_os_signed) os_180_days, 
+               decode(sign(365 - os_days) * sign(os_days - 181), 
+                      -1, 
+                      0, 
+                      ap_amt_os_signed) os_1_yr, 
+               decode(sign(os_days - 366), -1, 0, ap_amt_os_signed) os_greater_1_yr 
+          from (select gl_cld_id, 
+                       ap_org_id, 
+                       ap_sloc_id, 
+                       ap_coa_id, 
+                       ap_curr_id_sp curr_id_sp, 
+                       ap_vou_id, 
+                       ap_vou_dt, 
+                       ap_amt_sp, 
+                       ap_amt_typ, 
+                       GL_HO_ORG_ID, 
+                       decode(ap_amt_typ, 
+                              'Cr', 
+                              nvl(ap.ap_amt_bs_orig, 0), 
+                              'Dr', 
+                              -nvl(ap_amt_bs_orig, 0), 
+                              nvl(ap_amt_bs_orig, 0)) ap_amt_bs_org, 
+                       decode(ap_amt_typ, 
+                              'Cr', 
+                              nvl(ap.ap_amt_sp, 0), 
+                              'Dr', 
+                              -nvl(ap_amt_sp, 0), 
+                              nvl(ap_amt_sp, 0)) ap_amt_sp_signed, 
+                       nvl(ap_amt_adj, 0) ap_amt_adj, 
+                       decode(ap_amt_typ, 
+                              'Cr', 
+                              nvl(ap_amt_adj, 0), 
+                              'Dr', 
+                              -nvl(ap_amt_adj, 0), 
+                              nvl(ap_amt_adj, 0)) ap_amt_adj_signed, 
+                       nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0) ap_amt_os, 
+                       decode(ap_amt_typ, 
+                              'Cr', 
+                              nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0), 
+                              'Dr', 
+                              - (nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0)), 
+                              nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0)) ap_amt_os_signed, 
+                       nvl(to_date(:BindDate,'yyyy-mm-dd'),trunc(sysdate)) - decode(:BindDtType,'I',trunc(nvl(ap_ext_doc_dt,ap_vou_dt)),'V', ap_vou_dt,'D',trunc(nvl(ap_vou_due_dt,ap_vou_dt)),ap_vou_dt) os_days 
+                  from ap 
+                 where nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0) > 0 
+                  -- and ap_txn_typ_adv = 'N' 
+                  -- and ap_type_id in (8, 14) 
+                ) a, 
+               app.org b, 
+               fin$coa c, 
+               app.app$doc$txn d, 
+               app.app$glbl$curr e 
+         where a.os_days > 0 
+         and not exists (select gl_Vou_id from gl where gl.gl_rev_flg in 
+('RVS','RVD') and gl_cld_id=a.GL_CLD_ID and gl_ho_org_id=a.GL_HO_ORG_ID and gl_org_id= a.AP_ORG_ID and 
+gl_vou_id=a.AP_VOU_ID) 
+           and d.doc_cld_id = a.gl_cld_id 
+           and d.doc_org_id = a.ap_org_id 
+           and d.doc_sloc_id = a.ap_sloc_id 
+           and d.doc_txn_id = a.ap_vou_id 
+           and b.org_cld_id = a.gl_cld_id 
+           and b.org_id = a.ap_org_id 
+           and c.coa_cld_id = a.gl_cld_id 
+           and c.coa_sloc_id = a.ap_sloc_id 
+           and c.coa_ho_org_id = app.fn_get_parent_org_l0(a.gl_cld_id, a.ap_org_id) 
+           and c.coa_id = a.ap_coa_id 
+           --and AP_AMT_OS > '0' 
+           and e.glbl_curr_id = a.curr_id_sp 
+           and ORG_ID = :BindOrgId 
+           and a.gl_cld_id = :BindCldId) 
+group by cld_id, org_id, org_desc, coa_id, coa_nm, curr_id, curr_nm]]></SQLQuery>
+  <ViewAttribute
+    Name="Selectobjects0"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="4"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="SELECTOBJECTS0"
+    Expression="SELECTOBJECTS0"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Selectobjects1"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="SELECTOBJECTS1"
+    Expression="SELECTOBJECTS1"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Selectobjects2"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="SELECTOBJECTS2"
+    Expression="SELECTOBJECTS2"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Selectobjects3"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.math.BigInteger"
+    ColumnType="NUMBER"
+    AliasName="SELECTOBJECTS3"
+    Expression="SELECTOBJECTS3"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Selectobjects4"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="SELECTOBJECTS4"
+    Expression="SELECTOBJECTS4"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Selectobjects5"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.math.BigInteger"
+    ColumnType="NUMBER"
+    AliasName="SELECTOBJECTS5"
+    Expression="SELECTOBJECTS5"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Selectobjects6"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="SELECTOBJECTS6"
+    Expression="SELECTOBJECTS6"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApAmtBsOrg"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_BS_ORG"
+    Expression="AP_AMT_BS_ORG"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_SP"
+    Expression="AP_AMT_SP"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtAdj"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_ADJ"
+    Expression="AP_AMT_ADJ"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtOs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_OS"
+    Expression="AP_AMT_OS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os30Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_30_DAYS"
+    Expression="OS_30_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os60Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_60_DAYS"
+    Expression="OS_60_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os90Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_90_DAYS"
+    Expression="OS_90_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os120Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_120_DAYS"
+    Expression="OS_120_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os180Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_180_DAYS"
+    Expression="OS_180_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os1Yr"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_1_YR"
+    Expression="OS_1_YR"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="OsGreater1Yr"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_GREATER_1_YR"
+    Expression="OS_GREATER_1_YR"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Total30DaysTrans"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC"
+    IsQueriable="false">
+    <TransientExpression><![CDATA[object.getRowSet().sum("Os30Days") == null ? 0.00 : object.getRowSet().sum("Os30Days")]]></TransientExpression>
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <Dependencies>
+      <Item
+        Value="Os30Days"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Total60DaysTrans"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC"
+    IsQueriable="false">
+    <TransientExpression><![CDATA[object.getRowSet().sum("Os60Days") == null ? 0.00 : object.getRowSet().sum("Os60Days")]]></TransientExpression>
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <Dependencies>
+      <Item
+        Value="Os60Days"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Total90DaysTrans"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC"
+    IsQueriable="false">
+    <TransientExpression><![CDATA[object.getRowSet().sum("Os90Days") == null ? 0.00 : object.getRowSet().sum("Os90Days")]]></TransientExpression>
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <Dependencies>
+      <Item
+        Value="Os90Days"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Total120DaysTrans"
+    IsUpdateable="false"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC">
+    <TransientExpression><![CDATA[object.getRowSet().sum("Os120Days") == null ? 0.00 : object.getRowSet().sum("Os120Days")]]></TransientExpression>
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <Dependencies>
+      <Item
+        Value="Os120Days"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Total180DaysTrans"
+    IsUpdateable="false"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC">
+    <TransientExpression><![CDATA[object.getRowSet().sum("Os180Days") == null ? 0.00 : object.getRowSet().sum("Os180Days")]]></TransientExpression>
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <Dependencies>
+      <Item
+        Value="Os180Days"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Total1YrTrans"
+    IsUpdateable="false"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC">
+    <TransientExpression><![CDATA[object.getRowSet().sum("Os1Yr") == null ? 0.00 : object.getRowSet().sum("Os1Yr")]]></TransientExpression>
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <Dependencies>
+      <Item
+        Value="Os1Yr"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="TotalGreater1YrTrans"
+    IsUpdateable="false"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC">
+    <TransientExpression><![CDATA[object.getRowSet().sum("OsGreater1Yr") == null ? 0.00 : object.getRowSet().sum("OsGreater1Yr")]]></TransientExpression>
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <Dependencies>
+      <Item
+        Value="OsGreater1Yr"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="TotalAmtOsTrans"
+    IsUpdateable="false"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC">
+    <TransientExpression><![CDATA[object.getRowSet().sum("ApAmtOs") == null ? 0.00 : object.getRowSet().sum("ApAmtOs")]]></TransientExpression>
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <Dependencies>
+      <Item
+        Value="ApAmtOs"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="TotalAmtAdjTrans"
+    IsUpdateable="false"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC">
+    <TransientExpression><![CDATA[object.getRowSet().sum("ApAmtAdj") == null ? 0.00 : object.getRowSet().sum("ApAmtAdj")]]></TransientExpression>
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <Dependencies>
+      <Item
+        Value="ApAmtAdj"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="TotalAmtSpTrans"
+    IsUpdateable="false"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC">
+    <TransientExpression><![CDATA[object.getRowSet().sum("ApAmtSp") == null ? 0.00 : object.getRowSet().sum("ApAmtSp")]]></TransientExpression>
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <Dependencies>
+      <Item
+        Value="ApAmtSp"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="TotalAmtBsTrans"
+    IsUpdateable="false"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC">
+    <TransientExpression><![CDATA[object.getRowSet().sum("ApAmtBsOrg") == null ? 0.00 : object.getRowSet().sum("ApAmtBsOrg")]]></TransientExpression>
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <Dependencies>
+      <Item
+        Value="ApAmtBsOrg"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OsDaysTrans"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="VIEW_ATTR"
+    SQLType="VARCHAR"/>
+  <ViewAttribute
+    Name="DateTrans"
+    IsUpdateable="false"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Timestamp"
+    ColumnType="DATE"
+    AliasName="VIEW_ATTR"
+    SQLType="DATE"/>
+  <ViewCriteria
+    Name="CreditorAgeingSummaryVOCriteria"
+    ViewObjectName="accountspayable.model.views.CreditorAgeingSummaryVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="InAdvancedMode"/>
+        <Property
+          Name="autoExecute"
+          Value="false"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="CreditorAgeingSummaryVOCriteria_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="ApAmtOs"
+        ViewAttribute="ApAmtOs"
+        Operator="ISNOTBLANK"
+        Conjunction="AND"
+        Required="Optional"/>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+  <ViewLinkAccessor
+    Name="supplierDetail"
+    ViewLink="accountspayable.model.views.module.view.link.CreditorAgeingSummary2SupplierDtlVL"
+    Type="oracle.jbo.RowIterator"
+    IsUpdateable="false"/>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="accountspayable.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

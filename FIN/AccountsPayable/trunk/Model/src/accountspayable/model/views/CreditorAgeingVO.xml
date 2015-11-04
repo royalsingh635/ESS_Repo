@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="CreditorAgeingVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  UseGlueCode="false">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="accountspayable.model.views.CreditorAgeingVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="Org_ID"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <Variable
+    Name="FromDate"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <Variable
+    Name="Amount"
+    Kind="viewcriteria"
+    Type="java.math.BigDecimal"/>
+  <Variable
+    Name="ToDate"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <Variable
+    Name="Coa_ID"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[SELECT a.CLD_ID,
+	A.ORG_ID,B.ORG_DESC,
+	A.COA_ID,C.COA_NM,
+	A.CURR_ID_SP,E.GLBL_CURR_DESC CURR_NM,
+	--A.VOU_ID,
+	--A.VOU_DT,
+		
+	--x3.VAT_NO, --not used
+	--x4.EO_PHONE, --not used
+	--x4.EO_EMAIL_ID, --not used
+	--x4.EO_FAX_NO, --not used
+	SUBSTR(DOC_TXN_ID_DISP,3) DOC_ID,
+	A.VOU_DT DOC_DT, --renamed from USR_ID_CREATE_DT
+		
+	A.EXT_DOC_NO,
+	A.EXT_DOC_DT,
+	A.EXT_DOC_DUE_DT DUE_DATE,
+		
+	A.AMT_SP,
+	--A.AMT_SP_SIGNED, --not used
+	A.AMT_ADJ,
+	--A.AMT_ADJ_SIGNED, --not used
+	A.AMT_OS,
+	--A.AMT_OS_SIGNED, --not used
+	A.OS_DAYS,
+		
+	DECODE(SIGN(30 - OS_DAYS), -1,0,AMT_OS_SIGNED) OS_30_DAYS,
+	DECODE(SIGN(60 - OS_DAYS) * SIGN(OS_DAYS - 31), -1,0,AMT_OS_SIGNED) OS_60_DAYS,
+	DECODE(SIGN(90 - OS_DAYS) * SIGN(OS_DAYS - 61),	-1,0,AMT_OS_SIGNED) OS_90_DAYS,
+	DECODE(SIGN(120 - OS_DAYS) * SIGN(OS_DAYS - 91), -1,0,AMT_OS_SIGNED) OS_120_DAYS,
+	DECODE(SIGN(180 - OS_DAYS) * SIGN(OS_DAYS - 121), -1,0,AMT_OS_SIGNED) OS_180_DAYS,
+	DECODE(SIGN(365 - OS_DAYS) * SIGN(OS_DAYS - 181), -1,0,AMT_OS_SIGNED) OS_1_YR,
+	DECODE(SIGN(OS_DAYS - 366), -1,0,AMT_OS_SIGNED) OS_GREATER_1_YR
+FROM	(
+	SELECT	GL_CLD_ID CLD_ID,
+		AP_SLOC_ID SLOC_ID,
+		GL_HO_ORG_ID HO_ORG_ID,
+		AP_ORG_ID ORG_ID,
+		AP_COA_ID COA_ID,
+		AP_CURR_ID_SP CURR_ID_SP,
+
+		AP_VOU_ID VOU_ID,
+		AP_VOU_DT VOU_DT,
+
+		AP_EXT_DOC_TYP EXT_DOC_TYP,
+		AP_EXT_DOC_NO EXT_DOC_NO,
+		AP_EXT_DOC_DT EXT_DOC_DT,
+		AP_VOU_DUE_DT EXT_DOC_DUE_DT,
+
+		AP_AMT_SP AMT_SP,
+		AP_AMT_TYP AMT_TYP,
+		DECODE(AP_AMT_TYP,'Cr',NVL(AP_AMT_SP,0),'Dr',-NVL(AP_AMT_SP,0),NVL(AP_AMT_SP,0)) AMT_SP_SIGNED,
+		NVL(AP_AMT_ADJ,0) AMT_ADJ,
+		DECODE(AP_AMT_TYP,'Cr',NVL(AP_AMT_ADJ,0),'Dr',-NVL(AP_AMT_ADJ,0),NVL(AP_AMT_ADJ,0)) AMT_ADJ_SIGNED,
+		NVL(AP_AMT_SP,0) - NVL(AP_AMT_ADJ,0) AMT_OS,
+		DECODE(AP_AMT_TYP,'Cr',NVL(AP_AMT_SP,0) - NVL(AP_AMT_ADJ,0),
+				'Dr',-(NVL(AP_AMT_SP,0) - NVL(AP_AMT_ADJ,0)),
+						NVL(AP_AMT_SP,0) - NVL(AP_AMT_ADJ,0)) AMT_OS_SIGNED,
+		TRUNC(sysdate) - AP_VOU_DT OS_DAYS
+	FROM	AP
+	WHERE	NVL(AP_AMT_SP,0) - NVL(AP_AMT_ADJ,0) > 0
+	and		AP_TXN_TYP_ADV = 'N'
+	AND		AP_TYPE_ID  IN (8,14) --PURCHASE VOUCHER, EXPENSE VOUCHER
+	) A,
+	APP.ORG B,
+	FIN$COA C,
+	APP.APP$DOC$TXN D,
+	APP.APP$GLBL$CURR E
+
+WHERE	A.OS_DAYS > 0     -- THIS IS IMPORTANT
+AND	d.DOC_CLD_ID = a.CLD_ID
+and	d.DOC_ORG_ID = A.ORG_ID
+and	d.DOC_SLOC_ID = a.SLOC_ID
+and	d.DOC_TXN_ID = a.VOU_ID
+
+and	b.ORG_CLD_ID = a.CLD_ID
+and	B.ORG_ID = A.ORG_ID
+
+and	c.COA_CLD_ID = a.CLD_ID
+and	c.COA_SLOC_ID = a.SLOC_ID
+and	c.COA_HO_ORG_ID = app.FN_GET_PARENT_ORG_L0(a.CLD_ID,A.ORG_ID)
+and	c.COA_ID = a.COA_ID
+
+AND	E.GLBL_CURR_ID = A.CURR_ID_SP
+order by 3,4,10,9]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="4"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_DESC"
+    Expression="ORG_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.math.BigInteger"
+    ColumnType="NUMBER"
+    AliasName="COA_ID"
+    Expression="COA_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="CoaNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_NM"
+    Expression="COA_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CurrIdSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.math.BigInteger"
+    ColumnType="NUMBER"
+    AliasName="CURR_ID_SP"
+    Expression="CURR_ID_SP"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="CurrNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CURR_NM"
+    Expression="CURR_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="152"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="DOC_ID"
+    Expression="DOC_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="152"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DocDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="DOC_DT"
+    Expression="DOC_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="ExtDocNo"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="EXT_DOC_NO"
+    Expression="EXT_DOC_NO"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ExtDocDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="EXT_DOC_DT"
+    Expression="EXT_DOC_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="DueDate"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="DUE_DATE"
+    Expression="DUE_DATE"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="AmtSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AMT_SP"
+    Expression="AMT_SP"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="AmtAdj"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AMT_ADJ"
+    Expression="AMT_ADJ"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="AmtOs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AMT_OS"
+    Expression="AMT_OS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="OsDays"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_DAYS"
+    Expression="OS_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os30Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_30_DAYS"
+    Expression="OS_30_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os60Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_60_DAYS"
+    Expression="OS_60_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os90Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_90_DAYS"
+    Expression="OS_90_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os120Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_120_DAYS"
+    Expression="OS_120_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os180Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_180_DAYS"
+    Expression="OS_180_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os1Yr"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_1_YR"
+    Expression="OS_1_YR"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="OsGreater1Yr"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_GREATER_1_YR"
+    Expression="OS_GREATER_1_YR"
+    SQLType="NUMERIC"/>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="accountspayable.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

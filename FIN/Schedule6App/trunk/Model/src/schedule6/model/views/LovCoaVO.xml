@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="LovCoaVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  RowClass="schedule6.model.views.LovCoaVORowImpl"
+  ComponentClass="schedule6.model.views.LovCoaVOImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Access|Coll|VarAccess"/>
+    <Attr Name="_isCodegen" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="schedule6.model.views.LovCoaVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCoaId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindCogId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindHoOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindLineId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSchId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindLovFor"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[Select coa_id,coa_nm from fin$coa     
+where coa_id=nvl(:BindCoaId,coa_id)  
+and coa_cog_id = :BindCogId     
+and coa_ho_org_id=:BindHoOrgId     
+and coa_cld_id=:BindCldId 
+ 
+and nvl(:BindLovFor,'L')='L' 
+ 
+union  
+ 
+SELECT COA_ID,COA_NM        
+FROM FIN$COA        
+WHERE  coa_ho_org_id=:BindHoOrgId        
+and coa_cld_id=:BindCldId        
+and coa_cog_id=nvl(:BindCogId,coa_cog_id) 
+and :BindLovFor='S' 
+and coa_id not in (        
+                       select a.sch_line_coa_id from fin$sch$line$Sub$dtl a         
+                       where  sch_ho_org_id=:BindHoOrgId        
+                        and sch_cld_id=:BindCldId     
+                        and sch_id=:BindSchId 
+                        and sch_line_id not like :BindLineId)        
+and coa_cog_id not in  (select b.sch_cog_id from fin$sch$line$dtl b        
+                       where  sch_ho_org_id=:BindHoOrgId        
+                        and sch_cld_id=:BindCldId        
+                         and sch_id=:BindSchId        
+                          and b.SCH_COG_GRP_FLG='Y' 
+                         )]]></SQLQuery>
+  <ViewAttribute
+    Name="CoaId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="BIGINT"
+    AliasName="COA_ID"
+    Expression="COA_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="CoaNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_NM"
+    Expression="COA_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="schedule6.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

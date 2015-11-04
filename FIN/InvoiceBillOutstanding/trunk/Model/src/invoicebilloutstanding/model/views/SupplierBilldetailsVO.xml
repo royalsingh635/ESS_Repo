@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="SupplierBilldetailsVO"
+  Version="11.1.2.60.81"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  UseGlueCode="false">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="invoicebilloutstanding.model.views.SupplierBilldetailsVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="VouDateFrom"
+    Kind="viewcriteria"
+    Type="oracle.jbo.domain.Date"/>
+  <Variable
+    Name="VoudateTo"
+    Kind="viewcriteria"
+    Type="oracle.jbo.domain.Date"/>
+  <Variable
+    Name="AmountFrom"
+    Kind="viewcriteria"
+    Type="oracle.jbo.domain.Number"/>
+  <Variable
+    Name="AmountTo"
+    Kind="viewcriteria"
+    Type="oracle.jbo.domain.Number"/>
+  <SQLQuery><![CDATA[SELECT
+org_id,
+coa_id,
+ORG_DESC,
+COA_NM,
+doc_id,
+ap_vou_id,
+ap_vou_dt,
+SUM(AP_AMT_SP) AP_AMT_SP,
+SUM(AP_AMT_ADJ) AP_AMT_ADJ,
+SUM(AP_AMT_OS) AP_AMT_OS,
+SUM(OS_30_DAYS) OS_30_DAYS,
+SUM(OS_60_DAYS)OS_60_DAYS,
+SUM(OS_90_DAYS) OS_90_DAYS,
+SUM(OS_120_DAYS) OS_120_DAYS,
+SUM(OS_180_DAYS) OS_180_DAYS,
+SUM(OS_1_YR) OS_1_YR,
+ap_sloc_id,
+gl_cld_id
+FROM (
+SELECT b.org_id,
+    c.coa_id,
+    B.ORG_DESC,
+         c.COA_NM,
+         substr(d.doc_txn_id_disp,3) doc_id,
+         a.ap_vou_id,
+          a.AP_AMT_SP,
+          a.AP_AMT_ADJ,
+          a.ap_vou_dt,
+          NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0) AP_AMT_OS,
+          TRUNC (SYSDATE - NVL (a.AP_EXT_DOC_DT,a. AP_VOU_DT)) OS_DAYS,
+          DECODE (
+             SIGN (30 - TRUNC (SYSDATE - NVL (a.AP_EXT_DOC_DT, a.AP_VOU_DT))),
+             -1,
+             0,
+             0,
+             NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0),
+             1,
+             NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0))
+             OS_30_DAYS,
+          DECODE (
+             SIGN (60 - TRUNC (SYSDATE - NVL (a.AP_EXT_DOC_DT, a.AP_VOU_DT))),
+             -1,
+             0,
+             0,
+             NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0),
+             1,
+             DECODE (
+                SIGN (TRUNC (SYSDATE - NVL (a.AP_EXT_DOC_DT, a.AP_VOU_DT)) - 30),
+                -1,
+                0,
+                0,
+                NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0),
+                1,
+                NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0)))
+             OS_60_DAYS,
+          DECODE (
+             SIGN (90 - TRUNC (SYSDATE - NVL (a.AP_EXT_DOC_DT, a.AP_VOU_DT))),
+             -1,
+             0,
+             0,
+             NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0),
+             1,
+             DECODE (
+                SIGN (TRUNC (SYSDATE - NVL (a.AP_EXT_DOC_DT, a.AP_VOU_DT)) - 60),
+                -1,
+                0,
+                0,
+                NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0),
+                1,
+                NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0)))
+             OS_90_DAYS,
+          DECODE (
+             SIGN (120 - TRUNC (SYSDATE - NVL (a.AP_EXT_DOC_DT, a.AP_VOU_DT))),
+             -1,
+             0,
+             0,
+             NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0),
+             1,
+             DECODE (
+                SIGN (TRUNC (SYSDATE - NVL (a.AP_EXT_DOC_DT, a.AP_VOU_DT)) - 90),
+                -1,
+                0,
+                0,
+                NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0),
+                1,
+                NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0)))
+             OS_120_DAYS,
+          DECODE (
+             SIGN (180 - TRUNC (SYSDATE - NVL (a.AP_EXT_DOC_DT, a.AP_VOU_DT))),
+             -1,
+             0,
+             0,
+             NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0),
+             1,
+             DECODE (
+                SIGN (TRUNC (SYSDATE - NVL (a.AP_EXT_DOC_DT, a.AP_VOU_DT)) - 120),
+                -1,
+                0,
+                0,
+                NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0),
+                1,
+                NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0)))
+             OS_180_DAYS,
+          DECODE (
+             SIGN (365 - TRUNC (SYSDATE - NVL (a.AP_EXT_DOC_DT, a.AP_VOU_DT))),
+             -1,
+             0,
+             0,
+             NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0),
+             1,
+             DECODE (
+                SIGN (TRUNC (SYSDATE - NVL (a.AP_EXT_DOC_DT, a.AP_VOU_DT)) - 180),
+                -1,
+                0,
+                0,
+                NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0),
+                1,
+                NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0)))
+             OS_1_YR,
+             a.ap_sloc_id,
+             a.gl_cld_id
+FROM
+AP a, APP.ORG b,FIN$COA c,app.app$doc$txn d
+WHERE
+a.AP_VOU_ID=d.DOC_TXN_ID
+and NVL (a.AP_AMT_SP, 0) - NVL (a.AP_AMT_ADJ, 0) > 0
+and
+A.AP_ORG_ID=B.ORG_ID
+and
+a.ap_sloc_id = c.coa_sloc_id
+and
+a.gl_cld_id = c.coa_cld_id
+and
+a.gl_cld_id = b.org_cld_id
+and
+a.AP_COA_ID=C.COA_ID
+and
+a.AP_TXN_TYP_ADV='N'
+and
+a.ap_type_id in (8))
+GROUP BY org_id,
+ORG_DESC,
+COA_NM,
+doc_id,
+coa_id,
+ap_vou_id,
+ap_vou_dt,
+ap_sloc_id,
+gl_cld_id
+order by
+ORG_DESC,COA_NM]]></SQLQuery>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="INTEGER"
+    AliasName="COA_ID"
+    Expression="COA_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="OrgDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_DESC"
+    Expression="ORG_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_NM"
+    Expression="COA_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="38"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="DOC_ID"
+    Expression="DOC_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="38"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApVouId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="AP_VOU_ID"
+    Expression="AP_VOU_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApVouDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Date"
+    ColumnType="DATE"
+    AliasName="AP_VOU_DT"
+    Expression="AP_VOU_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="ApAmtSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_SP"
+    Expression="AP_AMT_SP"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtAdj"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_ADJ"
+    Expression="AP_AMT_ADJ"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtOs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_OS"
+    Expression="AP_AMT_OS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os30Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="OS_30_DAYS"
+    Expression="OS_30_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os60Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="OS_60_DAYS"
+    Expression="OS_60_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os90Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="OS_90_DAYS"
+    Expression="OS_90_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os120Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="OS_120_DAYS"
+    Expression="OS_120_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os180Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="OS_180_DAYS"
+    Expression="OS_180_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os1Yr"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="OS_1_YR"
+    Expression="OS_1_YR"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApSlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="AP_SLOC_ID"
+    Expression="AP_SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="GlCldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="4"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_CLD_ID"
+    Expression="GL_CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="invoicebilloutstanding.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="totalVouInTvou"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="transferbalances.model.views.totalVouInTvou_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSlcId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindHoOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindFrmDate"
+    Kind="where"
+    Type="oracle.jbo.domain.Date"/>
+  <Variable
+    Name="BindToDate"
+    Kind="where"
+    Type="oracle.jbo.domain.Date"/>
+  <SQLQuery><![CDATA[select count(*) as count_var from (SELECT distinct   
+TVOU.TVOU_SLOC_ID TVOU_SLOC_ID,   
+TVOU.TVOU_APPL_INST_ID TVOU_APPL_INST_ID,   
+TVOU.TVOU_ORG_ID TVOU_ORG_ID,   
+TVOU.TVOU_ID TVOU_ID,   
+TVOU.TVOU_DT TVOU_DT,   
+TVOU.TVOU_TYPE_ID TVOU_TYPE_ID,   
+TVOU.TVOU_SUB_TYPE_ID TVOU_SUB_TYPE_ID,   
+TVOU.TVOU_DESC TVOU_DESC,   
+TVOU.TVOU_CURR_ID_BS TVOU_CURR_ID_BS,   
+E.GLBL_CURR_DESC TVOU_CURR_BS_DESC,   
+D.TVOU_TOT_AMT_BS TVOU_TOT_AMT_BS,   
+D.TVOU_TOT_AMT_DR_BS,   
+D.TVOU_TOT_AMT_CR_BS,   
+F.USR_NAME,   
+D2.NARR,   
+TVOU.TVOU_CLD_ID TVOU_CLD_ID,   
+APP.WF_GET_CUR_USR(TVOU.TVOU_SLOC_ID, TVOU.TVOU_CLD_ID, TVOU.TVOU_ORG_ID, 55, TVOU.TVOU_ID, TVOU.TVOU_TYPE_ID) AS PENDING_AT,   
+APP.WF_GET_STATUS(TVOU.TVOU_SLOC_ID, TVOU.TVOU_CLD_ID, TVOU.TVOU_ORG_ID ,55, TVOU.TVOU_ID, TVOU.TVOU_TYPE_ID) AS STATUS   
+FROM      FIN.TVOU TVOU,   
+(select   TVOU_CLD_ID,   
+          TVOU_SLOC_ID ,   
+          TVOU_APPL_INST_ID,   
+          TVOU_ORG_ID,   
+          TVOU_ID,   
+          TVOU_DT,   
+          TVOU_TYPE_ID,   
+          sum(nvl(TVOU_AMT_BS,0)) TVOU_TOT_AMT_BS,   
+          SUM(DECODE(TVOU_AMT_TYP, 'Dr',nvl(TVOU_AMT_BS,0),0)) TVOU_TOT_AMT_DR_BS,   
+          SUM(DECODE(TVOU_AMT_TYP, 'Cr',nvl(TVOU_AMT_BS,0),0)) TVOU_TOT_AMT_CR_BS   
+From        Fin.Tvou_Lines   
+    
+Where Tvou_Cld_Id = :BindCldId   
+And  Tvou_Sloc_Id = :BindSlcId   
+And  Tvou_Ho_Org_Id = :BindHoOrgId   
+And  Tvou_Org_Id = :BindOrgId   
+    
+group by TVOU_CLD_ID,   
+         TVOU_SLOC_ID ,   
+         TVOU_APPL_INST_ID,   
+         TVOU_ORG_ID,   
+         TVOU_ID,   
+         TVOU_DT,   
+         TVOU_TYPE_ID) d,   
+(   
+SELECT A.TVOU_CLD_ID,   
+       A.TVOU_ID,   
+       A.NARRATION_COUNT,   
+       A.TVOU_LINE_COUNT,   
+DECODE(A.TVOU_LINE_COUNT,1,   
+decode(NVL(b.NARR,'!'),'!','No Narration',NVL(b.NARR,'!')),   
+decode(A.NARRATION_COUNT,1,decode(NVL(b.NARR,'!'),'!','No Narration',NVL(b.NARR,'!')),   
+decode(NVL(b.NARR,'!'),'!','No Narration',NVL(b.NARR,'!')||' And Others...')   
+)) narr   
+from    (   
+Select Tvou_Cld_Id,   
+       Tvou_Id,   
+       Nvl(Count(Distinct Nvl(Narr,'!')),0) Narration_Count,   
+       Nvl(Count(*),0) Tvou_Line_Count,   
+       Min(Tvou_Sl_No) Tvou_Sl_No   
+FROM   FIN.TVOU_LINES   
+Group By Tvou_Cld_Id,   
+         Tvou_Id   
+                ) A,   
+    FIN.TVOU_LINES b   
+where a.TVOU_ID = b.TVOU_ID   
+and b.tvou_sl_no = a.tvou_sl_no   
+) D2,   
+APP.APP$GLBL$CURR E,   
+App.App$sec$usr F,   
+App.App$doc$txn Adt,   
+Fin.Tvou$wf$txn A   
+WHERE TVOU.TVOU_CLD_ID = NVL(:BindCldId,TVOU.TVOU_CLD_ID)    
+AND  TVOU.TVOU_SLOC_ID = NVL(:BindSlcId,TVOU.TVOU_SLOC_ID)   
+AND  TVOU.TVOU_ORG_ID = NVL(:BindOrgId ,TVOU.TVOU_ORG_ID)   
+And Adt.Doc_Txn_Id = Tvou.Tvou_Id   
+And Adt.Doc_Id = 55   
+And Trunc(Tvou.Tvou_Dt) Between Nvl(:BindFrmDate, To_Date('01-01-1800','dd-mm-rrrr')) And Nvl(:BindToDate,Trunc(Sysdate))   
+AND TVOU.TVOU_CURR_ID_BS = E.GLBL_CURR_ID(+)   
+    
+AND TVOU.TVOU_SLOC_ID = F.SLOC_ID(+)   
+AND TVOU.USR_ID_CREATE = F.USR_ID(+)   
+    
+And Tvou.Tvou_Cld_Id = D.Tvou_Cld_Id(+)   
+AND TVOU.TVOU_ID = D.TVOU_ID(+)   
+AND TVOU.TVOU_ID = d2.TVOU_ID(+)   
+AND TVOU.TVOU_CLD_ID = d2.TVOU_CLD_ID(+)   
+    
+AND Exists   
+(SELECT distinct TVOU_LINES.TVOU_ID FROM FIN.TVOU_LINES  TVOU_LINES   
+WHERE  TVOU_LINES.TVOU_CLD_ID = TVOU.TVOU_CLD_ID   
+AND TVOU_LINES.TVOU_SLOC_ID = TVOU.TVOU_SLOC_ID   
+And Tvou_Lines.Tvou_Id = Tvou.Tvou_Id )  
+And tvou.tvou_ho_org_id= :BindHoOrgId   
+And A.Doc_Id = 55   
+And A.Txn_Doc_Id = Tvou.Tvou_Id   
+And A.Cld_Id = Tvou.Tvou_Cld_Id   
+And A.Sloc_Id = Tvou.Tvou_Sloc_Id   
+And A.Org_Id = Tvou.Tvou_Org_Id   
+and A.org_id= :BindOrgId   
+And A.Wf_Line_Status = 'P'   
+And A.Wf_Actn_Seq = (Select Max(A.Wf_Actn_Seq)    
+                     From Tvou$wf$txn Tw    
+                     where tw.cld_id= a.cld_id   
+                     And Tw.Sloc_Id=A.Sloc_Id    
+                     And Tw.Org_Id=A.Org_Id    
+                     And Tw.Txn_Id=A.Txn_Id    
+                     And Tw.Txn_Doc_Id=A.Txn_Doc_Id)   
+union all   
+SELECT   
+TVOU.TVOU_SLOC_ID TVOU_SLOC_ID,   
+TVOU.TVOU_APPL_INST_ID TVOU_APPL_INST_ID,   
+TVOU.TVOU_ORG_ID TVOU_ORG_ID,   
+TVOU.TVOU_ID TVOU_ID,   
+TVOU.TVOU_DT TVOU_DT,   
+TVOU.TVOU_TYPE_ID TVOU_TYPE_ID,   
+TVOU.TVOU_SUB_TYPE_ID TVOU_SUB_TYPE_ID,   
+TVOU.TVOU_DESC TVOU_DESC,   
+TVOU.TVOU_CURR_ID_BS TVOU_CURR_ID_BS,   
+E.GLBL_CURR_DESC TVOU_CURR_BS_DESC,   
+D.TVOU_TOT_AMT_BS TVOU_TOT_AMT_BS,   
+D.TVOU_TOT_AMT_DR_BS,   
+D.TVOU_TOT_AMT_CR_BS,   
+F.USR_NAME,   
+D2.NARR,   
+TVOU.TVOU_CLD_ID TVOU_CLD_ID,   
+APP.WF_GET_CUR_USR(TVOU.TVOU_SLOC_ID, TVOU.TVOU_CLD_ID, TVOU.TVOU_ORG_ID, 55, TVOU.TVOU_ID, TVOU.TVOU_TYPE_ID) AS PENDING_AT,   
+APP.WF_GET_STATUS(TVOU.TVOU_SLOC_ID, TVOU.TVOU_CLD_ID, TVOU.TVOU_ORG_ID ,55, TVOU.TVOU_ID, TVOU.TVOU_TYPE_ID) AS STATUS   
+FROM      FIN.TVOU TVOU,   
+(select   TVOU_CLD_ID,   
+          TVOU_SLOC_ID ,   
+          TVOU_APPL_INST_ID,   
+          TVOU_ORG_ID,   
+          TVOU_ID,   
+          TVOU_DT,   
+          TVOU_TYPE_ID,   
+          sum(nvl(TVOU_AMT_BS,0)) TVOU_TOT_AMT_BS,   
+          SUM(DECODE(TVOU_AMT_TYP, 'Dr',nvl(TVOU_AMT_BS,0),0)) TVOU_TOT_AMT_DR_BS,   
+          SUM(DECODE(TVOU_AMT_TYP, 'Cr',nvl(TVOU_AMT_BS,0),0)) TVOU_TOT_AMT_CR_BS   
+From        Fin.Tvou_Lines   
+    
+Where Tvou_Cld_Id = :BindCldId   
+And  Tvou_Sloc_Id = :BindSlcId   
+And  Tvou_Ho_Org_Id = :BindHoOrgId   
+And  Tvou_Org_Id = :BindOrgId   
+    
+group by TVOU_CLD_ID,   
+         TVOU_SLOC_ID ,   
+         TVOU_APPL_INST_ID,   
+         TVOU_ORG_ID,   
+         TVOU_ID,   
+         TVOU_DT,   
+         TVOU_TYPE_ID) d,   
+(   
+SELECT A.TVOU_CLD_ID,   
+       A.TVOU_ID,   
+       A.NARRATION_COUNT,   
+       A.TVOU_LINE_COUNT,   
+DECODE(A.TVOU_LINE_COUNT,1,   
+decode(NVL(b.NARR,'!'),'!','No Narration',NVL(b.NARR,'!')),   
+decode(A.NARRATION_COUNT,1,decode(NVL(b.NARR,'!'),'!','No Narration',NVL(b.NARR,'!')),   
+decode(NVL(b.NARR,'!'),'!','No Narration',NVL(b.NARR,'!')||' And Others...')   
+)) narr   
+from    (   
+Select Tvou_Cld_Id,   
+       Tvou_Id,   
+       Nvl(Count(Distinct Nvl(Narr,'!')),0) Narration_Count,   
+       Nvl(Count(*),0) Tvou_Line_Count,   
+       Min(Tvou_Sl_No) Tvou_Sl_No   
+FROM   FIN.TVOU_LINES   
+Group By Tvou_Cld_Id,   
+         Tvou_Id   
+                ) A,   
+    FIN.TVOU_LINES b   
+where a.TVOU_ID = b.TVOU_ID   
+and b.tvou_sl_no = a.tvou_sl_no   
+) D2,   
+APP.APP$GLBL$CURR E,   
+App.App$sec$usr F,   
+App.App$doc$txn Adt,   
+Fin.Tvou$wf$txn A   
+WHERE TVOU.TVOU_CLD_ID = NVL(:BindCldId,TVOU.TVOU_CLD_ID)    
+AND  TVOU.TVOU_SLOC_ID = NVL(:BindSlcId,TVOU.TVOU_SLOC_ID)   
+AND  TVOU.TVOU_ORG_ID = NVL(:BindOrgId ,TVOU.TVOU_ORG_ID)   
+And Adt.Doc_Txn_Id = Tvou.Tvou_Id   
+And Adt.Doc_Id = 55   
+And Trunc(Tvou.Tvou_Dt) Between Nvl(:BindFrmDate, To_Date('01-01-1800','dd-mm-rrrr')) And Nvl(:BindToDate,Trunc(Sysdate))   
+AND TVOU.TVOU_CURR_ID_BS = E.GLBL_CURR_ID(+)   
+AND TVOU.TVOU_SLOC_ID = F.SLOC_ID(+)   
+AND TVOU.USR_ID_CREATE = F.USR_ID(+)   
+    
+And Tvou.Tvou_Cld_Id = D.Tvou_Cld_Id(+)   
+AND TVOU.TVOU_ID = D.TVOU_ID(+)   
+AND TVOU.TVOU_ID = d2.TVOU_ID(+)   
+AND TVOU.TVOU_CLD_ID = d2.TVOU_CLD_ID(+)   
+AND not Exists   
+(SELECT distinct TVOU_LINES.TVOU_ID FROM FIN.TVOU_LINES  TVOU_LINES   
+WHERE  TVOU_LINES.TVOU_CLD_ID = TVOU.TVOU_CLD_ID   
+AND TVOU_LINES.TVOU_SLOC_ID = TVOU.TVOU_SLOC_ID   
+And Tvou_Lines.Tvou_Id = Tvou.Tvou_Id   
+)   
+    
+And tvou.tvou_ho_org_id= :BindHoOrgId   
+And A.Doc_Id = 55   
+And A.Txn_Doc_Id = Tvou.Tvou_Id   
+And A.Cld_Id = Tvou.Tvou_Cld_Id   
+And A.Sloc_Id = Tvou.Tvou_Sloc_Id   
+And A.Org_Id = Tvou.Tvou_Org_Id   
+and A.org_id= :BindOrgId   
+And A.Wf_Line_Status = 'P'   
+And A.Wf_Actn_Seq = (Select Max(A.Wf_Actn_Seq)    
+                     From Tvou$wf$txn Tw    
+                     where tw.cld_id= a.cld_id   
+                     And Tw.Sloc_Id=A.Sloc_Id    
+                     And Tw.Org_Id=A.Org_Id    
+                     And Tw.Txn_Id=A.Txn_Id    
+                     And Tw.Txn_Doc_Id=A.Txn_Doc_Id))]]></SQLQuery>
+  <ViewAttribute
+    Name="CountVar"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="COUNT_VAR"
+    Expression="COUNT_VAR"
+    SQLType="NUMERIC"
+    IsUpdateable="false"/>
+</ViewObject>
