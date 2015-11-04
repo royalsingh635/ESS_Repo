@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Item_Wise_Stock_Ledger_Summary_QTY_SUM" language="groovy" pageWidth="581" pageHeight="802" columnWidth="581" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="WhId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FyId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GrpId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ItmId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="UomId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT U.ORG_ID, U.ITM_UOM_BS, u.uom_nm, SUM( U.ISSU_QTY)U_ISSU_QTY, SUM(U.RCPT_QTY)U_RCPT_QTY, SUM(U.AVL_STK)U_AVL_STK, SUM(U.Scrp_Stk)U_Scrp_Stk,SUM(U.Rej_Qty)U_Rej_Qty,
+SUM(U.Rwk_Stk)U_Rwk_Stk, SUM(U.RESV_QTY)U_RESV_QTY,SUM(U.OP_STK)U_OP_STK, SUM(U.CLOSING_STK)U_CLOSING_STK
+FROM(Select  V.Org_Id,V.Org_Desc,
+R.Wh_Id,W.WH_NM,
+R.Itm_Id,S.Itm_Desc,S.Uom_Basic, R.ITM_UOM_BS, T.UOM_NM,S.GRP_ID,U.GRP_NM,
+NVL(R.AVL_STK,0)AVL_STK,
+Nvl(R.Scrp_Stk,0)Scrp_Stk,Nvl(R.Rwk_Stk,0)Rwk_Stk,
+Nvl(R.Op_Stk,0)Op_Stk,nvl(P.Rcpt_Qty,0) Rcpt_Qty,
+Nvl(P.Issu_Qty,0) Issu_Qty,Nvl(R.Rej_Stk,0)Rej_Qty,
+NVL(R.REQ_STK,0)RESV_QTY,
+(NVL(R.OP_STK,0)+(nvl(P.Rcpt_Qty,0) - nvl(P.ISSU_QTY,0)))CLOSING_STK
+from
+(SELECT X.CLD_ID, X.ORG_ID, X.SLOC_ID, X.WH_ID, X.ITM_ID, X.ITM_UOM_BS, SUM(X.RCPT_QTY) RCPT_QTY, SUM(X.ISSU_QTY) ISSU_QTY
+FROM
+(SELECT A.CLD_ID,A.ORG_ID,A.SLOC_ID,B.WH_ID,B.ITM_ID,B.ITM_UOM_BS, SUM(B.FINAL_RCPT_QTY_BS) RCPT_QTY,0 ISSU_QTY
+FROM MM$MTL$RCPT A,MM$MTL$RCPT$ITM B
+WHERE A.CLD_ID = NVL($P{CldId} ,A.CLD_ID)
+AND A.SLOC_ID = NVL($P{SlocId},A.SLOC_ID)
+AND A.ORG_ID = NVL($P{OrgId} ,A.ORG_ID)
+AND A.FY_ID =  NVL($P{FyId} ,A.FY_ID)
+And B.Wh_Id = Nvl($P{WhId} ,B.WH_ID)
+AND B.ITM_ID = NVL($P{ItmId},B.ITM_ID)
+AND TRUNC(A.RCPT_DT) >=NVL(TO_DATE( $P{FromDate},'yyyy-mm-dd'),TRUNC(A.RCPT_DT))
+AND TRUNC(A.RCPT_DT) <=NVL(TO_DATE($P{ToDate} ,'yyyy-mm-dd'),TRUNC(A.RCPT_DT))
+AND A.CLD_ID = B.CLD_ID
+AND A.SLOC_ID = B.SLOC_ID
+And A.Org_Id = B.Org_Id
+And A.Doc_Id = B.Doc_Id
+and a.wh_id = b.wh_id
+AND A.RCPT_SRC_TYPE <> 396
+--AND A.AUTH_STAT = 'Y'
+AND A.RCPT_STAT IN (383, 384)
+GROUP BY A.CLD_ID,A.ORG_ID,A.SLOC_ID,B.WH_ID,B.ITM_ID,B.ITM_UOM_BS
+UNION
+SELECT A.CLD_ID,A.ORG_ID,A.SLOC_ID,B.WH_ID,B.ITM_ID,B.ITM_UOM,0 RCPT_QTY, SUM(issu_qty_bs) ISSU_QTY
+FROM MM$MTL$ISSU A,MM$MTL$ISSU$ITM B
+WHERE A.CLD_ID = NVL($P{CldId} ,A.CLD_ID)
+AND A.SLOC_ID = NVL($P{SlocId},A.SLOC_ID)
+AND A.ORG_ID = NVL($P{OrgId},A.ORG_ID)
+AND A.FY_ID =  NVL( $P{FyId},A.FY_ID)
+And B.Wh_Id = Nvl($P{WhId},B.WH_ID)
+AND B.ITM_ID = NVL($P{ItmId},B.ITM_ID)
+AND TRUNC(A.issu_DT) >=NVL(TO_DATE( $P{FromDate},'yyyy-mm-dd'),TRUNC(A.ISSU_DT))
+AND TRUNC(A.ISSU_DT) <=NVL(TO_DATE( $P{ToDate},'yyyy-mm-dd'),TRUNC(A.ISSU_DT))
+AND  A.CLD_ID = B.CLD_ID
+AND A.CLD_ID = B.CLD_ID
+AND A.SLOC_ID = B.SLOC_ID
+And A.Org_Id = B.Org_Id
+AND A.DOC_ID =B.DOC_ID
+and a.wh_id = b.wh_id
+AND A.ISSU_STAT = 369
+GROUP BY A.CLD_ID,A.ORG_ID,A.SLOC_ID,B.WH_ID,B.ITM_ID,B.ITM_UOM)X
+Group By X.Cld_Id,X.Org_Id,X.Sloc_Id,X.Itm_Id,X.Itm_Uom_BS,X.Wh_Id)P,
+Mm$stk$summ$itm R,App.App$itm$prf S ,APP.APP$UOM$CONV$STD T ,APP.APP$GRP U, APP.ORG V, APP.APP$WH$ORG W
+Where P.Cld_Id(+) = R.Cld_Id
+And P.Sloc_Id(+) = R.Sloc_Id
+And P.Org_Id(+) = R.Org_Id
+And P.Itm_Id(+) = R.Itm_Id
+AND P.WH_ID(+) =R.WH_ID
+and R.cld_id = s.cld_id
+And R.Sloc_Id = S.Sloc_Id
+And MM.MM_GET_HO_ORG(R.CLD_ID,R.SLOC_ID,R.Org_Id) = S.Ho_Org_Id
+And R.Itm_Id = S.Itm_Id
+And S.Cld_Id = U.Cld_Id
+And S.Sloc_Id = U.Sloc_Id
+AND S.HO_ORG_ID = U.HO_ORG_ID
+and s.grp_id = u.grp_id
+AND R.ITM_UOM_BS = T.UOM_ID
+and R.ITM_uom_BS = nvl($P{UomId},R.ITM_uom_BS)
+AND R.CLD_ID = NVL($P{CldId},R.CLD_ID)
+AND R.SLOC_ID = NVL($P{SlocId},R.SLOC_ID)
+AND R.ORG_ID  = NVL($P{OrgId},R.ORG_ID)
+and R.wh_id = nvl( $P{WhId}, R.WH_ID)
+AND R.ITM_ID = NVL($P{ItmId}, R.ITM_ID)
+and R.fy_id = NVL($P{FyId},R.FY_ID)
+and R.cld_id = v.org_cld_id
+and R.org_id = v.org_id
+and R.cld_id = W.Cld_id
+and R.sloc_id = w.sloc_id
+And R.Org_Id =W.Org_Id
+and R.wh_id = w.wh_id
+AND S.GRP_ID IN (SELECT GRP_ID FROM APP.APP$GRP CONNECT BY PRIOR GRP_ID = GRP_ID_PARENT
+                  Start With Grp_Id = Nvl($P{GrpId},S.Grp_Id))
+)U
+GROUP BY U.ORG_ID,U.ITM_UOM_BS, u.uom_nm]]>
+	</queryString>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="ITM_UOM_BS" class="java.lang.String"/>
+	<field name="UOM_NM" class="java.lang.String"/>
+	<field name="U_ISSU_QTY" class="java.math.BigDecimal"/>
+	<field name="U_RCPT_QTY" class="java.math.BigDecimal"/>
+	<field name="U_AVL_STK" class="java.math.BigDecimal"/>
+	<field name="U_SCRP_STK" class="java.math.BigDecimal"/>
+	<field name="U_REJ_QTY" class="java.math.BigDecimal"/>
+	<field name="U_RWK_STK" class="java.math.BigDecimal"/>
+	<field name="U_RESV_QTY" class="java.math.BigDecimal"/>
+	<field name="U_OP_STK" class="java.math.BigDecimal"/>
+	<field name="U_CLOSING_STK" class="java.math.BigDecimal"/>
+	<group name="uom_id">
+		<groupExpression><![CDATA[$F{ORG_ID}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band>
+				<staticText>
+					<reportElement x="0" y="0" width="581" height="0"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="15">
+			<staticText>
+				<reportElement x="0" y="0" width="581" height="15" forecolor="#CC0000"/>
+				<box leftPadding="3">
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Unit wise Grand Total :]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="581" height="15"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="316" y="0" width="43" height="15" forecolor="#CC0000"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_ISSU_QTY}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="359" y="0" width="44" height="15" forecolor="#CC0000"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_RESV_QTY}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="201" y="0" width="25" height="15" forecolor="#CC0000"/>
+				<box leftPadding="2" rightPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{UOM_NM}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="493" y="0" width="40" height="15" forecolor="#CC0000"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_SCRP_STK}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="261" y="0" width="55" height="15" forecolor="#CC0000"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_RCPT_QTY}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="226" y="0" width="35" height="15" forecolor="#CC0000"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_OP_STK}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="446" y="0" width="47" height="15" forecolor="#CC0000"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_RWK_STK}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="532" y="0" width="48" height="15" forecolor="#CC0000"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_CLOSING_STK}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="403" y="0" width="43" height="15" forecolor="#CC0000"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_REJ_QTY}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

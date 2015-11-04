@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="TransferOrderTracking" pageWidth="975" pageHeight="842" columnWidth="951" leftMargin="12" rightMargin="12" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="WhId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ItmId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Org_Logo" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT A.DOC_ID, A.ORG_ID, H.ORG_DESC, A.TRF_NO, A.TRF_DT, A.WH_ID_SRC, I.WH_NM WH_NM_SRC, A.WH_ID_DEST,
+     DECODE(A.TRF_TYPE, 374, J.WH_NM||'('||(SELECT O.ORG_DESC FROM APP.ORG O WHERE O.ORG_ID = A.ORG_ID_DEST) ||')',J.WH_NM) WH_NM_DEST, B.ITM_ID, G.ITM_DESC, K.UOM_NM ,B.ORD_QTY
+    , C.ISSU_NO, C.ISSU_DT,D.ISSU_QTY, E.RCPT_NO, E.RCPT_DT, F.FINAL_RCPT_QTY
+FROM MM$TRF$ORD A, MM$TRF$ORD$ITM B, MM$MTL$ISSU C, MM$MTL$ISSU$ITM D,
+    MM$MTL$RCPT E, MM$MTL$RCPT$ITM F
+    ,APP.APP$ITM$PRF G, APP.ORG H, APP.APP$WH$ORG I, APP.APP$WH$ORG J, APP.APP$UOM$CONV$STD K
+WHERE A.CLD_ID = B.CLD_ID
+AND A.SLOC_ID = B.SLOC_ID
+AND A.ORG_ID = B.ORG_ID
+AND A.DOC_ID = B.DOC_ID
+
+AND D.CLD_ID(+) = B.CLD_ID
+AND D.SLOC_ID(+) = B.SLOC_ID
+AND D.ORG_ID(+) = B.ORG_ID
+AND D.DOC_ID_SRC(+) = B.DOC_ID
+AND D.ITM_ID(+) = B.ITM_ID
+AND D.CLD_ID = C.CLD_ID(+)
+AND D.SLOC_ID = C.SLOC_ID(+)
+AND D.ORG_ID = C.ORG_ID(+)
+AND D.WH_ID = C.WH_ID(+)
+AND D.DOC_ID = C.DOC_ID(+)
+--AND C.WH_ID = A.WH_ID_DEST
+--AND C.WH_ID_SRC = A.WH_ID_SRC
+
+AND B.CLD_ID = F.CLD_ID(+)
+AND B.SLOC_ID = F.SLOC_ID(+)
+AND B.ORG_ID = F.ORG_ID(+)
+AND B.DOC_ID = F.DOC_ID_SRC(+)
+AND B.ITM_ID = F.ITM_ID(+)
+
+AND F.CLD_ID = E.CLD_ID(+)
+AND F.SLOC_ID = E.SLOC_ID(+)
+AND F.ORG_ID = E.ORG_ID(+)
+AND F.WH_ID = E.WH_ID(+)
+AND F.DOC_ID = E.DOC_ID(+)
+
+AND B.CLD_ID = G.CLD_ID
+AND B.SLOC_ID = G.SLOC_ID
+AND MM.MM_GET_HO_ORG(B.CLD_ID, B.SLOC_ID, B.ORG_ID) = G.HO_ORG_ID
+AND B.ITM_ID = G.ITM_ID
+AND A.ORG_ID = H.ORG_ID
+AND A.CLD_ID = I.CLD_ID
+AND A.SLOC_ID = I.SLOC_ID
+AND A.ORG_ID = I.ORG_ID
+AND A.WH_ID_SRC = I.WH_ID
+AND A.CLD_ID = J.CLD_ID
+AND A.SLOC_ID = J.SLOC_ID
+AND A.ORG_ID = J.ORG_ID
+AND A.WH_ID_DEST = J.WH_ID
+AND B.ITM_UOM = K.UOM_ID
+
+
+and A.cld_id  =$P{CldId}
+and A.sloc_id = $P{SlocId}
+and A.org_id = $P{OrgId}
+and A.Doc_Id = NVL($P{DocId},A.Doc_Id)
+
+AND A.WH_ID = NVL($P{WhId},A.WH_ID)
+AND B.ITM_ID = NVL($P{ItmId}, B.ITM_ID)
+and trunc(A.TRF_DT) <= nvl(TO_DATE($P{ToDate}, 'YYYY-MM-DD'),trunc(A.TRF_DT))
+AND trunc(A.TRF_DT) >= nvl(TO_DATE($P{FromDate}, 'YYYY-MM-DD'),trunc(A.TRF_DT))
+ORDER BY A.TRF_NO DESC, B.ITM_ID]]>
+	</queryString>
+	<field name="DOC_ID" class="java.lang.String"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="TRF_NO" class="java.lang.String"/>
+	<field name="TRF_DT" class="java.sql.Timestamp"/>
+	<field name="WH_ID_SRC" class="java.lang.String"/>
+	<field name="WH_NM_SRC" class="java.lang.String"/>
+	<field name="WH_ID_DEST" class="java.lang.String"/>
+	<field name="WH_NM_DEST" class="java.lang.String"/>
+	<field name="ITM_ID" class="java.lang.String"/>
+	<field name="ITM_DESC" class="java.lang.String"/>
+	<field name="UOM_NM" class="java.lang.String"/>
+	<field name="ORD_QTY" class="java.math.BigDecimal"/>
+	<field name="ISSU_NO" class="java.lang.String"/>
+	<field name="ISSU_DT" class="java.sql.Timestamp"/>
+	<field name="ISSU_QTY" class="java.math.BigDecimal"/>
+	<field name="RCPT_NO" class="java.lang.String"/>
+	<field name="RCPT_DT" class="java.sql.Timestamp"/>
+	<field name="FINAL_RCPT_QTY" class="java.math.BigDecimal"/>
+	<variable name="Sl No." class="java.lang.Number" calculation="Count">
+		<variableExpression><![CDATA[$V{Sl No.}]]></variableExpression>
+		<initialValueExpression><![CDATA[1.]]></initialValueExpression>
+	</variable>
+	<group name="orgId">
+		<groupExpression><![CDATA[$F{ORG_ID}]]></groupExpression>
+		<groupFooter>
+			<band>
+				<staticText>
+					<reportElement x="0" y="0" width="951" height="0"/>
+					<box>
+						<leftPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="DocId">
+		<groupExpression><![CDATA[$F{DOC_ID}]]></groupExpression>
+	</group>
+	<group name="ITMID">
+		<groupExpression><![CDATA[$F{ITM_ID}]]></groupExpression>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="63" splitType="Stretch">
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement x="562" y="0" width="389" height="15" forecolor="#6600CC"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="633" y="14" width="318" height="15" forecolor="#6600CC"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Transfer Order Tracking]]></text>
+			</staticText>
+			<image onErrorType="Blank">
+				<reportElement x="0" y="0" width="130" height="35"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+($P{Org_Logo} == null ? "Org-logo.png":$P{Org_Logo})]]></imageExpression>
+			</image>
+			<line>
+				<reportElement x="1" y="59" width="952" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="55" width="951" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="1" y="38" width="397" height="15">
+					<printWhenExpression><![CDATA[$F{ORG_ID}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Organisation : "+$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="864" y="36" width="35" height="10">
+					<printWhenExpression><![CDATA[$P{FromDate}!=null]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/FromDate_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="916" y="36" width="35" height="10">
+					<printWhenExpression><![CDATA[$P{ToDate}!=null]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/ToDate_SubReport.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="900" y="39" width="15" height="10"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="835" y="39" width="28" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[Period :]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="20">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="74" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Transfer Order No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="74" y="0" width="50" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="124" y="0" width="142" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Warehouse (Source)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="266" y="0" width="132" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Warehouse (Destination)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="398" y="0" width="134" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Item Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="532" y="0" width="30" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Unit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="562" y="0" width="50" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Order Qty.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="682" y="0" width="50" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Issue Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="732" y="0" width="50" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Issue Qty.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="851" y="0" width="50" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Receipt Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="901" y="0" width="50" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Receipt Qty]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="612" y="0" width="70" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Issue No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="782" y="0" width="70" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Receipt No.]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="951" height="20"/>
+				<box>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="0" y="0" width="74" height="20" printWhenGroupChanges="DocId"/>
+				<box leftPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TRF_NO}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="74" y="0" width="50" height="20" printWhenGroupChanges="DocId"/>
+				<box leftPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{TRF_DT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="124" y="0" width="142" height="20" printWhenGroupChanges="DocId"/>
+				<box leftPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{WH_NM_SRC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="266" y="0" width="132" height="20" printWhenGroupChanges="DocId"/>
+				<box leftPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{WH_NM_DEST}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="398" y="0" width="134" height="20" printWhenGroupChanges="ITMID"/>
+				<box leftPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ITM_DESC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="532" y="0" width="30" height="20" printWhenGroupChanges="ITMID"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{UOM_NM}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="562" y="0" width="50" height="20" printWhenGroupChanges="ITMID"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{ORD_QTY}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement x="682" y="0" width="50" height="20"/>
+				<box leftPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{ISSU_DT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="732" y="0" width="49" height="20"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{ISSU_QTY}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="852" y="0" width="49" height="20" printWhenGroupChanges="DocId"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{RCPT_DT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="901" y="0" width="50" height="20" printWhenGroupChanges="DocId"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{FINAL_RCPT_QTY}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="612" y="0" width="70" height="20"/>
+				<box leftPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ISSU_NO}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="782" y="0" width="70" height="20" printWhenGroupChanges="DocId"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{RCPT_NO}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="30" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="8" width="951" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="4" width="951" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="864" y="15" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="922" y="15" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="14" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="47">
+			<line>
+				<reportElement x="0" y="8" width="949" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="4" width="949" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="0" y="27" width="951" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated By ebizframe10]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="860" y="13" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="918" y="13" width="31" height="12" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="13" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+</jasperReport>

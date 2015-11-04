@@ -1,0 +1,761 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SLS_Ship_Challan" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Empty">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="CldId" class="java.lang.String"/>
+	<parameter name="SlocId" class="java.lang.Integer"/>
+	<parameter name="OrgId" class="java.lang.String"/>
+	<parameter name="HoOrgId" class="java.lang.String"/>
+	<parameter name="PickId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ItmId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GrpId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EoId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AssignTo" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="Status" class="java.lang.Integer"/>
+	<parameter name="EoCatId" class="java.lang.Integer"/>
+	<parameter name="CurrId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TransName" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT SUBSTR (a.shipmnt_id, 3) shipmnt_id,SUBSTR (c.so_id, 3) so_id,
+a.doc_dt,nvl(i.eo_part_no,g.itm_desc)itm_desc,
+        (select l.uom_desc
+         from   app.app$uom$conv$std l
+
+         where
+
+                 l.cld_id = b.cld_id and
+                 l.sloc_id = b.sloc_id and
+                 l.uom_id=b.itm_uom
+        )uom,
+ad.adds wh_adds,
+        b.pick_qty,
+         b.bal_qty,c.doc_dt so_dt,b.shipmnt_qty ship_qty,
+b.itm_amt_bs,i.itm_rate,round(nvl(i.itm_amt_sp,0)/nvl(b.itm_qty_bs,0),2)base_price,
+        b.itm_amt_sp,
+
+        SUBSTR (h.pick_id, 3) pick_id, h.doc_dt
+pick_dt,d.org_desc,d.adds,d.tin_no org_tin_no,
+         e.eo_nm cust_name,e.eo_id cust_id,
+        (select tin_no
+         from   app.app$eo$prf
+         where  eo_cld_id = e.eo_cld_id and
+                eo_sloc_id = e.eo_sloc_id and
+                eo_ho_org_id = e.eo_ho_org_id and
+                eo_id=e.eo_id
+       )cust_tin_no,
+
+       (select k.adds
+        from   app.app$eo$adds l,
+               app.app$adds$vw k
+        where  l.cld_id=k.cld_id and
+         l.sloc_id=k.sloc_id and
+         l.adds_id=k.adds_id and
+         l.bill_adds='Y' and
+         l.cld_id = e.eo_cld_id and
+         l.sloc_id = e.eo_sloc_id and
+         l.ho_org_id = e.eo_ho_org_id and
+         l.eo_id=e.eo_id and
+         L.adds_id=h.dlv_adds_id
+        )cust_addrs,
+
+        (select  p.eo_nm
+        from   app.app$eo p
+        where
+         p.eo_cld_id = a.cld_id and
+         p.eo_sloc_id = a.sloc_id and
+         p.eo_ho_org_id = a.ho_org_id and
+         p.eo_id=a.transporter_id
+        )transporter_name,
+
+        a.transporter_id,a.trans_mode,(select v.att_nm from
+app.app$ds$att v where v.att_type_id=38 and v.att_id=a.trans_mode)tmode,
+a.trans_vh_no,a.trans_gr_no,a.trans_contnr_no,a.remarks,
+         c.ext_doc_no,c.ext_doc_dt,c.doc_id so_doc_id,
+SUBSTR(c.ext_doc_no,0,INSTR(c.ext_doc_no,' ')) MR_NO,
+substr(c.ext_doc_no,instr(c.ext_doc_no,' ')+1) PO_NO,
+(select adds from app.app$adds$vw where adds_id=c.ship_adds) custadds,
+NVL(app.fn_get_adds_1($P{SlocId}, $P{CldId}, z.ORG_ADD_ID2, 'S'),' ') regd_add,
+NVL(app.fn_get_adds_1($P{SlocId}, $P{CldId}, z.ORG_ADD_ID1, 'S'),' ') org_add,
+NVL(z.org_phone1,' ')org_phone1,NVL(z.org_phone2,' ')org_phone2,NVL(z.org_fax,' ')org_fax,
+NVL(z.cin_no,' ')cin_no,NVL(z.org_email1,'')org_email1,NVL(z.org_email2,' ')org_email2,
+gs.grp_nm
+   FROM sls$shipmnt a,
+        sls$shipmnt$itm b,
+        sls$so c,
+        (
+         select a.org_id,a.org_desc,b.tin_no,c.adds
+
+         from app.org a,
+              app.org$oth$dtl b,
+              app.app$adds$vw c
+         where
+              a.org_id=b.org_id(+) and
+              a.org_cld_id=b.org_cld_id(+) and
+              b.org_add_id1=c.adds_id(+) and
+              b.org_cld_id=c.cld_id(+)
+        )d,
+	(select listagg(level2,'/') within GROUP(order by level2) grp_nm,
+	 cld_id,sloc_id,org_id,ho_org_id,doc_id
+	from
+	(select distinct s.cld_id,s.sloc_id,s.org_id,s.ho_org_id,s.doc_id,
+	nvl(regexp_substr(grp_path,'[^>>]+',1,2),child_grp) level2
+	from app.app$grp$vw g,app.app$itm$prf f,sls$shipmnt$itm s
+	where s.cld_id = f.cld_id
+	and s.ho_org_id = f.ho_org_id
+	and s.sloc_id = f.sloc_id
+	and s.itm_id = f.itm_id
+	and f.grp_id = g.grp_id
+	and f.cld_id = g.cld_id
+	and f.sloc_id = g.sloc_id
+	and f.ho_org_id =g.ho_org_id
+	and f.grp_id = g.grp_id
+	and s.org_id = g.org_id
+  AND s.doc_id= NVL ($P{DocId} , s.doc_id)
+    AND s.cld_id = NVL ($P{CldId} , s.cld_id)
+    AND s.sloc_id = NVL ( $P{SlocId}, s.sloc_id)
+    AND s.org_id = NVL ($P{OrgId} , s.org_id)
+    AND s.ho_org_id = NVL ($P{HoOrgId} , s.ho_org_id))
+group by cld_id,sloc_id,org_id,ho_org_id,doc_id)gs,
+        app.app$eo e,
+        app.app$itm$org f,
+        app.app$itm$prf g,
+        sls.sls$pick h,
+        sls.sls$so$itm i,
+        app.app$wh$org w,
+        app.app$adds$vw ad,
+        (select org_id,adds,ORG_ADD_ID2,org_add_id1,org_phone1,org_phone2,
+	      nvl(org_fax1,org_fax2)org_fax,cin_no,
+	      org_email1 ,org_email2 from
+
+       app.app$adds$vw x,
+
+       app.org$oth$dtl y where
+
+        y.org_add_id1 = x.adds_id
+
+       ) z
+
+
+WHERE
+        a.cld_id = b.cld_id
+    AND a.sloc_id = b.sloc_id
+    AND a.org_id = b.org_id
+    AND a.ho_org_id = b.ho_org_id
+    AND a.doc_id = b.doc_id
+    and a.pick_id = b.pick_id
+    and a.org_id = z.org_id(+)
+    AND b.cld_id = c.cld_id
+    AND b.sloc_id = c.sloc_id
+    AND b.org_id = c.org_id
+    AND b.ho_org_id = c.ho_org_id
+    AND b.so_id=c.doc_id
+    AND c.org_id=d.org_id
+    AND a.cld_id = e.eo_cld_id
+    AND a.sloc_id = e.eo_sloc_id
+    AND a.ho_org_id = e.eo_ho_org_id
+    AND a.eo_id=e.eo_id
+    AND b.cld_id = f.cld_id
+    AND b.sloc_id = f.sloc_id
+    AND b.org_id = f.org_id
+    AND b.ho_org_id = f.ho_org_id
+    AND b.itm_id=f.itm_id
+    AND f.itm_id = g.itm_id
+    AND b.cld_id = h.cld_id
+    AND b.sloc_id = h.sloc_id
+    AND b.ho_org_id = h.ho_org_id
+    AND b.org_id = h.org_id
+    AND b.pick_id = h.doc_id
+    AND c.cld_id=i.cld_id(+)
+    AND c.sloc_id=i.sloc_id(+)
+    AND c.org_id=i.org_id(+)
+    AND c.ho_org_id=i.ho_org_id(+)
+    AND c.doc_id=i.doc_id(+)
+    AND b.cld_id=i.cld_id(+)
+    AND b.sloc_id=i.sloc_id(+)
+    AND b.org_id=i.org_id(+)
+    AND b.ho_org_id=i.ho_org_id(+)
+    AND b.itm_id=i.itm_id(+)
+    and a.cld_id=w.cld_id
+    and a.sloc_id=w.sloc_id
+    and a.org_id=w.org_id
+    and a.ho_org_id=w.ho_org_id
+    and a.wh_id=w.wh_id
+    and w.sloc_id=ad.sloc_id
+    and w.cld_id=ad.cld_id
+    and w.adds_id=ad.adds_id
+    AND a.doc_id= NVL ($P{DocId} , a.doc_id)
+    AND NVL (a.SHIPMNT_STAT, 217)   = NVL ($P{Status} , NVL(A.SHIPMNT_STAT, 217))
+    AND a.cld_id = NVL ($P{CldId} , a.cld_id)
+    AND a.sloc_id = NVL ( $P{SlocId}, a.sloc_id)
+    AND a.org_id = NVL ($P{OrgId} , a.org_id)
+    AND a.ho_org_id = NVL ($P{HoOrgId} , a.ho_org_id)
+    AND b.itm_id = NVL ($P{ItmId} , b.itm_id)
+    AND g.grp_id = NVL ( $P{GrpId}, g.grp_id)
+    AND a.curr_id_sp = nvl($P{CurrId},a.curr_id_sp)
+    AND e.catg_id = NVL($P{EoCatId} , e.catg_id)
+    AND a.eo_id = NVL ($P{EoId} , a.eo_id)
+    AND NVL (c.assigned_to, 80) = NVL ( $P{AssignTo}, NVL(c.assigned_to, 80))
+    order by
+    e.eo_nm]]>
+	</queryString>
+	<field name="SHIPMNT_ID" class="java.lang.String"/>
+	<field name="SO_ID" class="java.lang.String"/>
+	<field name="DOC_DT" class="java.sql.Timestamp"/>
+	<field name="ITM_DESC" class="java.lang.String"/>
+	<field name="UOM" class="java.lang.String"/>
+	<field name="WH_ADDS" class="java.lang.String"/>
+	<field name="PICK_QTY" class="java.math.BigDecimal"/>
+	<field name="BAL_QTY" class="java.math.BigDecimal"/>
+	<field name="SO_DT" class="java.sql.Timestamp"/>
+	<field name="SHIP_QTY" class="java.math.BigDecimal"/>
+	<field name="ITM_AMT_BS" class="java.math.BigDecimal"/>
+	<field name="ITM_RATE" class="java.math.BigDecimal"/>
+	<field name="BASE_PRICE" class="java.math.BigDecimal"/>
+	<field name="ITM_AMT_SP" class="java.math.BigDecimal"/>
+	<field name="PICK_ID" class="java.lang.String"/>
+	<field name="PICK_DT" class="java.sql.Timestamp"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="ADDS" class="java.lang.String"/>
+	<field name="ORG_TIN_NO" class="java.lang.String"/>
+	<field name="CUST_NAME" class="java.lang.String"/>
+	<field name="CUST_ID" class="java.math.BigDecimal"/>
+	<field name="CUST_TIN_NO" class="java.lang.String"/>
+	<field name="CUST_ADDRS" class="java.lang.String"/>
+	<field name="TRANSPORTER_NAME" class="java.lang.String"/>
+	<field name="TRANSPORTER_ID" class="java.math.BigDecimal"/>
+	<field name="TRANS_MODE" class="java.math.BigDecimal"/>
+	<field name="TMODE" class="java.lang.String"/>
+	<field name="TRANS_VH_NO" class="java.lang.String"/>
+	<field name="TRANS_GR_NO" class="java.lang.String"/>
+	<field name="TRANS_CONTNR_NO" class="java.lang.String"/>
+	<field name="REMARKS" class="java.lang.String"/>
+	<field name="EXT_DOC_NO" class="java.lang.String"/>
+	<field name="EXT_DOC_DT" class="java.sql.Timestamp"/>
+	<field name="SO_DOC_ID" class="java.lang.String"/>
+	<field name="MR_NO" class="java.lang.String"/>
+	<field name="PO_NO" class="java.lang.String"/>
+	<field name="CUSTADDS" class="java.lang.String"/>
+	<field name="REGD_ADD" class="java.lang.String"/>
+	<field name="ORG_ADD" class="java.lang.String"/>
+	<field name="ORG_PHONE1" class="java.lang.String"/>
+	<field name="ORG_PHONE2" class="java.lang.String"/>
+	<field name="ORG_FAX" class="java.lang.String"/>
+	<field name="CIN_NO" class="java.lang.String"/>
+	<field name="ORG_EMAIL1" class="java.lang.String"/>
+	<field name="ORG_EMAIL2" class="java.lang.String"/>
+	<field name="GRP_NM" class="java.lang.String"/>
+	<variable name="SHIP_QTY_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{SHIP_QTY}]]></variableExpression>
+	</variable>
+	<variable name="SHIP_QTY_2" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{SHIP_QTY}]]></variableExpression>
+	</variable>
+	<variable name="UOM_1" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$F{UOM}]]></variableExpression>
+	</variable>
+	<variable name="ITM_AMT_SP_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{ITM_AMT_SP}]]></variableExpression>
+	</variable>
+	<variable name="count" class="java.lang.Integer" resetType="Group" resetGroup="Ship" calculation="Sum">
+		<variableExpression><![CDATA[1]]></variableExpression>
+	</variable>
+	<variable name="TotOrdQty" class="java.math.BigDecimal" resetType="Group" resetGroup="Ship" calculation="Sum">
+		<variableExpression><![CDATA[$F{SHIP_QTY}]]></variableExpression>
+	</variable>
+	<variable name="PICK_QTY_SUM" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{PICK_QTY}]]></variableExpression>
+	</variable>
+	<group name="Ship" isStartNewPage="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{SHIPMNT_ID}]]></groupExpression>
+		<groupHeader>
+			<band height="231">
+				<staticText>
+					<reportElement x="363" y="104" width="77" height="10"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isUnderline="false"/>
+					</textElement>
+					<text><![CDATA[Commissioning Date :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="152" y="137" width="251" height="17"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="13" isBold="true" isUnderline="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[INSTALLATION REPORT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="27" y="165" width="499" height="35"/>
+					<textElement>
+						<font fontName="Arial" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Dear Sir,
+We are privileged to serve the Security, Fire, Access and/or Surveillance needs of your esteemed organization.
+We request you to kindly verify the items installed.]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="27" y="49" width="235" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="true" isItalic="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{CUST_NAME}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="440" y="104" width="80" height="8"/>
+					<box>
+						<bottomPen lineWidth="0.75"/>
+					</box>
+					<textElement>
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="27" y="64" width="157" height="90"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{CUSTADDS}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="440" y="54" width="114" height="10"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{SHIPMNT_ID}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="363" y="54" width="77" height="10"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[MOC :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="363" y="64" width="77" height="10"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[PO No. :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="363" y="74" width="77" height="10"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[MR No. :]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="440" y="74" width="115" height="10"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{MR_NO}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="440" y="64" width="114" height="10"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{PO_NO}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="363" y="88" width="77" height="10"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isUnderline="false"/>
+					</textElement>
+					<text><![CDATA[Installation Date :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="440" y="88" width="80" height="8"/>
+					<box>
+						<bottomPen lineWidth="0.75"/>
+					</box>
+					<textElement>
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="26" y="206" width="500" height="20"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="11" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{GRP_NM}]]></textFieldExpression>
+				</textField>
+			</band>
+			<band height="16">
+				<staticText>
+					<reportElement mode="Opaque" x="27" y="0" width="33" height="16" backcolor="#C1DDF9"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Sr. No.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="60" y="0" width="265" height="16" backcolor="#C1DDF9"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Item]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="325" y="0" width="55" height="16" backcolor="#C1DDF9"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Denom]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="380" y="0" width="60" height="16" backcolor="#C1DDF9"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Qty as per PO]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="440" y="0" width="86" height="16" backcolor="#C1DDF9"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="7" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Installed Qty]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="269">
+				<staticText>
+					<reportElement x="33" y="12" width="336" height="16"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[To serve you better you may provide the following information :
+]]></text>
+				</staticText>
+				<line>
+					<reportElement x="26" y="8" width="500" height="1"/>
+					<graphicElement>
+						<pen lineWidth="2.25"/>
+					</graphicElement>
+				</line>
+				<staticText>
+					<reportElement x="369" y="38" width="157" height="48"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial" size="9" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Yes / No.
+Yes / No.
+Yes / No.
+Yes / No.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="27" y="98" width="251" height="168"/>
+					<box>
+						<bottomPen lineWidth="2.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="Arial" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[(Service Engineer)]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="30" y="133" width="56" height="20"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[Signature:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="30" y="173" width="56" height="20"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[Mobile No.:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="30" y="153" width="56" height="20"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[Name:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="86" y="133" width="191" height="18"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="278" y="98" width="248" height="168"/>
+					<box>
+						<bottomPen lineWidth="2.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="Arial" size="11" isBold="true"/>
+					</textElement>
+					<text><![CDATA[(Customer)]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="86" y="153" width="191" height="18"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="86" y="173" width="191" height="18"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="287" y="133" width="65" height="20"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[Signature:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="287" y="173" width="65" height="20"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[Mobile No.:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="352" y="133" width="174" height="18"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="352" y="173" width="174" height="18"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="287" y="153" width="65" height="20"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[Name:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="352" y="153" width="174" height="18"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="287" y="233" width="65" height="30"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[Official
+Stamp:
+]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="27" y="91" width="499" height="7"/>
+					<box>
+						<topPen lineWidth="2.0"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[Static text]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="33" y="38" width="336" height="48"/>
+					<textElement>
+						<font fontName="Arial" size="9"/>
+					</textElement>
+					<text><![CDATA[ a.     The system has been successfully commissioned.
+ b.     The operational aspects of the system have been explained.
+ c.     The installation personnel have been always courteous.
+ d.     We have no hesitation in recommending your system.		          ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="287" y="193" width="65" height="20"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[Employee Id:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="352" y="213" width="174" height="18"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="287" y="213" width="65" height="20"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[SOL Id:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="352" y="193" width="174" height="18"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="25" splitType="Stretch">
+			<staticText>
+				<reportElement x="325" y="0" width="55" height="25"/>
+				<box topPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="380" y="0" width="60" height="25"/>
+				<box topPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="27" y="0" width="33" height="25"/>
+				<box topPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="325" y="0" width="55" height="25"/>
+				<box topPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{UOM}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="60" y="0" width="265" height="25"/>
+				<box topPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="60" y="0" width="265" height="25"/>
+				<box topPadding="2" leftPadding="2"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ITM_DESC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="380" y="0" width="60" height="25"/>
+				<box topPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{SHIP_QTY}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="27" y="0" width="33" height="25"/>
+				<box topPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{count}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="440" y="0" width="86" height="25"/>
+				<box topPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<pageFooter>
+		<band/>
+	</pageFooter>
+	<lastPageFooter>
+		<band/>
+	</lastPageFooter>
+</jasperReport>

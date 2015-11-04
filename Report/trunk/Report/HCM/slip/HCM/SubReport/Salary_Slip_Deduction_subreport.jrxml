@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Salary_Slip_Deduction_subreport" language="groovy" pageWidth="270" pageHeight="802" whenNoDataType="AllSectionsNoDetail" columnWidth="270" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select  A.CLD_ID, A.SLOC_ID, A.HO_ORG_ID,A.ORG_ID ,A.DOC_ID, A.SAL_ID DED_ID,(SELECT C.PARAM_DESC FROM HCM$SETUP C WHERE C.CLD_ID=A.CLD_ID
+                                                               AND C.SLOC_ID = A.SLOC_ID
+                                                               AND C.HO_ORG_ID = A.HO_ORG_ID
+                                                               AND C.PARAM_ID = A.SAL_ID
+                                                               ) DED_DESC,
+(SELECT ATT_NM FROM HCM$DS$ATT WHERE ATT_ID=A.SAL_BEHAV)TYPE,
+round(NVL(a.SAL_AMT,0),6) DED_AMT
+from hcm$emp$sal A ,HCM$SAL$PROC$SAL B, ORG$HCM$SALARY C
+where  a.CLD_ID = $P{cldId}
+and a.SLOC_ID = $P{slocId}
+and a.HO_ORG_ID = $P{hoOrgId}
+and a.ORG_ID = $P{orgId}
+and a.doc_id = $P{empDocId}
+and a.cld_id = b.cld_id(+)
+and a.sloc_id = b.sloc_id(+)
+and a.ho_org_id = b.ho_org_id(+)
+AND A.ORG_ID = B.ORG_ID(+)
+and a.sal_id = b.SAL_ID(+)
+AND A.DOC_ID = B.EMP_DOC_ID(+)
+and B.PROC_FRM_DT >= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+and B.PROC_FRM_DT <= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND A.ORG_ID = C.ORG_ID
+AND A.HO_ORG_ID = C.HO_ORG_ID
+AND A.CLD_ID = C.CLD_ID
+AND A.ORG_ID = C.ORG_ID
+AND A.SAL_ID = C.SAL_ID
+and C.sal_behav = '10'
+UNION
+select  A.CLD_ID, A.SLOC_ID, A.HO_ORG_ID,A.ORG_ID ,A.EMP_DOC_ID, A.DED_DOC_ID,('ESI') DED_DESC,
+(SELECT ATT_NM FROM HCM$DS$ATT WHERE ATT_ID=C.DED_PRF)TYPE,
+ round(NVL(B.EMP_DED_AMT,0),6) DED_AMT
+from HCM$EMP$DED A ,HCM$MON$ESI$DED B, HCM$DED C
+where  a.CLD_ID = $P{cldId}
+and a.SLOC_ID = $P{slocId}
+and a.HO_ORG_ID = $P{hoOrgId}
+and a.ORG_ID = $P{orgId}
+and a.EMP_doc_id = $P{empDocId}
+and a.cld_id = b.cld_id
+and a.sloc_id = b.sloc_id
+and a.ho_org_id = b.ho_org_id
+AND A.ORG_ID = B.ORG_ID
+AND A.EMP_DOC_ID = B.EMP_DOC_ID
+and B.PROC_FRM_DT >= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+and B.PROC_FRM_DT <= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND A.ORG_ID = C.ORG_ID
+AND A.HO_ORG_ID = C.HO_ORG_ID
+AND A.CLD_ID = C.CLD_ID
+AND A.ORG_ID = C.ORG_ID
+AND A.DED_DOC_ID = C.DOC_ID
+AND C.DED_TYPE = 67
+UNION
+select  A.CLD_ID, A.SLOC_ID, A.HO_ORG_ID,A.ORG_ID ,A.EMP_DOC_ID, A.DED_DOC_ID,('PF') DED_DESC,
+(SELECT ATT_NM FROM HCM$DS$ATT WHERE ATT_ID=C.DED_PRF)TYPE,
+ round(NVL(B.EMP_DED_AMT,0),6) DED_AMT
+from HCM$EMP$DED A ,HCM$MON$PF$DED B, HCM$DED C
+where  a.CLD_ID = $P{cldId}
+and a.SLOC_ID = $P{slocId}
+and a.HO_ORG_ID = $P{hoOrgId}
+and a.ORG_ID = $P{orgId}
+and a.EMP_doc_id = $P{empDocId}
+and a.cld_id = b.cld_id
+and a.sloc_id = b.sloc_id
+and a.ho_org_id = b.ho_org_id
+AND A.ORG_ID = B.ORG_ID
+AND A.EMP_DOC_ID = B.EMP_DOC_ID
+and B.PROC_FRM_DT >= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+and B.PROC_TO_DT <= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND A.ORG_ID = C.ORG_ID
+AND A.HO_ORG_ID = C.HO_ORG_ID
+AND A.CLD_ID = C.CLD_ID
+AND A.ORG_ID = C.ORG_ID
+AND A.DED_DOC_ID = C.DOC_ID
+AND C.DED_TYPE = 66
+UNION
+select  A.CLD_ID, A.SLOC_ID, A.HO_ORG_ID,A.ORG_ID ,A.EMP_DOC_ID, A.DED_DOC_ID,(SELECT C.DED_DESC FROM HCM$DED C WHERE C.CLD_ID=A.CLD_ID
+                                                               AND C.SLOC_ID = A.SLOC_ID
+                                                               AND C.HO_ORG_ID = A.HO_ORG_ID
+                                                               AND C.DOC_ID = A.DED_DOC_ID) DED_DESC,
+(SELECT ATT_NM FROM HCM$DS$ATT WHERE ATT_ID=C.DED_PRF)TYPE,
+ round(NVL(B.EMP_DED_AMT,0),6) DED_AMT
+from HCM$EMP$DED A ,HCM$MON$LOAN$DED B, HCM$DED C
+where  a.CLD_ID = $P{cldId}
+and a.SLOC_ID = $P{slocId}
+and a.HO_ORG_ID = $P{hoOrgId}
+and a.ORG_ID = $P{orgId}
+and a.EMP_doc_id = $P{empDocId}
+and a.cld_id = b.cld_id
+and a.sloc_id = b.sloc_id
+and a.ho_org_id = b.ho_org_id
+AND A.ORG_ID = B.ORG_ID
+AND A.EMP_DOC_ID = B.EMP_DOC_ID
+AND A.DED_DOC_ID = B.DED_DOC_ID
+and B.PROC_FRM_DT >= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+and B.PROC_FRM_DT <= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND A.ORG_ID = C.ORG_ID
+AND A.HO_ORG_ID = C.HO_ORG_ID
+AND A.CLD_ID = C.CLD_ID
+AND A.ORG_ID = C.ORG_ID
+AND A.DED_DOC_ID = C.DOC_ID
+AND C.DED_PRF = 49
+UNION
+select  A.CLD_ID, A.SLOC_ID, A.HO_ORG_ID,A.ORG_ID ,A.EMP_DOC_ID, A.DED_DOC_ID,('INCOME TAX') DED_DESC,
+(SELECT ATT_NM FROM HCM$DS$ATT WHERE ATT_ID=C.DED_PRF)TYPE,
+ round(NVL(B.EMP_DED_AMT,0),6) DED_AMT
+from HCM$EMP$DED A ,HCM$MON$TAX$DED B, HCM$DED C
+where  a.CLD_ID = $P{cldId}
+and a.SLOC_ID = $P{slocId}
+and a.HO_ORG_ID = $P{hoOrgId}
+and a.ORG_ID = $P{orgId}
+and a.EMP_doc_id = $P{empDocId}
+and a.cld_id = b.cld_id
+and a.sloc_id = b.sloc_id
+and a.ho_org_id = b.ho_org_id
+AND A.ORG_ID = B.ORG_ID
+AND A.EMP_DOC_ID = B.EMP_DOC_ID
+AND A.DED_DOC_ID = B.DED_DOC_ID
+and B.PROC_FRM_DT >= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+and B.PROC_FRM_DT <= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND A.ORG_ID = C.ORG_ID
+AND A.HO_ORG_ID = C.HO_ORG_ID
+AND A.CLD_ID = C.CLD_ID
+AND A.ORG_ID = C.ORG_ID
+AND A.DED_DOC_ID = C.DOC_ID
+AND C.DED_TYPE = 64
+UNION
+select  A.CLD_ID, A.SLOC_ID, A.HO_ORG_ID,A.ORG_ID ,A.EMP_DOC_ID, A.DED_DOC_ID,('PROFESSIONAL TAX') DED_DESC,
+(SELECT ATT_NM FROM HCM$DS$ATT WHERE ATT_ID=C.DED_PRF)TYPE,
+ round(NVL(B.EMP_DED_AMT,0),6) DED_AMT
+from HCM$EMP$DED A ,HCM$MON$PROFSNL$DED B, HCM$DED C
+where  a.CLD_ID = $P{cldId}
+and a.SLOC_ID = $P{slocId}
+and a.HO_ORG_ID = $P{hoOrgId}
+and a.ORG_ID = $P{orgId}
+and a.EMP_doc_id = $P{empDocId}
+AND C.DED_TYPE = 65
+and a.cld_id = b.cld_id
+and a.sloc_id = b.sloc_id
+and a.ho_org_id = b.ho_org_id
+AND A.ORG_ID = B.ORG_ID
+AND A.EMP_DOC_ID = B.EMP_DOC_ID
+AND A.DED_DOC_ID = B.DED_DOC_ID
+and B.PROC_FRM_DT >= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+and B.PROC_FRM_DT <= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND A.ORG_ID = C.ORG_ID
+AND A.HO_ORG_ID = C.HO_ORG_ID
+AND A.CLD_ID = C.CLD_ID
+AND A.ORG_ID = C.ORG_ID
+AND A.DED_DOC_ID = C.DOC_ID
+]]>
+	</queryString>
+	<field name="CLD_ID" class="java.lang.String"/>
+	<field name="SLOC_ID" class="java.math.BigDecimal"/>
+	<field name="HO_ORG_ID" class="java.lang.String"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="DOC_ID" class="java.lang.String"/>
+	<field name="DED_ID" class="java.lang.String"/>
+	<field name="DED_DESC" class="java.lang.String"/>
+	<field name="TYPE" class="java.lang.String"/>
+	<field name="DED_AMT" class="java.math.BigDecimal"/>
+	<variable name="totalDedsub" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{DED_AMT}]]></variableExpression>
+		<initialValueExpression><![CDATA[0.00]]></initialValueExpression>
+	</variable>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="3" width="52" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TYPE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="207" y="3" width="63" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{DED_AMT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="62" y="3" width="145" height="15"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{DED_DESC}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="52" y="0" width="10" height="18"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[:]]></text>
+			</staticText>
+		</band>
+	</detail>
+</jasperReport>

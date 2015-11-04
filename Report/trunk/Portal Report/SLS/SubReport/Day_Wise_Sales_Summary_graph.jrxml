@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Day_Wise_Sales_Summary_graph" language="groovy" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="HoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DocID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ItmId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GrpId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CurrId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="InvTyp" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="Status" class="java.lang.Integer"/>
+	<parameter name="EoCatId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EoId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select sum(itm_amt_sp) daysale,day_date,dt from
+(select i.itm_amt_sp,to_char(i.invoice_doc_dt,'D') dt,
+to_date(i.invoice_doc_dt,'DD-MM-YYYY') INVDT,
+to_char(i.invoice_doc_dt,'Day') day_date,
+o.org_desc,to_char(i.invoice_doc_dt,'Day-Mon-YYYY') tot_dt
+from sls$invoice$dtl_vw i,app.org o
+WHERE
+i.cld_id=o.org_cld_id
+and i.org_id=o.org_id
+and i.sloc_id=o.org_create_ref_sloc_id and
+ i.cld_id = NVL ( $P{CldId}, i.cld_id)
+   AND i.sloc_id = NVL ( $P{SlocId}, i.sloc_id)
+   AND i.org_id = NVL ( $P{OrgId}, i.org_id)
+   AND i.ho_org_id = NVL ( $P{HoOrgId}, i.ho_org_id)
+and trunc(i.invoice_doc_dt) >= nvl (to_date ( $P{FromDate}, 'yyyy-MM-dd'),
+trunc(i.invoice_doc_dt)) and
+  trunc(i.invoice_doc_dt) <= nvl (to_date ( $P{ToDate} , 'yyyy-MM-dd'),
+trunc(i.invoice_doc_dt))
+)
+group by day_date,dt
+order by dt
+]]>
+	</queryString>
+	<field name="DAYSALE" class="java.math.BigDecimal"/>
+	<field name="DAY_DATE" class="java.lang.String"/>
+	<field name="DT" class="java.lang.String"/>
+	<summary>
+		<band height="158" splitType="Stretch">
+			<stackedBarChart>
+				<chart isShowLegend="true" renderType="svg">
+					<reportElement x="50" y="0" width="455" height="158"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<categorySeries>
+						<seriesExpression><![CDATA[$F{DAY_DATE}]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{DAY_DATE}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{DAYSALE}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<barPlot isShowLabels="true" isShowTickLabels="true" isShowTickMarks="true">
+					<plot/>
+					<itemLabel color="#000000" backgroundColor="#FFFFFF">
+						<font fontName="Arial" size="8"/>
+					</itemLabel>
+					<categoryAxisFormat>
+						<axisFormat verticalTickLabels="true">
+							<labelFont/>
+							<tickLabelFont/>
+						</axisFormat>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat verticalTickLabels="false">
+							<labelFont/>
+							<tickLabelFont/>
+						</axisFormat>
+					</valueAxisFormat>
+				</barPlot>
+			</stackedBarChart>
+		</band>
+	</summary>
+</jasperReport>

@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="LeaveDetail" pageWidth="650" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="610" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Org_Logo" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT H.CLD_ID,
+  H.SLOC_ID,
+  H.HO_ORG_ID,
+  H.ORG_ID,
+  0.00 carry,
+   (SELECT ORG_DESC
+  FROM APP.ORG O
+  WHERE O.ORG_CLD_ID = P.CLD_ID
+  AND O.ORG_ID       = P.ORG_ID
+  ) ORG_NM,
+ (SELECT APP.FN_GET_ADDS_1($P{slocId},$P{cldId}, NVL(ot.org_add_id1, ot.org_add_id2))org_adds
+  FROM APP.ORG O, APP.ORG$OTH$DTL OT
+  WHERE O.ORG_CLD_ID = P.CLD_ID
+  AND O.ORG_ID       = P.ORG_ID
+  AND o.ORG_CLD_ID   = OT.ORG_CLD_ID
+  AND o.ORG_ID       = OT.ORG_ID
+  ) ORG_adds,
+  H.DOC_DT,
+   p.doc_id,
+ p.EMP_DOJ,
+p.emp_id,
+p.EMP_DEPT_ID,
+p.EMP_DESG_ID,
+p.EMP_LOC_ID,
+P.EMP_NM,
+  H.EMP_DOC_ID,
+  H.LEAVE_ID,
+
+  H.LEAVE_BAL EL_BAL,
+  H.LEAVE_AVAIL PAID_DYS,
+  (SELECT NVL(SUM(E.SAL_AMT),0) SAL
+  FROM HCM$LEAVE$GRP V ,
+    ORG$HCM$EMP$PRF P ,
+    HCM$GRP$LVE$LYBLTY$CALC S ,
+    HCM$EMP$SAL E
+  WHERE P.CLD_ID   = V.CLD_ID
+  AND P.SLOC_ID    = V.SLOC_ID
+  AND P.HO_ORG_ID  = V.HO_ORG_ID
+  AND P.ORG_ID     = V.ORG_ID
+  AND P.EMP_GRP_ID = V.GRP_ID
+    ---------------------------------------
+  AND S.CLD_ID    = V.CLD_ID
+  AND S.SLOC_ID   = V.SLOC_ID
+  AND S.HO_ORG_ID = V.HO_ORG_ID
+  AND S.ORG_ID    = V.ORG_ID
+  AND S.GRP_ID    = V.GRP_ID
+    -------------------------------------
+  AND P.CLD_ID    = E.CLD_ID
+  AND P.SLOC_ID   = E.SLOC_ID
+  AND P.HO_ORG_ID = E.HO_ORG_ID
+  AND P.ORG_ID    = E.ORG_ID
+  AND P.DOC_ID    = E.DOC_ID
+  AND S.SAL_ID    = E.SAL_ID
+    ------------------------------------
+  AND P.DOC_ID   = H.EMP_DOC_ID
+  AND V.LEAVE_ID = H.LEAVE_ID
+  ) BASIC_SAL,
+  H.ENCSH_AMT ENCASH_AMT
+FROM HCM.HCM$EMP$LEAVE$ENCSH$DTL H ,
+  ORG$HCM$EMP$PRF P
+WHERE P.CLD_ID  = H.CLD_ID
+AND P.SLOC_ID   = H.SLOC_ID
+AND P.HO_ORG_ID = H.HO_ORG_ID
+AND P.ORG_ID    = H.ORG_ID
+AND P.DOC_ID    = H.EMP_DOC_ID
+AND P.CLD_ID          = NVL($P{cldId} ,P.CLD_ID )
+AND P.SLOC_ID         = NVL($P{slocId},P.SLOC_ID)
+AND P.HO_ORG_ID       = NVL($P{hoOrgId},P.ho_org_id)
+AND P.ORG_ID          = NVL($P{orgId},P.org_id)
+
+AND trunc(H.DOC_DT )>= NVL(to_date($P{FromDate},'yyyy-MM-dd'),TRUNC(H.DOC_DT))
+AND TRUNC(H.DOC_DT) <=NVL(to_date($P{ToDate},'yyyy-MM-dd'),TRUNC(H.DOC_DT))
+AND (p.EMP_DEPT_ID    = $P{crtValue}
+OR p.EMP_LOC_ID       = $P{crtValue}
+OR p.EMP_GRP_ID       = $P{crtValue}
+OR p.DOC_ID           =$P{crtValue})
+AND p.DOC_ID          = NVL($P{empDocId}, p.DOC_ID)]]>
+	</queryString>
+	<field name="CLD_ID" class="java.lang.String"/>
+	<field name="SLOC_ID" class="java.math.BigDecimal"/>
+	<field name="HO_ORG_ID" class="java.lang.String"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="CARRY" class="java.math.BigDecimal"/>
+	<field name="ORG_NM" class="java.lang.String"/>
+	<field name="ORG_ADDS" class="java.lang.String"/>
+	<field name="DOC_DT" class="java.sql.Timestamp"/>
+	<field name="DOC_ID" class="java.lang.String"/>
+	<field name="EMP_DOJ" class="java.sql.Timestamp"/>
+	<field name="EMP_ID" class="java.lang.String"/>
+	<field name="EMP_DEPT_ID" class="java.lang.String"/>
+	<field name="EMP_DESG_ID" class="java.lang.String"/>
+	<field name="EMP_LOC_ID" class="java.lang.String"/>
+	<field name="EMP_NM" class="java.lang.String"/>
+	<field name="EMP_DOC_ID" class="java.lang.String"/>
+	<field name="LEAVE_ID" class="java.lang.String"/>
+	<field name="EL_BAL" class="java.math.BigDecimal"/>
+	<field name="PAID_DYS" class="java.math.BigDecimal"/>
+	<field name="BASIC_SAL" class="java.math.BigDecimal"/>
+	<field name="ENCASH_AMT" class="java.math.BigDecimal"/>
+	<variable name="sNo." class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$V{sNo.}]]></variableExpression>
+		<initialValueExpression><![CDATA[1]]></initialValueExpression>
+	</variable>
+	<variable name="basicSalTotal" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{BASIC_SAL}]]></variableExpression>
+	</variable>
+	<variable name="encashAMt" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{ENCASH_AMT}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="79" splitType="Stretch">
+			<image onErrorType="Blank">
+				<reportElement x="0" y="0" width="89" height="35"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+ ($P{Org_Logo}==null?"Org-logo.png":$P{Org_Logo})]]></imageExpression>
+			</image>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="20" width="610" height="15" forecolor="#000000"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_NM}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="31" y="35" width="550" height="15"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_ADDS}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="64" width="610" height="15"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Leave Detail]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="32" splitType="Stretch">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="35" height="32" backcolor="#C1DDF9"/>
+				<box rightPadding="3">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[S.No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="35" y="0" width="43" height="32" backcolor="#C1DDF9"/>
+				<box leftPadding="3">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Emp Id]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="326" y="0" width="74" height="32" backcolor="#C1DDF9"/>
+				<box rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Leave Availed]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="400" y="0" width="102" height="32" backcolor="#C1DDF9"/>
+				<box rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Encashable Salary Component]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="502" y="0" width="108" height="32" backcolor="#C1DDF9"/>
+				<box rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Encashment Amount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="293" y="0" width="33" height="32" backcolor="#C1DDF9"/>
+				<box leftPadding="0" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Leave Balance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="182" y="0" width="52" height="32" backcolor="#C1DDF9"/>
+				<box leftPadding="0" rightPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[D.O.J]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="234" y="0" width="59" height="32" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Carry Forword From Previous Year]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="78" y="0" width="104" height="32" backcolor="#C1DDF9"/>
+				<box leftPadding="3">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Employee Name]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="35" height="20"/>
+				<box rightPadding="3">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{sNo.}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="78" y="0" width="104" height="20"/>
+				<box leftPadding="3">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_NM}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement x="326" y="0" width="74" height="20"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PAID_DYS}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="293" y="0" width="33" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{EL_BAL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="400" y="0" width="102" height="20"/>
+				<box rightPadding="3">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{BASIC_SAL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="502" y="0" width="108" height="20"/>
+				<box rightPadding="3">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{ENCASH_AMT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="182" y="0" width="52" height="20"/>
+				<box leftPadding="3">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{EMP_DOJ}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="35" y="0" width="43" height="20"/>
+				<box leftPadding="3">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_ID}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="234" y="0" width="59" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{CARRY}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="32">
+			<line>
+				<reportElement x="0" y="3" width="610" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="7" width="610" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement x="581" y="17" width="29" height="15" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="523" y="17" width="58" height="15" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="30">
+			<staticText>
+				<reportElement x="0" y="10" width="610" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated By ebizframe10]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="523" y="15" width="58" height="15" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement x="581" y="15" width="29" height="15" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="13" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="3" width="610" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="7" width="610" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</lastPageFooter>
+	<summary>
+		<band height="20">
+			<staticText>
+				<reportElement x="0" y="0" width="610" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="326" y="0" width="68" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Grand Total]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="394" y="0" width="6" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="400" y="0" width="102" height="20"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{basicSalTotal}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="502" y="0" width="108" height="20"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{encashAMt}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

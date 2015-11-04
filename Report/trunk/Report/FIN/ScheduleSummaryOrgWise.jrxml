@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ScheduleSummary" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="Ho_Org_Id" class="java.lang.String"/>
+	<parameter name="Org_Id" class="java.lang.String"/>
+	<parameter name="Cld_Id" class="java.lang.String"/>
+	<parameter name="Date" class="java.lang.String"/>
+	<parameter name="Fy_Id" class="java.lang.Integer"/>
+	<parameter name="Sch_Id" class="java.lang.Integer"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\DEPLOYMENT\\Report\\FIN\\SubReport\\"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+  decode(length(sch_line_id),2,'H','L') grp,
+  lpad( a.sch_line_desc, decode(Instr(a.sch_line_id,'T'), 0,length(a.sch_line_desc)+2*(length(a.sch_line_id)-2),length(a.sch_line_desc)+2*(length(a.sch_line_id)-2)),' ') line_desc,
+  sch_line_note,
+  decode(sign(a.sch_curr_bal),-1 , -a.sch_curr_bal,a.sch_curr_bal) sch_curr_bal,
+  decode( sign(a.sch_curr_bal),-1 ,'Cr','Dr' )cur_bal_typ,
+
+  decode( sign(a.sch_prv_bal ),-1, -a.sch_prv_bal,a.sch_prv_bal) sch_prv_bal,
+  decode( sign(a.sch_prv_bal ),-1, 'Cr','Dr' )prv_bal_typ,
+  a.sch_fy_id,
+  a.sch_line_id,
+  to_char(sch_line_note) note_str ,
+  b.org_desc organisation,
+  b.org_id OrgId
+  from fin$sch$data a , app.org b
+
+where a.sch_ho_org_id=$P{Ho_Org_Id}
+and a.sch_org_id= nvl($P{Org_Id},a.sch_org_id)
+and a.sch_cld_id=$P{Cld_Id}
+and a.sch_id=$P{Sch_Id}
+and a.SCH_FY_ID =$P{Fy_Id}
+
+and a.SCH_CLD_ID = b.org_cld_id
+and a.SCH_ORG_ID=b.org_id
+
+order by sch_line_id]]>
+	</queryString>
+	<field name="GRP" class="java.lang.String"/>
+	<field name="LINE_DESC" class="java.lang.String"/>
+	<field name="SCH_LINE_NOTE" class="java.lang.String"/>
+	<field name="SCH_CURR_BAL" class="java.math.BigDecimal"/>
+	<field name="CUR_BAL_TYP" class="java.lang.String"/>
+	<field name="SCH_PRV_BAL" class="java.math.BigDecimal"/>
+	<field name="PRV_BAL_TYP" class="java.lang.String"/>
+	<field name="SCH_FY_ID" class="java.math.BigDecimal"/>
+	<field name="SCH_LINE_ID" class="java.lang.String"/>
+	<field name="NOTE_STR" class="java.lang.String"/>
+	<field name="ORGANISATION" class="java.lang.String"/>
+	<field name="ORGID" class="java.lang.String"/>
+	<sortField name="ORGID" order="Descending"/>
+	<variable name="countHeader" class="java.lang.Integer" incrementType="Group" incrementGroup="HeadGrp" calculation="Count">
+		<variableExpression><![CDATA[$V{HeadGrp_COUNT} == 1 ? $V{HeadGrp_COUNT}+1 : $V{HeadGrp_COUNT}]]></variableExpression>
+		<initialValueExpression><![CDATA[1]]></initialValueExpression>
+	</variable>
+	<variable name="LowerHeadCount" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$V{LowerHeadCount}]]></variableExpression>
+		<initialValueExpression><![CDATA[]]></initialValueExpression>
+	</variable>
+	<variable name="CountVar" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$V{CountVar}]]></variableExpression>
+		<initialValueExpression><![CDATA[1]]></initialValueExpression>
+	</variable>
+	<variable name="RevVar" class="java.lang.String">
+		<variableExpression><![CDATA[$F{SCH_LINE_ID}=="03T"?$F{SCH_CURR_BAL}:null]]></variableExpression>
+	</variable>
+	<variable name="ExpVar" class="java.lang.String">
+		<variableExpression><![CDATA[$F{SCH_LINE_ID}=="04T" ?$F{SCH_CURR_BAL}:null]]></variableExpression>
+	</variable>
+	<variable name="TotPrf" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{SCH_LINE_ID}.contains( "T" ) ?
+$V{TotPrf} == 0.00 ? $F{SCH_CURR_BAL} : $V{TotPrf}- $F{SCH_CURR_BAL}
+: $V{TotPrf}]]></variableExpression>
+		<initialValueExpression><![CDATA[0.00]]></initialValueExpression>
+	</variable>
+	<group name="HeadGrp">
+		<groupExpression><![CDATA[$F{GRP}]]></groupExpression>
+		<groupHeader>
+			<band height="20">
+				<printWhenExpression><![CDATA[$F{GRP}.equals( "H" )]]></printWhenExpression>
+				<textField>
+					<reportElement x="40" y="0" width="260" height="20"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{LINE_DESC}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="300" y="0" width="30" height="20"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{NOTE_STR}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="440" y="0" width="115" height="20"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+				</textField>
+				<textField>
+					<reportElement x="0" y="0" width="40" height="20"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$V{countHeader}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="69" splitType="Stretch">
+			<staticText>
+				<reportElement x="403" y="40" width="85" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[As On Date :]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="488" y="40" width="67" height="20"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{Date}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+ "SubReport\\Date_SubReportForIFRS.jasper"]]></subreportExpression>
+			</subreport>
+			<image>
+				<reportElement x="0" y="0" width="40" height="40"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+ "Org-logo.png"]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="403" y="0" width="152" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORGANISATION}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="403" y="20" width="152" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Schedule Summary]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="63" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="67" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="1" y="45" width="402" height="15">
+					<printWhenExpression><![CDATA[$P{Org_Id} == ""]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Organization Name : "+ $F{ORGANISATION}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="25" splitType="Stretch">
+			<staticText>
+				<reportElement mode="Transparent" x="440" y="0" width="115" height="25" backcolor="#C1DDF9">
+					<printWhenExpression><![CDATA[$P{Fy_Id} == 1]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="300" y="0" width="30" height="25" backcolor="#C1DDF9"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Note]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="40" y="0" width="260" height="25" backcolor="#C1DDF9"/>
+				<box>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Particulars]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="40" height="25" backcolor="#C1DDF9"/>
+				<box>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[S. No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="330" y="0" width="110" height="25" backcolor="#C1DDF9">
+					<printWhenExpression><![CDATA[$P{Fy_Id} == 1]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<subreport>
+				<reportElement mode="Opaque" x="331" y="1" width="108" height="24" backcolor="#C1DDF9"/>
+				<subreportParameter name="Cld_Id">
+					<subreportParameterExpression><![CDATA[$P{Cld_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Org_Id">
+					<subreportParameterExpression><![CDATA[$P{Org_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Ho_Org_Id">
+					<subreportParameterExpression><![CDATA[$P{Ho_Org_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Fy_Id">
+					<subreportParameterExpression><![CDATA[$P{Fy_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport\\GetFyDesc.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement mode="Opaque" x="441" y="1" width="114" height="24" isPrintWhenDetailOverflows="true" backcolor="#C1DDF9">
+					<printWhenExpression><![CDATA[$P{Fy_Id} > 1]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="Cld_Id">
+					<subreportParameterExpression><![CDATA[$P{Cld_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Org_Id">
+					<subreportParameterExpression><![CDATA[$P{Org_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Ho_Org_Id">
+					<subreportParameterExpression><![CDATA[$P{Ho_Org_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Fy_Id">
+					<subreportParameterExpression><![CDATA[$P{Fy_Id} - 1]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport\\GetFyDesc.jasper"]]></subreportExpression>
+			</subreport>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="555" height="25"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+			</textField>
+			<staticText>
+				<reportElement x="440" y="0" width="0" height="25"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="20">
+			<printWhenExpression><![CDATA[$F{GRP}.equals( "L" )]]></printWhenExpression>
+			<textField>
+				<reportElement x="40" y="0" width="260" height="20">
+					<printWhenExpression><![CDATA[$F{GRP}.equals( "L" )]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{LINE_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="300" y="0" width="30" height="20"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{NOTE_STR}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;###0.00-" isBlankWhenNull="true">
+				<reportElement x="330" y="0" width="105" height="20"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{SCH_CURR_BAL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;###0.00-">
+				<reportElement x="440" y="0" width="104" height="20"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{SCH_PRV_BAL}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="330" y="0" width="110" height="20"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="441" y="0" width="114" height="20"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="23">
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="10" width="100" height="13"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="435" y="10" width="80" height="13"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement x="515" y="10" width="40" height="13"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="3" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="8" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="44">
+			<line>
+				<reportElement x="0" y="1" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="6" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="0" y="24" width="555" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated by ebizframe 10]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="7" width="100" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="435" y="7" width="80" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement x="515" y="7" width="40" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+	<summary>
+		<band height="25">
+			<subreport>
+				<reportElement x="331" y="0" width="224" height="25"/>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "ScheduleSummary_subreport1.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="0" y="0" width="331" height="25" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Profit Before Exceptional and Extraordinary Items and Tax (1 - 2) : ]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="0" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="24" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+		</band>
+	</summary>
+</jasperReport>

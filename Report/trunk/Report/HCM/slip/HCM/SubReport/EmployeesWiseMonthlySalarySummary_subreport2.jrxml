@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="EmployeesWiseMonthlySalarySummary_subreport2" language="groovy" pageWidth="395" pageHeight="802" columnWidth="395" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select  prf.emp_nm,nvl(sum(ln.emp_ded_amt),0) loan_amt,nvl(sum(tax.emp_ded_amt),0) tds_amt,
+
+--Organization Name
+(Select o.org_desc from app.org o
+                 where o.org_id = prf.org_id
+                 and o.org_cld_id = prf.cld_id
+                 and o.org_create_ref_sloc_id = prf.sloc_id)org_desc,
+ --Organization Address
+(select adds from app.app$adds$vw
+             where adds_id = od.org_add_id1
+             and cld_id = od.org_cld_id)adds,
+--Total PF
+(select sum(emp_ded_amt) from hcm$mon$pf$ded pf
+                    where prf.cld_id = pf.cld_id(+)
+                    and prf.sloc_id = pf.sloc_id(+)
+                    and prf.org_id = pf.org_id(+)
+                    and prf.ho_org_id = pf.ho_org_id(+)
+                    AND PF.CLD_ID= $P{cldId}
+                    AND PF.SLOC_ID=$P{slocId}
+                    AND PF.HO_ORG_ID=$P{hoOrgId}
+                    AND PF.ORG_ID=$P{orgId}
+                    AND PF.PROC_FRM_DT= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+                    AND PF.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+                   AND PF.EMP_DOC_ID in (SELECT PRF.DOC_ID FROM ORG$HCM$EMP$PRF PRF WHERE PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+                   AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID))tot_pf,
+--Total  ESI
+(select sum(emp_ded_amt) from hcm$mon$esi$ded pf
+                    where prf.cld_id = pf.cld_id
+                    and prf.sloc_id = pf.sloc_id
+                    and prf.org_id = pf.org_id
+                    and prf.ho_org_id = pf.ho_org_id
+                    AND PF.CLD_ID= $P{cldId} AND PF.SLOC_ID=$P{slocId} AND PF.HO_ORG_ID=$P{hoOrgId}
+    AND PF.ORG_ID=$P{orgId} AND PF.PROC_FRM_DT= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID in (SELECT PRF.DOC_ID FROM ORG$HCM$EMP$PRF PRF WHERE (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID))
+                    )tot_esi
+
+
+from org$hcm$emp$prf prf,hcm$mon$loan$ded ln,app.org$oth$dtl od,hcm$mon$tax$ded tax,hcm$sal$proc pf
+
+--TOTAL LOAN
+where prf.cld_id = ln.cld_id(+)
+and prf.sloc_id = ln.sloc_id(+)
+and prf.org_id = ln.org_id(+)
+and prf.ho_org_id = ln.ho_org_id(+)
+and prf.doc_id = ln.emp_doc_id(+)
+and prf.emp_code = ln.emp_code(+)
+
+--TOTAL TDS
+and prf.cld_id = tax.cld_id(+)
+and prf.sloc_id = tax.sloc_id(+)
+and prf.org_id = tax.org_id(+)
+and prf.ho_org_id = tax.ho_org_id(+)
+and prf.doc_id = tax.emp_doc_id(+)
+and prf.emp_code = tax.emp_code(+)
+
+--ORG
+and prf.org_id = od.org_id(+)
+and prf.cld_id = od.org_cld_id(+)
+
+
+AND PF.CLD_ID=PRF.CLD_ID
+AND PF.SLOC_ID=PRF.SLOC_ID
+AND PF.ORG_ID=PRF.ORG_ID
+AND PF.HO_ORG_ID=PRF.HO_ORG_ID
+AND PF.EMP_DOC_ID=PRF.DOC_ID
+
+AND PF.CLD_ID= $P{cldId}
+AND PF.SLOC_ID=$P{slocId}
+AND PF.HO_ORG_ID=$P{hoOrgId}
+AND PF.ORG_ID=$P{orgId}
+AND PF.PROC_FRM_DT= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND PF.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND PF.EMP_DOC_ID in (SELECT PRF.DOC_ID FROM ORG$HCM$EMP$PRF PRF WHERE (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue}))
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)
+group by
+prf.emp_nm,od.org_add_id1,od.org_cld_id,prf.ho_org_id,PRF.CLD_ID ,PRF.SLOC_ID,PRF.HO_ORG_ID,PRF.ORG_ID,
+od.org_add_id1,Od.org_cld_id,PRF.EMP_DEPT_ID , PRF.EMP_LOC_ID , PRF.EMP_GRP_ID, PRF.DOC_ID ,PRF.DOC_ID]]>
+	</queryString>
+	<field name="EMP_NM" class="java.lang.String"/>
+	<field name="LOAN_AMT" class="java.math.BigDecimal"/>
+	<field name="TDS_AMT" class="java.math.BigDecimal"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="ADDS" class="java.lang.String"/>
+	<field name="TOT_PF" class="java.math.BigDecimal"/>
+	<field name="TOT_ESI" class="java.math.BigDecimal"/>
+	<sortField name="EMP_NM"/>
+	<variable name="loanTot" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{LOAN_AMT}]]></variableExpression>
+	</variable>
+	<variable name="TotalCount" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{tds_loanTot}.add( $F{TOT_PF}.add($F{TOT_ESI}))]]></variableExpression>
+	</variable>
+	<variable name="tds_loanTot" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{totTDS}.add($V{loanTot})]]></variableExpression>
+	</variable>
+	<variable name="totDed" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{tds_loanTot}.equals(null)||$V{tds_loanTot}.equals("")?$F{TOT_PF}.add($F{TOT_ESI}):$V{tds_loanTot}.add($F{TOT_PF}.add($F{TOT_ESI}))]]></variableExpression>
+	</variable>
+	<variable name="totTDS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{TDS_AMT}]]></variableExpression>
+	</variable>
+	<variable name="total" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{TotalCount}>0 ? $V{totDed}.add($V{TotalCount}) : $V{totDed}]]></variableExpression>
+	</variable>
+	<group name="emp">
+		<groupExpression><![CDATA[$F{ORG_DESC}]]></groupExpression>
+		<groupFooter>
+			<band height="101">
+				<staticText>
+					<reportElement x="0" y="20" width="391" height="81"/>
+					<box>
+						<leftPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="291" y="0" width="100" height="20"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{loanTot}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="191" y="0" width="100" height="20"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{totTDS}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="291" y="40" width="100" height="20"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{tds_loanTot}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="291" y="60" width="100" height="20"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_PF}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="291" y="80" width="100" height="20"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_ESI}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="191" y="40" width="100" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="191" y="60" width="100" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[PF]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="191" y="80" width="100" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ESI]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="391" height="20"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="191" y="20" width="100" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Canteen Exp.]]></text>
+				</staticText>
+			</band>
+			<band height="20">
+				<textField isBlankWhenNull="true">
+					<reportElement x="291" y="0" width="100" height="20"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{totDed}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="-1" width="391" height="1"/>
+					<graphicElement>
+						<pen lineWidth="0.5"/>
+					</graphicElement>
+				</line>
+				<staticText>
+					<reportElement x="0" y="0" width="391" height="20"/>
+					<box>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<detail>
+		<band height="17" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="165" height="17"/>
+				<box leftPadding="5">
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_NM}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="191" y="0" width="100" height="17"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TDS_AMT}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="291" y="0" width="100" height="17"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{LOAN_AMT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

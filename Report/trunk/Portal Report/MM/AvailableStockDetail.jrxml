@@ -1,0 +1,673 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AvailableStockDetail" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="15" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="BgColorStyle">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("D")]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("R")]]></conditionExpression>
+			<style backcolor="#F5B5B5"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("G")]]></conditionExpression>
+			<style backcolor="#DDE39B"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("Y")]]></conditionExpression>
+			<style backcolor="#FFFF95"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("GG")]]></conditionExpression>
+			<style backcolor="#EBEBEB"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("B")]]></conditionExpression>
+			<style backcolor="#BEBEED"/>
+		</conditionalStyle>
+	</style>
+	<style name="HeaderStyle">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("D")]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("R")]]></conditionExpression>
+			<style backcolor="#FF0000"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("G")]]></conditionExpression>
+			<style backcolor="#CDDB27"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("Y")]]></conditionExpression>
+			<style backcolor="#FFFF00"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("GG")]]></conditionExpression>
+			<style backcolor="#CCCCCC"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("B")]]></conditionExpression>
+			<style backcolor="#3333FF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="Margin_Detail" class="java.lang.String"/>
+	<parameter name="GrpId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="BgColor" class="java.lang.String"/>
+	<parameter name="Head" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select a.cld_id, A.SLOC_ID,A.ORG_ID, A.ITM_ID, A.ITM_UOM_BS, SUM (a.avl_stk) current_stk, SUM(A.WAP_PRICE),
+B.GRP_ID, B.ITM_DESC, C.UOM_NM, E.ORG_DESC, NVL(D.PARENT_GRP,D.CHILD_GRP) PARENT_GROUP, D.CHILD_GRP,D.GRP_PATH ITM_CLSFD,
+G.glbl_curr_notation_alias
+FROM MM.MM$STK$SUMM$ITM A, APP.APP$ITM$PRF B, APP.APP$UOM$CONV$STD C,APP.ORG E, APP.app$grp$vw D, APP.app$glbl$curr G, app.org$fy h, app.app$itm$org i
+WHERE b.pur_itm_flg = 'Y'
+  and b.actv = 'Y'
+  AND i.sloc_id       = b.sloc_id
+  AND i.cld_id        = b.cld_id
+  AND i.ho_org_id     = b.ho_org_id
+  AND i.itm_id        = b.itm_id
+  AND i.sloc_id       = a.sloc_id
+  AND i.cld_id        = a.cld_id
+  AND i.org_id        = a.org_id
+  AND i.itm_id        = a.itm_id
+  AND a.sloc_id       = h.org_fy_ref_sloc_id
+  AND a.cld_id        = h.cld_id
+  AND a.org_id        = h.org_id
+  AND a.fy_id         = h.org_fy_id
+  AND h.org_fy_id     =
+    (SELECT MAX (org_fy_id)
+    FROM app.org$fy
+    WHERE org_id           = a.org_id
+    AND cld_id             = a.cld_id
+    AND org_fy_ref_sloc_id = a.sloc_id
+    AND SYSDATE BETWEEN fy_strt AND fy_end
+    )
+AND A.CLD_ID = C.CLD_ID
+AND A.SLOC_ID = C.SLOC_ID
+AND A.itm_UOM_BS = C.UOM_ID
+AND A.CLD_ID = E.ORG_CLD_ID
+AND A.SLOC_ID = E.ORG_CREATE_REF_SLOC_ID
+AND A.ORG_ID = E.ORG_ID
+AND B.CLD_ID = D.CLD_ID
+AND B.SLOC_ID = D.SLOC_ID
+AND B.HO_ORG_ID = D.HO_ORG_ID
+AND B.GRP_ID = D.GRP_ID
+AND E.org_curr_id_bs = G.glbl_curr_id
+and A.CLD_ID = NVL($P{CldId},A.CLD_ID)
+AND A.SLOC_ID = NVL($P{SlocId},A.SLOC_ID)
+AND A.ORG_ID = NVL($P{OrgId},A.ORG_ID)
+and B.GRP_ID = NVL($P{GrpId}, B.GRP_ID)
+GROUP BY
+a.cld_id, A.SLOC_ID, A.ORG_ID
+, A.ITM_ID, A.ITM_UOM_BS,B.GRP_ID
+,B.ITM_DESC, C.UOM_NM, E.ORG_DESC,NVL(D.PARENT_GRP,D.CHILD_GRP), D.CHILD_GRP,D.GRP_PATH, G.glbl_curr_notation_alias
+order by a.itm_id]]>
+	</queryString>
+	<field name="CLD_ID" class="java.lang.String"/>
+	<field name="SLOC_ID" class="java.math.BigDecimal"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="ITM_ID" class="java.lang.String"/>
+	<field name="ITM_UOM_BS" class="java.lang.String"/>
+	<field name="CURRENT_STK" class="java.math.BigDecimal"/>
+	<field name="SUM(A.WAP_PRICE)" class="java.math.BigDecimal"/>
+	<field name="GRP_ID" class="java.lang.String"/>
+	<field name="ITM_DESC" class="java.lang.String"/>
+	<field name="UOM_NM" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="PARENT_GROUP" class="java.lang.String"/>
+	<field name="CHILD_GRP" class="java.lang.String"/>
+	<field name="ITM_CLSFD" class="java.lang.String"/>
+	<field name="GLBL_CURR_NOTATION_ALIAS" class="java.lang.String"/>
+	<group name="GrpId">
+		<groupExpression><![CDATA[$P{GrpId}]]></groupExpression>
+		<groupHeader>
+			<band height="49">
+				<printWhenExpression><![CDATA[$P{GrpId}!=""]]></printWhenExpression>
+				<staticText>
+					<reportElement x="2" y="1" width="65" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ Item Group]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="2" y="15" width="65" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ Item SubGroup]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="66" y="1" width="5" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[ :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="66" y="15" width="5" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[ :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="0" y="29" width="108" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[  Item Code]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="140" y="29" width="160" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[   Item Description]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="108" y="29" width="32" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Unit]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="389" y="29" width="80" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[    Physical Qty In Store]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="300" y="29" width="89" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Qty as Per Computer]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="469" y="29" width="86" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Weighted Avg Price]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="555" height="30"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="73" y="1" width="179" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{PARENT_GROUP}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="73" y="15" width="178" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{CHILD_GRP}]]></textFieldExpression>
+				</textField>
+			</band>
+			<band height="49">
+				<printWhenExpression><![CDATA[$P{GrpId} == ""]]></printWhenExpression>
+				<staticText>
+					<reportElement x="2" y="1" width="65" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ Item Group]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="2" y="15" width="65" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ Item SubGroup]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="66" y="1" width="5" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[ :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="66" y="15" width="5" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[ :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="1" y="0" width="554" height="30"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="74" y="1" width="100" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[All]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="74" y="15" width="100" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[All]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="0" y="29" width="108" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[  Item Code]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="140" y="29" width="160" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[   Item Description]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="108" y="29" width="32" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Unit]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="389" y="29" width="80" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[    Physical Qty In Store]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="300" y="29" width="89" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Qty as Per Computer]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="469" y="29" width="86" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Weighted Avg Price]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<background>
+		<band height="802" splitType="Stretch">
+			<rectangle>
+				<reportElement style="BgColorStyle" x="-20" y="-20" width="595" height="822"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-20" y="0" width="20" height="200">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-20" y="200" width="20" height="200">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-20" y="400" width="20" height="200">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="556" y="0" width="20" height="200">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="556" y="200" width="20" height="200">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="556" y="400" width="20" height="200">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame" hAlign="Center" vAlign="Middle" onErrorType="Blank">
+				<reportElement x="0" y="45" width="555" height="757">
+					<printWhenExpression><![CDATA[$P{BgColor}.equalsIgnoreCase( "D" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org_logo_dim.png"]]></imageExpression>
+			</image>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="556" y="600" width="20" height="202">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-20" y="600" width="20" height="202">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+		</band>
+	</background>
+	<pageHeader>
+		<band height="45" splitType="Stretch">
+			<image scaleImage="RetainShape" onErrorType="Blank">
+				<reportElement x="0" y="0" width="120" height="35"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<textField isBlankWhenNull="true">
+				<reportElement x="205" y="3" width="349" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="369" y="17" width="183" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Available Stock Details]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="43" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="39" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="147" y="0" width="169" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ITM_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="108" y="0" width="28" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{UOM_NM}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="5" y="0" width="100" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ITM_ID}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="479" y="0" width="74" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{SUM(A.WAP_PRICE)}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="320" y="0" width="69" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{CURRENT_STK}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="15"/>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<columnFooter>
+		<band>
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="0"/>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="35" splitType="Stretch">
+			<staticText>
+				<reportElement style="BgColorStyle" mode="Opaque" x="-21" y="0" width="597" height="35"/>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="7" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="466" y="18" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="524" y="18" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="2" y="18" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="3" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1" y="9" width="200" height="10">
+					<printWhenExpression><![CDATA[$F{GLBL_CURR_NOTATION_ALIAS}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["*All Values shown in Base Currency - "+$F{GLBL_CURR_NOTATION_ALIAS}+"."]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="55">
+			<staticText>
+				<reportElement style="BgColorStyle" mode="Opaque" x="-20" y="1" width="595" height="29"/>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="BgColorStyle" mode="Opaque" x="-20" y="30" width="595" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated By ebizframe10]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="5" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="466" y="18" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="524" y="18" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="2" y="16" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="1" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="0" y="7" width="200" height="10">
+					<printWhenExpression><![CDATA[$F{GLBL_CURR_NOTATION_ALIAS}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["*All Values shown in Base Currency - "+$F{GLBL_CURR_NOTATION_ALIAS}+"."]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="BgColorStyle" mode="Opaque" x="-21" y="50" width="596" height="5"/>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</lastPageFooter>
+</jasperReport>

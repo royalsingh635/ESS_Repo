@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Early_departure_report" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="shiftId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ReportType" class="java.lang.String"/>
+	<parameter name="desgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="deptId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT org_desc,emp_doc_id,emp_id,
+  employee,
+  sft_st_tm,
+  date_in,
+  time_in,
+  shift_nm,
+  department,
+  atten_dt,
+  SUBSTR(late, 0,instr(late,'.')-1 ) late,
+  SUBSTR(early, instr(early,'.',-1) ) early
+FROM
+  (SELECT org_desc,emp_doc_id, emp_id,
+    employee,
+    TO_CHAR(sft_St_tm,'HH24:MI:SS') sft_St_tm,
+    TO_date(TO_CHAR(date_in,'dd-MM-yyyy'),'dd-MM-yyyy') date_in,
+    TO_CHAR(time_in, 'HH24:MI:SS')time_in ,
+    Shift_nm,
+    department,
+    atten_dt ,
+    (
+    CASE
+      WHEN (TIME_IN>SFT_ST_TM)
+      THEN SUBSTR((TIME_IN-SFT_ST_TM),instr((TIME_IN-SFT_ST_TM),' ')+1)
+      ELSE NULL
+    END )late ,
+    (
+    CASE
+      WHEN (TIME_IN<SFT_ST_TM)
+      THEN SUBSTR((TIME_IN-SFT_ST_TM),instr((TIME_IN-SFT_ST_TM),' ')+1)
+      ELSE NULL
+    END )early
+  FROM
+    (SELECT A.DOC_ID emp_doc_id,a.emp_code emp_code,
+      a.emp_id emp_id,
+      --B.emp_nm,
+      a.emp_dob emp_dob,
+      a.emp_doj emp_doj,
+      a.emp_dept_id emp_dept_id,
+      c.dept_nm department,
+      d.org_desc org_desc,
+      d.org_id org_id,
+      E.SHIFT_ID shift_id,
+      F.SHIFT_NM Shift_nm,
+      a.emp_grp_id emp_grp_id,
+      a.emp_GEN gen_id,
+      A.emp_nm employee,
+      (SELECT b.emp_nm parent
+      FROM org$hcm$emp$prf b
+      WHERE b.doc_id  =a.mgr_doc_id
+      AND b.CLD_ID    = $P{cldId}
+      AND b.SLOC_ID   = $P{slocId}
+      AND b.HO_ORG_ID = $P{hoOrgId}
+      AND b.ORG_ID    = $P{orgId}
+        --AND b.DOC_ID = e.doc_id
+      )RepTo,
+      DECODE(
+      (SELECT p.param_desc FROM hcm$setup p WHERE p.param_id = a.emp_GEN
+      AND p.cld_id                                           = a.cld_id
+      AND p.sloc_id                                          = a.sloc_id
+      AND p.ho_org_id                                        = a.ho_org_id
+      ),'MALE','Mr.','Mrs.')Emp_Alias,
+      (SELECT p.param_desc
+      FROM hcm$setup p
+      WHERE p.param_id = a.emp_grp_id
+      AND p.cld_id     = a.cld_id
+      AND p.sloc_id    = a.sloc_id
+      AND p.ho_org_id  = a.ho_org_id
+      )emp_grp_nm ,
+      a.EMP_DESG_ID emp_desg_id,
+      (SELECT p.param_desc
+      FROM hcm$setup p
+      WHERE p.param_id = a.EMP_DESG_ID
+      AND p.cld_id     = a.cld_id
+      AND p.sloc_id    = a.sloc_id
+      AND p.ho_org_id  = a.ho_org_id
+      )emp_desg_nm,
+      a.emp_loc_id loc_id,
+      (SELECT p.param_desc
+      FROM hcm$setup p
+      WHERE p.param_id = a.emp_loc_id
+      AND p.cld_id     = a.cld_id
+      AND p.sloc_id    = a.sloc_id
+      AND p.ho_org_id  = a.ho_org_id
+      )emp_loc_nm,
+      (SELECT p.param_desc
+      FROM hcm$setup p
+      WHERE p.param_id = a.emp_GEN
+      AND p.cld_id     = a.cld_id
+      AND p.sloc_id    = a.sloc_id
+      AND p.ho_org_id  = a.ho_org_id
+      )emp_GEN ,
+      t.atten_dt atten_dt,
+      T.IN_TIME intime,
+      t.IN_TIME DATE_in,
+      t.IN_TIME time_in,
+      --to_date(TO_CHAR(t.IN_TIME,'HH24$P{MI$P{SS'),'HH24$P{MI$P{SS')time_in,
+      t.OUT_TIME out_time,
+      f.SHIFT_ID sft_id,
+      f.SHIFT_STRT_TM st_time,
+      f.SHIFT_STRT_TM sft_St_tm,
+      f.SHIFT_END_TM end_tm ,
+      f.SHIFT_END_TM sft_nd_time,
+      f.SHIFT_BREAK_TM brk_tm,
+      f.SHIFT_AVL_TM avl_tm,
+      f.SHIFT_TOT_TM tot_tm
+    FROM org$hcm$emp$prf A ,
+      --org$hcm$emp$prf b,
+      app.app$dept c,
+      app.org d,
+      HCM$EMP$SHIFT e,
+      app.app$shift F,
+      hcm$time$move$edit$dtl t
+    WHERE --a.doc_id        = b.mgr_doc_id(+)
+      --AND A.CLD_ID        =B.CLD_ID(+)
+      -- AND A.ORG_ID    =B.ORG_ID(+)
+      --AND A.HO_ORG_ID =B.HO_ORG_ID(+)
+      --AND A.SLOC_ID   =B.SLOC_ID(+)
+      --AND A.EMP_ID=  B.EMP_ID
+      t.cld_id(+)          =a.cld_id
+    AND t.sloc_id(+)       = a.sloc_id
+    AND t.org_id(+)        = a.org_id
+    AND t.ho_org_id(+)     = a.ho_org_id
+    AND t.emp_doc_id(+)    = a.doc_id
+    AND a.cld_id           = c.cld_id
+    AND a.sloc_id          = c.sloc_id
+    AND a.ho_org_id        = c.ho_org_id
+    AND A.EMP_DEPT_ID      = C.DEPT_ID
+    AND A.ORG_ID           = d.org_id
+    AND a.cld_id           = d.org_cld_id
+    AND A.CLD_ID           =E.CLD_ID
+    AND A.SLOC_ID          =E.SLOC_ID
+    AND A.ORG_ID           =E.ORG_ID
+    AND A.HO_ORG_ID        =E.HO_ORG_ID
+    AND A.DOC_ID           =E.DOC_ID
+    AND E.CLD_ID           = F.CLD_ID
+    AND E.HO_ORG_ID        = F.HO_ORG_ID
+    AND E.SLOC_ID          = F.SLOC_ID
+    AND E.SHIFT_ID         = F.SHIFT_ID
+    AND t.CLD_ID           = NVL($P{cldId} ,t.CLD_ID )
+    AND t.SLOC_ID          = NVL($P{slocId},t.SLOC_ID)
+    AND t.HO_ORG_ID        = NVL($P{hoOrgId},t.ho_org_id)
+    AND t.ORG_ID           = NVL($P{orgId},t.org_id)
+    AND TRUNC(t.atten_dt) >= NVL(to_date($P{FromDate},'yyyy-MM-dd'),TRUNC(t.atten_dt))
+    AND TRUNC(t.atten_dt) <=NVL(to_date($P{ToDate},'yyyy-MM-dd'),TRUNC(t.atten_dt))
+    AND ( A.EMP_DEPT_ID    = NVL($P{crtValue}, A.EMP_DEPT_ID)
+    OR A.EMP_LOC_ID        = NVL( $P{crtValue},A.EMP_LOC_ID)
+    OR A.EMP_GRP_ID        =NVL( $P{crtValue},a.EMP_GRP_ID)
+    OR A.DOC_ID            =NVL($P{crtValue}, A.DOC_ID) )
+    AND A.DOC_ID           = NVL($P{empDocId}, A.DOC_ID)
+    AND a.EMP_DESG_ID      =NVL ($P{desgId}, a.EMP_DESG_ID )
+    AND E.SHIFT_ID         =NVL($P{shiftId},E.SHIFT_ID)
+    )
+
+  ) ORDER BY emp_id,
+    atten_dt]]>
+	</queryString>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="EMP_DOC_ID" class="java.lang.String"/>
+	<field name="EMP_ID" class="java.lang.String"/>
+	<field name="EMPLOYEE" class="java.lang.String"/>
+	<field name="SFT_ST_TM" class="java.lang.String"/>
+	<field name="DATE_IN" class="java.sql.Timestamp"/>
+	<field name="TIME_IN" class="java.lang.String"/>
+	<field name="SHIFT_NM" class="java.lang.String"/>
+	<field name="DEPARTMENT" class="java.lang.String"/>
+	<field name="ATTEN_DT" class="java.sql.Timestamp"/>
+	<field name="LATE" class="java.lang.String"/>
+	<field name="EARLY" class="java.lang.String"/>
+	<group name="Emp Wise">
+		<groupExpression><![CDATA[$F{ORG_DESC}]]></groupExpression>
+		<groupHeader>
+			<band height="50">
+				<printWhenExpression><![CDATA[(!$P{empDocId}.equals("") && !$P{empDocId}.equals(null ))]]></printWhenExpression>
+				<subreport>
+					<reportElement x="0" y="0" width="555" height="50"/>
+					<subreportParameter name="cldId">
+						<subreportParameterExpression><![CDATA[$P{cldId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="FromDate">
+						<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="slocId">
+						<subreportParameterExpression><![CDATA[$P{slocId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="desgId">
+						<subreportParameterExpression><![CDATA[$P{desgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="shiftId">
+						<subreportParameterExpression><![CDATA[$P{shiftId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="Path">
+						<subreportParameterExpression><![CDATA[$P{Path}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="orgId">
+						<subreportParameterExpression><![CDATA[$P{orgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ToDate">
+						<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ReportType">
+						<subreportParameterExpression><![CDATA[$P{ReportType}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="empDocId">
+						<subreportParameterExpression><![CDATA[$P{empDocId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="hoOrgId">
+						<subreportParameterExpression><![CDATA[$P{hoOrgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="crtValue">
+						<subreportParameterExpression><![CDATA[$P{crtValue}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="deptId">
+						<subreportParameterExpression><![CDATA[$P{deptId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Late_arr_Emp_wise.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupHeader>
+	</group>
+	<group name="Org Wise">
+		<groupExpression><![CDATA[$F{ORG_DESC}]]></groupExpression>
+		<groupHeader>
+			<band height="50">
+				<printWhenExpression><![CDATA[($P{empDocId}.equals("") || $P{empDocId}.equals(null ))]]></printWhenExpression>
+				<subreport>
+					<reportElement x="0" y="0" width="555" height="50"/>
+					<subreportParameter name="cldId">
+						<subreportParameterExpression><![CDATA[$P{cldId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="FromDate">
+						<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="slocId">
+						<subreportParameterExpression><![CDATA[$P{slocId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="desgId">
+						<subreportParameterExpression><![CDATA[$P{desgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="shiftId">
+						<subreportParameterExpression><![CDATA[$P{shiftId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="Path">
+						<subreportParameterExpression><![CDATA[$P{Path}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="orgId">
+						<subreportParameterExpression><![CDATA[$P{orgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ToDate">
+						<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ReportType">
+						<subreportParameterExpression><![CDATA[$P{ReportType}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="empDocId">
+						<subreportParameterExpression><![CDATA[$P{empDocId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="hoOrgId">
+						<subreportParameterExpression><![CDATA[$P{hoOrgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="crtValue">
+						<subreportParameterExpression><![CDATA[$P{crtValue}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="deptId">
+						<subreportParameterExpression><![CDATA[$P{deptId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport\\Late_arr_compny_wise.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupHeader>
+	</group>
+	<pageHeader>
+		<band height="82" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{ReportType}.equals( "P" )]]></printWhenExpression>
+			<staticText>
+				<reportElement x="260" y="29" width="290" height="15" forecolor="#6600CC">
+					<printWhenExpression><![CDATA[(!$P{empDocId}.equals("") && !$P{empDocId}.equals(null ))]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Early Departure Report - Employee Wise]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="260" y="29" width="290" height="15" forecolor="#6600CC">
+					<printWhenExpression><![CDATA[($P{empDocId}.equals("") || $P{empDocId}.equals(null ))]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Early Departure Report - Company Wise]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="79" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="75" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<image>
+				<reportElement x="3" y="4" width="58" height="40"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<textField isBlankWhenNull="true">
+				<reportElement x="263" y="14" width="290" height="15" forecolor="#6600CC"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="427" y="51" width="28" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[Period :]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="511" y="48" width="40" height="15"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="CldId">
+					<subreportParameterExpression><![CDATA[]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OrgId">
+					<subreportParameterExpression><![CDATA[]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/ToDate_SubReport.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="456" y="48" width="40" height="15"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="CldId">
+					<subreportParameterExpression><![CDATA[]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OrgId">
+					<subreportParameterExpression><![CDATA[]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/FromDate_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="494" y="51" width="15" height="10"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<pageFooter>
+		<band height="28" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{ReportType}.equals( "P" )]]></printWhenExpression>
+			<textField evaluationTime="Report">
+				<reportElement x="525" y="12" width="29" height="13" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="1" y="12" width="122" height="13"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="467" y="12" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="4" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="8" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="46">
+			<printWhenExpression><![CDATA[$P{ReportType}.equals( "P" )]]></printWhenExpression>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="1" y="11" width="122" height="12"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="524" y="12" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="466" y="12" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="24" width="555" height="22"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated By ebizframe10]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="3" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="7" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</lastPageFooter>
+</jasperReport>

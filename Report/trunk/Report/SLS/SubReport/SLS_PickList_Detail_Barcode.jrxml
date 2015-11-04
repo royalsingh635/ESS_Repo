@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SLS_PickList_Detail_Barcode" language="groovy" pageWidth="1000" pageHeight="802" columnWidth="1000" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="CldId" class="java.lang.String"/>
+	<parameter name="SlocId" class="java.lang.Integer"/>
+	<parameter name="OrgId" class="java.lang.String"/>
+	<parameter name="HoOrgId" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ItmId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GrpId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EoId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AssignTo" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="Status" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EoCatId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CurrId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ReportType" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select fn_gen_bc_pick_list(cld_id,sloc_id,org_id,doc_id,itm_id,lot_id,bin_id,sr_no) bar
+from
+(SELECT distinct SUBSTR (a.pick_id, 3) pick_id, to_char(a.doc_dt,'dd-mm-yyyy') DOC_DT, b.so_itm_qty, pb.pick_qty bin_qty,pl.pick_qty lot_qty,b.pick_qty,to_char(b.dlv_dt,'dd-MM-yyyy') pick_dlv_dt,
+        (SELECT adds
+                                        FROM app.app$adds$vw
+                                       WHERE adds_id = a.dlv_adds_id) adds,
+       (select wh_nm from app.app$wh$org
+		 where wh_id=a.wh_id
+		 and cld_id=a.cld_id
+		 and sloc_id=a.sloc_id
+		 and org_id=a.org_id) wh_nm,
+      d.itm_desc, f.org_desc,pb.bin_id,pl.lot_id,pl.dlv_dt lot_dlv_dt,ps.sr_no,d.itm_id,a.doc_id,a.cld_id,a.sloc_id,a.org_id
+--a.cld_id,a.sloc_id,a.org_id,a.doc_id,b.itm_id,pl.lot_id,pb.bin_id,ps.sr_no
+  FROM sls$pick a,
+       sls$pick$itm b,
+       sls$pick$issu$bin pb,
+       sls$pick$issu$lot pl,
+       sls$pick$issu$sr ps,
+       sls$so c,
+       app.app$itm$prf d,
+       app.app$itm$org e,
+       app.org f,
+       app.app$eo g
+ WHERE a.cld_id = b.cld_id
+   AND a.sloc_id = b.sloc_id
+   AND a.org_id = b.org_id
+   AND a.ho_org_id = b.ho_org_id
+   AND a.doc_id = b.doc_id
+   AND a.cld_id = c.cld_id
+   AND a.sloc_id = c.sloc_id
+   AND a.org_id = c.org_id
+   AND a.ho_org_id = c.ho_org_id
+   AND b.so_id = c.doc_id
+   AND b.cld_id = c.cld_id
+   AND b.sloc_id = c.sloc_id
+   AND b.org_id = c.org_id
+   AND b.ho_org_id = c.ho_org_id
+   AND a.cld_id = e.cld_id
+   AND a.sloc_id = e.sloc_id
+   AND a.org_id = e.org_id
+   AND b.itm_id = e.itm_id
+   AND d.cld_id = e.cld_id
+   AND d.sloc_id = e.sloc_id
+   AND d.ho_org_id = e.ho_org_id
+   AND d.itm_id = e.itm_id
+   AND a.cld_id = f.org_cld_id
+   AND a.org_id = f.org_id
+   AND g.eo_id = a.eo_id
+   AND g.eo_org_id = a.org_id
+   AND g.eo_cld_id = a.cld_id
+   AND g.eo_sloc_id = a.sloc_id
+   and b.cld_id = pl.cld_id
+   and b.sloc_id = pl.sloc_id
+   and b.org_id = pl.org_id
+   and b.doc_id = pl.doc_id
+   and b.wh_id = pl.wh_id
+   and b.so_id = pl.so_id
+   and b.ho_org_id = pl.ho_org_id
+   and b.itm_id = pl.itm_id
+   and pl.cld_id = pb.cld_id(+)
+   and pl.sloc_id = pb.sloc_id(+)
+   and pl.org_id = pb.org_id(+)
+   and pl.doc_id = pb.doc_id(+)
+   and pl.wh_id = pb.wh_id(+)
+   and pl.so_id = pb.so_id(+)
+   and pl.ho_org_id = pb.ho_org_id(+)
+   and pl.itm_id = pb.itm_id(+)
+   and pl.lot_id = pb.lot_id(+)
+  and pb.cld_id = ps.cld_id(+)
+   and pb.sloc_id = ps.sloc_id(+)
+   and pb.org_id = ps.org_id(+)
+   and pb.doc_id = ps.doc_id(+)
+   and pb.wh_id = ps.wh_id(+)
+   and pb.so_id = ps.so_id(+)
+   and pb.ho_org_id = ps.ho_org_id(+)
+   and pb.itm_id = ps.itm_id(+)
+   and pb.lot_id = ps.lot_id(+)
+   and pb.bin_id = ps.bin_id(+)
+
+
+ AND a.doc_id = NVL ($P{DocId} , a.doc_id)
+   AND a.cld_id = NVL ( $P{CldId}, a.cld_id)
+   AND a.sloc_id = NVL ( $P{SlocId}, a.sloc_id)
+   AND a.org_id = NVL ( $P{OrgId}, a.org_id)
+   AND a.ho_org_id = NVL ( $P{HoOrgId}, a.ho_org_id)
+and NVL (C.order_stat, 217)   = NVL ($P{Status} , NVL (C.order_stat, 217))
+   AND b.itm_id =nvl( $P{ItmId},b.itm_id)
+and a.curr_id_sp=nvl($P{CurrId} ,a.curr_id_sp)
+   AND d.grp_id =nvl( $P{GrpId},d.grp_id)
+   and a.eo_id=nvl($P{EoId} ,a.eo_id)
+and g.catg_id=nvl( $P{EoCatId} , g.catg_Id)
+     and nvl(c.assigned_to,80)=nvl( $P{AssignTo},nvl(c.assigned_to,80))
+   AND trunc(a.doc_dt) >= NVL (TO_DATE ( $P{FromDate}, 'yyyy-MM-dd'), trunc(a.doc_dt))
+   AND trunc(a.doc_dt) <= NVL (TO_DATE ( $P{ToDate} , 'yyyy-MM-dd'), trunc(a.doc_dt)))
+where rownum=1]]>
+	</queryString>
+	<field name="BAR" class="java.lang.String"/>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<componentElement>
+				<reportElement stretchType="RelativeToBandHeight" x="61" y="2" width="939" height="27"/>
+				<jr:Code128 xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<jr:codeExpression><![CDATA[$F{BAR}]]></jr:codeExpression>
+				</jr:Code128>
+			</componentElement>
+			<staticText>
+				<reportElement x="0" y="0" width="39" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Barcode :]]></text>
+			</staticText>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="VoucherCountUserWise" language="groovy" pageWidth="655" pageHeight="842" columnWidth="615" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Org_Id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Voucher_Type" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="From_Date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="To_Date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Report\\SubReport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Cld_Id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Sloc_Id" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PostFlag" class="java.lang.String"/>
+	<parameter name="User_Id" class="java.lang.Integer"/>
+	<parameter name="Org_Logo" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select DISTINCT
+   ORG_DOC_NUM_PREFIX_OTH voucher_typ ,
+   G.GL_TYPE_ID GL_TYPE_ID,
+   G.USR_ID_CREATE,
+   G.GL_VOU_DT GL_VOU_DT,
+   to_char(G.GL_VOU_DT,'yyyy-MM-dd')gl_dt,
+   U.USR_NAME,
+   O.ORG_DESC ORG_DESC,
+   COUNT(DISTINCT G.GL_VOU_ID) as NoOfVoucher
+      from
+      APP.ORG$DOC$FY DOC ,
+      GL_LINES G,
+      APP.APP$SEC$USR U,
+      APP.ORG O
+      where
+            G.USR_ID_CREATE=nvl($P{User_Id},G.USR_ID_CREATE)
+      AND G.GL_ORG_ID =$P{Org_Id}
+
+      AND G.GL_SLOC_ID=DOC.ORG_DOC_SLOC_ID
+      AND G.GL_CLD_ID=DOC.ORG_DOC_CLD_ID
+      AND G.GL_ORG_ID = DOC.ORG_ID
+      AND G.GL_TYPE_ID = DOC.ORG_DOC_TYPE_ID
+      AND DOC.ORG_DOC_ID = '56'
+
+      AND G.GL_TYPE_ID =nvl($P{Voucher_Type},G.GL_TYPE_ID)
+      AND G.GL_VOU_DT >= to_date($P{From_Date},'YYYY-mm-dd')
+      AND G.GL_VOU_DT <= to_date($P{To_Date},'YYYY-mm-dd')
+
+      AND U.USR_ID = G.USR_ID_CREATE
+      AND G.GL_SLOC_ID=U.SLOC_ID
+
+      AND G.GL_CLD_ID=O.ORG_CLD_ID
+      AND G.GL_ORG_ID=O.ORG_ID
+group by
+ORG_DOC_NUM_PREFIX_OTH,G.GL_TYPE_ID, G.USR_ID_CREATE, U.USR_NAME,
+G.GL_VOU_DT, O.ORG_DESC, to_char(G.GL_VOU_DT,'yyyy-MM-dd')]]>
+	</queryString>
+	<field name="VOUCHER_TYP" class="java.lang.String"/>
+	<field name="GL_TYPE_ID" class="java.lang.Integer"/>
+	<field name="USR_ID_CREATE" class="java.lang.Integer"/>
+	<field name="GL_VOU_DT" class="java.sql.Timestamp"/>
+	<field name="GL_DT" class="java.lang.String"/>
+	<field name="USR_NAME" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="NOOFVOUCHER" class="java.math.BigDecimal"/>
+	<sortField name="USR_ID_CREATE"/>
+	<sortField name="GL_VOU_DT"/>
+	<sortField name="VOUCHER_TYP"/>
+	<variable name="NoOfVoucher" class="java.math.BigDecimal" resetType="Group" resetGroup="User Name" calculation="Sum">
+		<variableExpression><![CDATA[$F{NOOFVOUCHER}]]></variableExpression>
+	</variable>
+	<variable name="TotNoOfVou" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{NOOFVOUCHER}]]></variableExpression>
+	</variable>
+	<variable name="NoOfUnPostedVoucher" class="java.math.BigDecimal" resetType="Group" resetGroup="User Name" calculation="Sum">
+		<variableExpression><![CDATA[$V{UVouNO}]]></variableExpression>
+	</variable>
+	<variable name="TotNoOfUnPostedVou" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$V{UVouNO}]]></variableExpression>
+	</variable>
+	<variable name="UVouNO" class="java.lang.Integer">
+		<variableExpression><![CDATA[0]]></variableExpression>
+	</variable>
+	<group name="User Name" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{USR_ID_CREATE}]]></groupExpression>
+		<groupHeader>
+			<band height="25">
+				<textField isBlankWhenNull="true">
+					<reportElement x="0" y="0" width="337" height="24" forecolor="#000099"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="11" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA["User Name  :  "+ $F{USR_NAME}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="22">
+				<textField>
+					<reportElement x="355" y="0" width="160" height="20" forecolor="#000099"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$V{NoOfVoucher}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="2" y="0" width="353" height="20" forecolor="#000099"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA["Total No Of Voucher For User  - "+ " "+$F{USR_NAME}+" - "]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="0" width="615" height="1"/>
+					<graphicElement>
+						<pen lineWidth="2.25"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement x="0" y="20" width="615" height="1"/>
+					<graphicElement>
+						<pen lineWidth="1.25" lineColor="#999999"/>
+					</graphicElement>
+				</line>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="515" y="0" width="99" height="20" forecolor="#000099"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$V{NoOfUnPostedVoucher}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="66" splitType="Stretch">
+			<image onErrorType="Blank">
+				<reportElement x="1" y="1" width="220" height="45"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+($P{Org_Logo} == null ? "Org-logo.png":$P{Org_Logo})]]></imageExpression>
+			</image>
+			<line>
+				<reportElement x="0" y="59" width="615" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="65" width="615" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="371" y="2" width="241" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="417" y="20" width="195" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Voucher Transaction User Wise]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="470" y="39" width="38" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Period :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="548" y="39" width="15" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="508" y="40" width="40" height="15"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{From_Date}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="564" y="40" width="47" height="15"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{To_Date}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="15">
+			<staticText>
+				<reportElement mode="Opaque" x="186" y="0" width="168" height="14" backcolor="#C1DDF9"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Voucher Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="186" height="14" backcolor="#C1DDF9"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Voucher Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="354" y="0" width="160" height="14" backcolor="#C1DDF9"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Posted Voucher]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="514" y="0" width="101" height="14" backcolor="#C1DDF9"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Un Posted Voucher]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="514" y="0" width="100" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="186" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[$F{GL_VOU_DT}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="186" y="0" width="169" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{VOUCHER_TYP}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="355" y="0" width="159" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{NOOFVOUCHER}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="515" y="0" width="0" height="0"/>
+				<subreportParameter name="Cld_Id">
+					<subreportParameterExpression><![CDATA[$P{Cld_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Org_Id">
+					<subreportParameterExpression><![CDATA[$P{Org_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Sloc_Id">
+					<subreportParameterExpression><![CDATA[$P{Sloc_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="From_Date">
+					<subreportParameterExpression><![CDATA[$F{GL_DT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="User_Id">
+					<subreportParameterExpression><![CDATA[$F{USR_ID_CREATE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Voucher_Type">
+					<subreportParameterExpression><![CDATA[$F{GL_TYPE_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="To_Date">
+					<subreportParameterExpression><![CDATA[$F{GL_DT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PostFlag">
+					<subreportParameterExpression><![CDATA[$P{PostFlag}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="NoOfVoucher" toVariable="UVouNO" calculation="Sum"/>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Voucher_Count_UserWise_SubReport.jasper"]]></subreportExpression>
+			</subreport>
+			<textField isStretchWithOverflow="true" evaluationTime="Band" isBlankWhenNull="true">
+				<reportElement x="514" y="0" width="101" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{UVouNO}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="23">
+			<line>
+				<reportElement x="0" y="5" width="615" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="2" y="6" width="100" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="494" y="6" width="80" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement x="574" y="6" width="40" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="4" width="615" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineColor="#666666"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="44">
+			<line>
+				<reportElement x="0" y="0" width="615" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="5" width="615" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="0" y="24" width="615" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated by ebizframe 10]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="6" width="100" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="493" y="6" width="80" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement x="573" y="6" width="40" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+	<summary>
+		<band height="20">
+			<textField isBlankWhenNull="true">
+				<reportElement x="62" y="0" width="293" height="20" forecolor="#000099"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Total No Of Voucher "+ " - "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="355" y="0" width="159" height="20" forecolor="#000099"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{TotNoOfVou}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="1" width="615" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineColor="#666666"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="515" y="0" width="100" height="20" forecolor="#000099"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{TotNoOfUnPostedVou}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

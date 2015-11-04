@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Income_Expense_subreport" language="groovy" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="PostFlag" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AsOnDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CogId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="IncludeGrp" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+COG_ID,
+COG_ID_GRP,
+COG_NM_TREE cog_ind,
+y1.COA_ID,
+y1.COA_NM,y2.coa_nm,
+decode(cl_BAL_type,'Dr',CL_BAL_2014,'Cr',-CL_BAL_2014,CL_BAL_2014) CL_BAL_2014,y2.cl_bal_2013
+FROM	(SELECT	c.ORG_COA_CLD_ID CLD_ID,
+		c.ORG_ID ORG_ID,
+		a.ORG_DESC ORG_DESC,
+		c.ORG_FY_ID ORG_FY_ID,
+		c.ORG_COA_ID COA_ID,
+		b.COA_NM COA_NM,
+		d.COG_ID,
+    SUBSTR(d.COG_ID,1,1) COG_ID_GRP,
+		d.COG_NM COG_NM,
+		d.COG_NM_TREE,
+		d.COG_NM_INDENT,
+		d.COG_SUBLDGR,
+		DECODE($P{PostFlag},
+		'A',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',ABS(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0) + NVL(f1.tmp_dr_amt_op, 0) -NVL(f1.tmp_cr_amt_op, 0)),
+					'CR',ABS(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0) - NVL(f1.tmp_dr_amt_op, 0) +NVL(f1.tmp_cr_amt_op, 0) )),
+		'P',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',ABS(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0)),
+					'CR',ABS(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0)))) Cl_BAL_2014,
+		DECODE($P{PostFlag},
+		'A',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0) + NVL(f1.tmp_dr_amt_op, 0) -NVL(f1.tmp_cr_amt_op, 0) ),0,'Dr',1,'Dr',-1,'Cr'),
+					'CR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0) - NVL(f1.tmp_dr_amt_op, 0) +NVL(f1.tmp_cr_amt_op, 0) ),0,'Dr',1,'Cr',-1,'Dr')),
+		'P',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0)),0,'Dr',1,'Dr',-1,'Cr'),
+					'CR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0)),0,'Dr',1,'Cr',-1,'Dr'))) cl_BAL_type
+     	FROM	app.org a,
+      (SELECT	DISTINCT A.ORG_CLD_ID ORG_CLD_ID,
+			A.ORG_ID ORG_ID,
+			b.COA_ID,
+			b.COA_NM,
+			b.COA_COG_ID,
+			b.COA_ACC_ID
+		FROM	app.org A,
+			fin$coa B
+		WHERE	A.ORG_CLD_ID = NVL($P{CldId}, A.ORG_CLD_ID)
+		AND  	A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+		AND	COA_CLD_ID = A.ORG_CLD_ID
+ 		AND	B.COA_HO_ORG_ID = NVL(A.ORG_ID_PARENT_L0,A.ORG_ID)
+		AND 	B.COA_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, COA_COG_ID)||'%', NVL($P{CogId}, COA_COG_ID))
+    AND b.COA_GRP_TYPE  ='E'
+    AND b.COA_PNL_ITEM =  'Y'
+                   	)b,
+		(SELECT	A.ORG_COA_CLD_ID,
+			A.ORG_ID,
+			 A.ORG_FY_ID,
+ 			A.ORG_COA_COG_ID,
+			A.ORG_COA_ID,
+			ABS(SUM(DECODE(A.ORG_COA_OP_BAL_TYP,'Dr',A.ORG_COA_OP_BAL,-ORG_COA_OP_BAL))) ORG_COA_OP_BAL,
+			DECODE(SIGN(SUM(DECODE(A.ORG_COA_OP_BAL_TYP,'Dr',A.ORG_COA_OP_BAL,-ORG_COA_OP_BAL))),1,'Dr',0,'Dr','Cr') ORG_COA_OP_BAL_TYP
+		FROM	ORG$COA$FY A,
+				(select app.fn_get_fy_id($P{CldId}, $P{OrgId},TO_DATE($P{AsOnDate}, 'YYYY-MM-DD'),'FY') fy
+				from dual) B
+		WHERE	A.ORG_COA_CLD_ID = NVL($P{CldId}, A.ORG_COA_CLD_ID)
+	 	AND  	A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+    	AND    A.ORG_FY_ID = B.FY
+		AND 	A.ORG_COA_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, A.ORG_COA_COG_ID)||'%', NVL($P{CogId}, A.ORG_COA_COG_ID))
+		GROUP BY 	A.ORG_COA_CLD_ID,
+			A.ORG_ID,
+			A.ORG_FY_ID,
+		 	A.ORG_COA_COG_ID,
+			A.ORG_COA_ID
+		)  c,
+		(SELECT  DISTINCT COG_CLD_ID COG_CLD_ID,
+
+			 COG_ID,
+			COG_NM,
+			SUBSTR(SYS_CONNECT_BY_PATH(COG_NM, '->'),3) COG_NM_TREE,
+			LPAD(' ',2*(LENGTH(COG_ID)-1))||COG_NM COG_NM_INDENT,
+			COG_ID_PARENT,
+			 COG_SUBLDGR,
+			COG_BS_ITEM,
+			COG_PNL_ITEM,
+			COG_CF_ITEM,
+			COG_TRF_BAL,
+			COG_ACTV
+       	FROM    (select app.FN_GET_PARENT_ORG_L0 ($P{CldId}, $P{OrgId}) ho_org_id from dual) A,
+       			(select cog_cld_id,cog_sloc_id,cog_org_id,
+					cog_id,cog_id_parent,
+					cog_nm,
+					cog_subldgr,cog_bs_item,cog_pnl_item,cog_cf_item,cog_trf_bal,
+					cog_actv
+					from fin$cog
+					where     cog_cld_id = $P{CldId}
+					--and    cog_org_id = '01'
+					  ) B
+		WHERE
+			B.COG_ORG_ID = a.ho_org_id
+		AND	SUBSTR(B.COG_ID,1,1) IN ('3','4')
+		START WITH nvl(COG_ID_PARENT,'!') in ('!','00')
+		CONNECT BY NOCYCLE PRIOR COG_ID = COG_ID_PARENT
+		) d,
+		(SELECT	A.GL_CLD_ID,
+			A.GL_ORG_ID,
+			A.GL_COA_ID,
+			NVL(SUM(DECODE(GL_AMT_TYP, 'Dr', GL_AMT_BS, 0)),0) gl_dr_amt_op,
+			NVL(SUM(DECODE(GL_AMT_TYP, 'Cr', GL_AMT_BS, 0)),0) gl_cr_amt_op
+		FROM    GL_LINES A,
+           		GL B,
+            (SELECT app.fn_get_fy_start_date($P{CldId}, $P{OrgId}, TO_DATE($P{AsOnDate},'YYYY-mm-dd'),'FY') FY_START_dATE
+               FROM DUAL) C
+		WHERE 	B.GL_CLD_ID = NVL($P{CldId},B.GL_CLD_ID)
+		AND 	B.GL_STAT = DECODE($P{PostFlag}, 'A', B.GL_STAT, 'P', 'FLC')
+		AND 	A.GL_CLD_ID = B.GL_CLD_ID
+		AND 	A.GL_SLOC_ID = B.GL_SLOC_ID
+		AND 	A.GL_VOU_ID = B.GL_VOU_ID
+
+		AND	a.GL_ORG_ID = NVL($P{OrgId}, a.GL_ORG_ID)
+		AND 	a.GL_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, a.GL_COG_ID)||'%', NVL($P{CogId}, a.GL_COG_ID))
+		AND 	TRUNC(a.GL_VOU_DT) >=  C.FY_START_dATE
+		AND     TRUNC(a.GL_VOU_DT) <= TO_DATE($P{AsOnDate}, 'YYYY-mm-dd')
+		AND 	A.GL_TXN_TYP_MIG not in  ('O','MO')
+		GROUP BY A.GL_CLD_ID,
+			A.GL_ORG_ID,
+			A.GL_COA_ID
+		) e1,
+		(
+		SELECT	a.TVOU_CLD_ID,
+			a.TVOU_ORG_ID,
+			a.TVOU_COA_ID,
+			NVL(SUM(DECODE(a.TVOU_AMT_TYP,'Dr',a.TVOU_AMT_BS,0)),0) tmp_dr_amt_op,
+			NVL(SUM(DECODE(a.TVOU_AMT_TYP,'Cr',a.TVOU_AMT_BS,0)),0) tmp_cr_amt_op
+		FROM    TVOU_LINES a,
+            (SELECT app.fn_get_fy_start_date($P{CldId}, $P{OrgId}, TO_DATE($P{AsOnDate},'YYYY-mm-dd'),'FY') FY_START_dATE
+            FROM DUAL) C
+		WHERE  	a.TVOU_CLD_ID = NVL($P{CldId},a.TVOU_CLD_ID)
+		AND	a.tvou_ORG_ID = NVL($P{OrgId}, a.tvou_ORG_ID)
+		AND 	a.tvou_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, a.tvou_COG_ID)||'%', NVL($P{CogId}, a.tvou_COG_ID))
+		AND 	TRUNC(a.tVOU_DT) >= C.FY_START_dATE
+		AND     TRUNC(a.tVOU_DT) <= TO_DATE($P{AsOnDate}, 'YYYY-mm-dd')
+		GROUP BY a.TVOU_CLD_ID,
+			a.TVOU_ORG_ID,
+			a.TVOU_COA_ID
+		) f1
+	WHERE	A.ORG_CLD_ID = NVL($P{CldId}, A.ORG_CLD_ID)
+	AND  	A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+	AND	B.ORG_CLD_ID = A.ORG_CLD_ID
+	AND	B.ORG_ID = A.ORG_ID
+
+	AND     c.ORG_COA_CLD_ID = B.ORG_CLD_ID
+	AND     c.ORG_ID = B.ORG_ID
+	AND     c.ORG_COA_ID = b.COA_ID
+
+	AND     d.COG_CLD_ID = B.ORG_CLD_ID
+	AND     d.COG_ID = b.COA_COG_ID
+
+	AND     c.ORG_COA_CLD_ID = e1.GL_CLD_ID(+)
+	AND     c.ORG_ID = e1.GL_ORG_ID(+)
+	AND     c.ORG_COA_ID = e1.GL_COA_ID(+)
+
+	AND     c.ORG_COA_CLD_ID = f1.TVOU_CLD_ID(+)
+	AND     c.ORG_ID = f1.tvou_ORG_ID(+)
+	AND     c.ORG_COA_ID = f1.tvou_COA_ID(+)
+	)y1,
+	(select COA_NM,
+decode(cl_BAL_type,'Dr',CL_BAL_2013,'Cr',-CL_BAL_2013,CL_BAL_2013) CL_BAL_2013
+FROM	(SELECT	c.ORG_COA_CLD_ID CLD_ID,
+		c.ORG_ID ORG_ID,
+		a.ORG_DESC ORG_DESC,
+		c.ORG_FY_ID ORG_FY_ID,
+		c.ORG_COA_ID COA_ID,
+		b.COA_NM COA_NM,
+		d.COG_ID,
+    SUBSTR(d.COG_ID,1,1) COG_ID_GRP,
+		d.COG_NM COG_NM,
+		d.COG_NM_TREE,
+		d.COG_NM_INDENT,
+		d.COG_SUBLDGR,
+		DECODE($P{PostFlag},
+		'A',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',ABS(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0) + NVL(f1.tmp_dr_amt_op, 0) -NVL(f1.tmp_cr_amt_op, 0)),
+					'CR',ABS(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0) - NVL(f1.tmp_dr_amt_op, 0) +NVL(f1.tmp_cr_amt_op, 0) )),
+		'P',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',ABS(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0)),
+					'CR',ABS(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0)))) cl_BAL_2013,
+		DECODE($P{PostFlag},
+		'A',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0) + NVL(f1.tmp_dr_amt_op, 0) -NVL(f1.tmp_cr_amt_op, 0) ),0,'Dr',1,'Dr',-1,'Cr'),
+					'CR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0) - NVL(f1.tmp_dr_amt_op, 0) +NVL(f1.tmp_cr_amt_op, 0) ),0,'Dr',1,'Cr',-1,'Dr')),
+		'P',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0)),0,'Dr',1,'Dr',-1,'Cr'),
+					'CR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0)),0,'Dr',1,'Cr',-1,'Dr'))) cl_BAL_type
+     	FROM	app.org a,
+      (SELECT	DISTINCT A.ORG_CLD_ID ORG_CLD_ID,
+			A.ORG_ID ORG_ID,
+			b.COA_ID,
+			b.COA_NM,
+			b.COA_COG_ID,
+			b.COA_ACC_ID
+		FROM	app.org A,
+			fin$coa B
+		WHERE	A.ORG_CLD_ID = NVL($P{CldId}, A.ORG_CLD_ID)
+		AND  	A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+		AND	COA_CLD_ID = A.ORG_CLD_ID
+ 		AND	B.COA_HO_ORG_ID = NVL(A.ORG_ID_PARENT_L0,A.ORG_ID)
+		AND 	B.COA_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, COA_COG_ID)||'%', NVL($P{CogId}, COA_COG_ID))
+    AND b.COA_GRP_TYPE  ='E'
+    AND b.COA_PNL_ITEM =  'Y'
+                   	)b,
+		(SELECT	A.ORG_COA_CLD_ID,
+			A.ORG_ID,
+			 A.ORG_FY_ID,
+ 			A.ORG_COA_COG_ID,
+			A.ORG_COA_ID,
+			ABS(SUM(DECODE(A.ORG_COA_OP_BAL_TYP,'Dr',A.ORG_COA_OP_BAL,-ORG_COA_OP_BAL))) ORG_COA_OP_BAL,
+			DECODE(SIGN(SUM(DECODE(A.ORG_COA_OP_BAL_TYP,'Dr',A.ORG_COA_OP_BAL,-ORG_COA_OP_BAL))),1,'Dr',0,'Dr','Cr') ORG_COA_OP_BAL_TYP
+		FROM	ORG$COA$FY A,
+				(select app.fn_get_fy_id($P{CldId}, $P{OrgId},add_months(TO_DATE($P{AsOnDate}, 'YYYY-MM-DD'),-12),'FY') fy
+				from dual) B
+		WHERE	A.ORG_COA_CLD_ID = NVL($P{CldId}, A.ORG_COA_CLD_ID)
+	 	AND  	A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+    	AND    A.ORG_FY_ID = B.FY
+		AND 	A.ORG_COA_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, A.ORG_COA_COG_ID)||'%', NVL($P{CogId}, A.ORG_COA_COG_ID))
+		GROUP BY 	A.ORG_COA_CLD_ID,
+			A.ORG_ID,
+			A.ORG_FY_ID,
+		 	A.ORG_COA_COG_ID,
+			A.ORG_COA_ID
+		)  c,
+		(SELECT  DISTINCT COG_CLD_ID COG_CLD_ID,
+
+			 COG_ID,
+			COG_NM,
+			SUBSTR(SYS_CONNECT_BY_PATH(COG_NM, '->'),3) COG_NM_TREE,
+			LPAD(' ',2*(LENGTH(COG_ID)-1))||COG_NM COG_NM_INDENT,
+			COG_ID_PARENT,
+			 COG_SUBLDGR,
+			COG_BS_ITEM,
+			COG_PNL_ITEM,
+			COG_CF_ITEM,
+			COG_TRF_BAL,
+			COG_ACTV
+       	FROM    (select app.FN_GET_PARENT_ORG_L0 ($P{CldId}, $P{OrgId}) ho_org_id from dual) A,
+       			(select cog_cld_id,cog_sloc_id,cog_org_id,
+					cog_id,cog_id_parent,
+					cog_nm,
+					cog_subldgr,cog_bs_item,cog_pnl_item,cog_cf_item,cog_trf_bal,
+					cog_actv
+					from fin$cog
+					where     cog_cld_id = $P{CldId}
+					--and    cog_org_id = '01'
+					  ) B
+		WHERE
+			B.COG_ORG_ID = a.ho_org_id
+		AND	SUBSTR(B.COG_ID,1,1) IN ('3','4')
+		START WITH nvl(COG_ID_PARENT,'!') in ('!','00')
+		CONNECT BY NOCYCLE PRIOR COG_ID = COG_ID_PARENT
+		) d,
+		(SELECT	A.GL_CLD_ID,
+			A.GL_ORG_ID,
+			A.GL_COA_ID,
+			NVL(SUM(DECODE(GL_AMT_TYP, 'Dr', GL_AMT_BS, 0)),0) gl_dr_amt_op,
+			NVL(SUM(DECODE(GL_AMT_TYP, 'Cr', GL_AMT_BS, 0)),0) gl_cr_amt_op
+		FROM    GL_LINES A,
+           		GL B,
+            (SELECT app.fn_get_fy_start_date($P{CldId}, $P{OrgId}, add_months(TO_DATE($P{AsOnDate},'YYYY-mm-dd'),-12),'FY') FY_START_dATE
+               FROM DUAL) C
+		WHERE 	B.GL_CLD_ID = NVL($P{CldId},B.GL_CLD_ID)
+		AND 	B.GL_STAT = DECODE($P{PostFlag}, 'A', B.GL_STAT, 'P', 'FLC')
+		AND 	A.GL_CLD_ID = B.GL_CLD_ID
+		AND 	A.GL_SLOC_ID = B.GL_SLOC_ID
+		AND 	A.GL_VOU_ID = B.GL_VOU_ID
+
+		AND	a.GL_ORG_ID = NVL($P{OrgId}, a.GL_ORG_ID)
+		AND 	a.GL_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, a.GL_COG_ID)||'%', NVL($P{CogId}, a.GL_COG_ID))
+		AND 	TRUNC(a.GL_VOU_DT) >=  C.FY_START_dATE
+		AND     TRUNC(a.GL_VOU_DT) <= add_months(TO_DATE($P{AsOnDate}, 'YYYY-mm-dd'),-12)
+		AND 	A.GL_TXN_TYP_MIG not in  ('O','MO')
+		GROUP BY A.GL_CLD_ID,
+			A.GL_ORG_ID,
+			A.GL_COA_ID
+		) e1,
+		(
+		SELECT	a.TVOU_CLD_ID,
+			a.TVOU_ORG_ID,
+			a.TVOU_COA_ID,
+			NVL(SUM(DECODE(a.TVOU_AMT_TYP,'Dr',a.TVOU_AMT_BS,0)),0) tmp_dr_amt_op,
+			NVL(SUM(DECODE(a.TVOU_AMT_TYP,'Cr',a.TVOU_AMT_BS,0)),0) tmp_cr_amt_op
+		FROM    TVOU_LINES a,
+            (SELECT app.fn_get_fy_start_date($P{CldId}, $P{OrgId}, add_months(TO_DATE($P{AsOnDate},'YYYY-mm-dd'),-12),'FY') FY_START_dATE
+            FROM DUAL) C
+		WHERE  	a.TVOU_CLD_ID = NVL($P{CldId},a.TVOU_CLD_ID)
+		AND	a.tvou_ORG_ID = NVL($P{OrgId}, a.tvou_ORG_ID)
+		AND 	a.tvou_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, a.tvou_COG_ID)||'%', NVL($P{CogId}, a.tvou_COG_ID))
+		AND 	TRUNC(a.tVOU_DT) >= C.FY_START_dATE
+		AND     TRUNC(a.tVOU_DT) <= add_months(TO_DATE($P{AsOnDate}, 'YYYY-mm-dd'),-12)
+		GROUP BY a.TVOU_CLD_ID,
+			a.TVOU_ORG_ID,
+			a.TVOU_COA_ID
+		) f1
+	WHERE	A.ORG_CLD_ID = NVL($P{CldId}, A.ORG_CLD_ID)
+	AND  	A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+	AND	B.ORG_CLD_ID = A.ORG_CLD_ID
+	AND	B.ORG_ID = A.ORG_ID
+
+	AND     c.ORG_COA_CLD_ID = B.ORG_CLD_ID
+	AND     c.ORG_ID = B.ORG_ID
+	AND     c.ORG_COA_ID = b.COA_ID
+
+	AND     d.COG_CLD_ID = B.ORG_CLD_ID
+	AND     d.COG_ID = b.COA_COG_ID
+
+	AND     c.ORG_COA_CLD_ID = e1.GL_CLD_ID(+)
+	AND     c.ORG_ID = e1.GL_ORG_ID(+)
+	AND     c.ORG_COA_ID = e1.GL_COA_ID(+)
+
+	AND     c.ORG_COA_CLD_ID = f1.TVOU_CLD_ID(+)
+	AND     c.ORG_ID = f1.tvou_ORG_ID(+)
+	AND     c.ORG_COA_ID = f1.tvou_COA_ID(+)
+	)
+where not (CL_BAL_2013=0))y2
+where not (CL_BAL_2014=0)
+and y1.COA_NM=y2.coa_nm(+)]]>
+	</queryString>
+	<field name="COG_ID" class="java.lang.String"/>
+	<field name="COG_ID_GRP" class="java.lang.String"/>
+	<field name="COG_IND" class="java.lang.String"/>
+	<field name="COA_ID" class="java.math.BigDecimal"/>
+	<field name="COA_NM" class="java.lang.String"/>
+	<field name="CL_BAL_2014" class="java.math.BigDecimal"/>
+	<field name="CL_BAL_2013" class="java.math.BigDecimal"/>
+	<variable name="totExpenseY1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{CL_BAL_2014}]]></variableExpression>
+		<initialValueExpression><![CDATA[]]></initialValueExpression>
+	</variable>
+	<variable name="totExpenseY2" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{CL_BAL_2013}]]></variableExpression>
+	</variable>
+	<group name="OrgId">
+		<groupExpression><![CDATA[$P{OrgId}]]></groupExpression>
+		<groupHeader>
+			<band height="15">
+				<staticText>
+					<reportElement x="0" y="0" width="556" height="15" forecolor="#3333FF"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[      Expenses]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="15">
+				<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+					<reportElement x="397" y="0" width="133" height="15" forecolor="#3333FF"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{totExpenseY1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+					<reportElement x="247" y="0" width="126" height="15" forecolor="#3333FF"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{totExpenseY2}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="0" width="90" height="15" forecolor="#3333FF"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Dashed"/>
+						<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[Total Expenses :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="91" y="0" width="465" height="15" forecolor="#3333FF"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Dashed"/>
+						<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="556" height="15"/>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="24" y="0" width="208" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{COA_NM}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="397" y="0" width="133" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{CL_BAL_2014}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="247" y="0" width="126" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{CL_BAL_2013}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+</jasperReport>

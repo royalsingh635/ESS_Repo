@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Income_Tax_subreport" language="groovy" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AsOnDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="From_Date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CoaId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select y1.Org_desc, y1.tax_name, y1.tax_amount,y2.tax_amount_2013, y1.taxable_Amt,y2.taxable_Amt
+
+from
+(select type_apar,
+		org_desc,
+		tax_name,
+		percentage,
+		account_id,account_name,
+		voucherid voucher_id,voucherdate voucher_date,
+		tdstype tds_type,tdsamount tax_amount,tds_amt Taxable_Amt
+from(
+	select 'AP' type_apar,c.org_desc,
+			b.coa_nm tax_name,
+			a.gl_tds_rule_coa_id Account_id,b.coa_nm account_name,
+			substr(d.doc_txn_id_disp,3) VoucherId,a.gl_vou_dt VoucherDate,
+			tax.tax_per Percentage,
+			a.gl_tds_rule_bal_type TdsType,a.gl_tds_rule_tds_amt_sp TdsAmount,a.gl_tds_rule_op_amt_line tds_amt
+	from  fin.gl_tds_rule_line a,
+		fin.fin$coa b ,
+		app.org c,
+		app.app$doc$txn d ,
+		app.app$tax$rule$line tb,
+		app.app$tax$rule tt,
+		app.app$tax tax
+	where a.GL_CLD_ID = $P{CldId}
+	and   a.GL_TDS_RULE_COA_ID = nvl( $P{CoaId}, a.GL_TDS_RULE_COA_ID)
+	and   a.GL_ORG_ID = nvl( $P{OrgId}, a.GL_ORG_ID)
+	and   TRUNC(a.GL_VOU_DT) > = to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD')
+	and   TRUNC(a.GL_VOU_DT) < = to_date(NVL($P{AsOnDate},SYSDATE),'YYYY-MM-DD')
+	and   a.gl_tds_rule_priority <> 0
+	and   a.GL_TDS_RULE_SLNO <> 1
+
+	and   a.gl_cld_id = b.coa_cld_id
+	and   a.gl_sloc_id = b.coa_sloc_id
+	and   a.gl_ho_org_id = b.coa_ho_org_id
+	and   a.gl_tds_rule_coa_id = b.coa_id
+
+	and   a.gl_cld_id = d.doc_cld_id
+	and   a.gl_sloc_id = d.doc_sloc_id
+	and   a.gl_org_id = d.doc_org_id
+	and   d.doc_id = 56
+	and   a.gl_vou_id = d.doc_txn_id
+	and   a.gl_cld_id = org_cld_id --new
+	and   a.gl_org_id = c.org_id
+
+	and tb.tax_cld_id = a.gl_cld_id
+	and tb.tax_rule_sloc_id = a.gl_sloc_id
+	and tb.tax_ho_org_id = a.gl_ho_org_id
+	and tb.tax_rule_id = decode(a.GL_TDS_APP_FLG, 'M', tb.tax_rule_id, a.gl_tds_rule_id)
+	and tb.tax_rule_slno = decode(a.GL_TDS_APP_FLG, 'M', tb.tax_rule_slno, a.gl_tds_rule_slno)
+	and tb.tax_id = a.gl_tds_id
+
+	and tt.tax_cld_id = tb.tax_cld_id
+	and tt.tax_rule_sloc_id = tb.tax_rule_sloc_id
+	and tt.tax_ho_org_id = tb.tax_ho_org_id
+	and tt.tax_rule_id = tb.tax_rule_id
+	and tt.tax_type_tds = 'Y'
+
+	and   tax.cld_id = tb.tax_cld_id
+	and   tax.tax_sloc_id = tb.tax_rule_sloc_id
+	and   tax.ho_org_id = tb.tax_ho_org_id
+	and   tax.tax_id = tb.tax_id
+	and   tax.TAX_REG_TYPE = 'T'
+
+	union
+
+	select 'AP' type_apar,c.org_desc,
+			b.coa_nm tax_name,
+			a.gl_coa_id Account_id, b.coa_nm account_name,
+			substr(d.doc_txn_id_disp,3) VoucherId, a.gl_vou_dt VoucherDate,
+			tax.tax_per Percentage,
+			a.gl_amt_typ TdsType,a.gl_amt_sp TdsAmount,a.gl_amt_bs tds_amt
+	from  fin.gl_lines a,
+		fin.fin$coa b ,
+		fin.fin$acc$na f,
+		app.org c,
+		app.app$doc$txn d ,
+		app.app$tax tax
+	where a.GL_CLD_ID = $P{CldId}
+	and   a.GL_COA_ID = nvl( $P{CoaId}, a.GL_COA_ID)
+	and   a.GL_ORG_ID = nvl( $P{OrgId}, a.GL_ORG_ID)
+	and   TRUNC(a.GL_VOU_DT) > = to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD')
+	and   TRUNC(a.GL_VOU_DT) < = to_date(NVL($P{AsOnDate},SYSDATE),'YYYY-MM-DD')
+	and   not exists (select 1 from fin.gl_tds_rule_line x
+					   where x.gl_vou_id = a.gl_vou_id)
+
+	and   a.gl_cld_id = b.coa_cld_id
+	and   a.gl_sloc_id = b.coa_sloc_id
+	and   a.gl_ho_org_id = b.coa_ho_org_id
+	and   a.gl_coa_id = b.coa_id
+
+	and f.acc_cld_id = b.coa_cld_id
+	and f.acc_sloc_id = b.coa_sloc_id
+	and f.ho_org_id = b.coa_ho_org_id
+	and f.acc_id = b.coa_acc_id
+	and f.acc_type = 5022
+
+	and   tax.cld_id = f.acc_cld_id
+	and   tax.tax_sloc_id = f.acc_sloc_id
+	and   tax.ho_org_id = f.ho_org_id
+	and   tax.tax_id = f.acc_type_id
+	and   tax.tax_reg_type = 'T'
+
+	and        a.gl_cld_id = org_cld_id --new
+	and   a.gl_org_id = c.org_id
+
+	and   a.gl_cld_id = d.doc_cld_id
+	and   a.gl_sloc_id = d.doc_sloc_id
+	and   a.gl_org_id = d.doc_org_id
+	and   d.doc_id = 56
+	--and g.gl_amt_typ = 'cr'
+	and   a.gl_vou_id = d.doc_txn_id
+	)
+)y1,
+(select tdsamount tax_amount_2013,tds_amt Taxable_Amt,account_id,voucherid
+from(
+	select 'AP' type_apar,c.org_desc,
+			b.coa_nm tax_name,
+			a.gl_tds_rule_coa_id Account_id,b.coa_nm account_name,
+			substr(d.doc_txn_id_disp,3) VoucherId,a.gl_vou_dt VoucherDate,
+			tax.tax_per Percentage,
+			a.gl_tds_rule_bal_type TdsType,a.gl_tds_rule_tds_amt_sp TdsAmount,a.gl_tds_rule_op_amt_line tds_amt
+	from  fin.gl_tds_rule_line a,
+		fin.fin$coa b ,
+		app.org c,
+		app.app$doc$txn d ,
+		app.app$tax$rule$line tb,
+		app.app$tax$rule tt,
+		app.app$tax tax
+	where a.GL_CLD_ID = $P{CldId}
+	and   a.GL_TDS_RULE_COA_ID = nvl( $P{CoaId}, a.GL_TDS_RULE_COA_ID)
+	and   a.GL_ORG_ID = nvl( $P{OrgId}, a.GL_ORG_ID)
+	and   TRUNC(a.GL_VOU_DT) > = add_months(to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD'),-12)
+	and   TRUNC(a.GL_VOU_DT) < = add_months(to_date(NVL($P{AsOnDate},SYSDATE),'YYYY-MM-DD'),-12)
+	and   a.gl_tds_rule_priority <> 0
+	and   a.GL_TDS_RULE_SLNO <> 1
+
+	and   a.gl_cld_id = b.coa_cld_id
+	and   a.gl_sloc_id = b.coa_sloc_id
+	and   a.gl_ho_org_id = b.coa_ho_org_id
+	and   a.gl_tds_rule_coa_id = b.coa_id
+
+	and   a.gl_cld_id = d.doc_cld_id
+	and   a.gl_sloc_id = d.doc_sloc_id
+	and   a.gl_org_id = d.doc_org_id
+	and   d.doc_id = 56
+	and   a.gl_vou_id = d.doc_txn_id
+	and   a.gl_cld_id = org_cld_id --new
+	and   a.gl_org_id = c.org_id
+
+	and tb.tax_cld_id = a.gl_cld_id
+	and tb.tax_rule_sloc_id = a.gl_sloc_id
+	and tb.tax_ho_org_id = a.gl_ho_org_id
+	and tb.tax_rule_id = decode(a.GL_TDS_APP_FLG, 'M', tb.tax_rule_id, a.gl_tds_rule_id)
+	and tb.tax_rule_slno = decode(a.GL_TDS_APP_FLG, 'M', tb.tax_rule_slno, a.gl_tds_rule_slno)
+	and tb.tax_id = a.gl_tds_id
+
+	and tt.tax_cld_id = tb.tax_cld_id
+	and tt.tax_rule_sloc_id = tb.tax_rule_sloc_id
+	and tt.tax_ho_org_id = tb.tax_ho_org_id
+	and tt.tax_rule_id = tb.tax_rule_id
+	and tt.tax_type_tds = 'Y'
+
+	and   tax.cld_id = tb.tax_cld_id
+	and   tax.tax_sloc_id = tb.tax_rule_sloc_id
+	and   tax.ho_org_id = tb.tax_ho_org_id
+	and   tax.tax_id = tb.tax_id
+	and   tax.TAX_REG_TYPE = 'T'
+
+	union
+
+	select 'AP' type_apar,c.org_desc,
+			b.coa_nm tax_name,
+			a.gl_coa_id Account_id, b.coa_nm account_name,
+			substr(d.doc_txn_id_disp,3) VoucherId, a.gl_vou_dt VoucherDate,
+			tax.tax_per Percentage,
+			a.gl_amt_typ TdsType,a.gl_amt_sp TdsAmount,a.gl_amt_bs tds_amt
+	from  fin.gl_lines a,
+		fin.fin$coa b ,
+		fin.fin$acc$na f,
+		app.org c,
+		app.app$doc$txn d ,
+		app.app$tax tax
+	where a.GL_CLD_ID = $P{CldId}
+	and   a.GL_COA_ID = nvl( $P{CoaId}, a.GL_COA_ID)
+	and   a.GL_ORG_ID = nvl( $P{OrgId}, a.GL_ORG_ID)
+	and   TRUNC(a.GL_VOU_DT) > = add_months(to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD'),-12)
+	and   TRUNC(a.GL_VOU_DT) < = add_months(to_date(NVL($P{AsOnDate},SYSDATE),'YYYY-MM-DD'),-12)
+	and   not exists (select 1 from fin.gl_tds_rule_line x
+					   where x.gl_vou_id = a.gl_vou_id)
+
+	and   a.gl_cld_id = b.coa_cld_id
+	and   a.gl_sloc_id = b.coa_sloc_id
+	and   a.gl_ho_org_id = b.coa_ho_org_id
+	and   a.gl_coa_id = b.coa_id
+
+	and f.acc_cld_id = b.coa_cld_id
+	and f.acc_sloc_id = b.coa_sloc_id
+	and f.ho_org_id = b.coa_ho_org_id
+	and f.acc_id = b.coa_acc_id
+	and f.acc_type = 5022
+
+	and   tax.cld_id = f.acc_cld_id
+	and   tax.tax_sloc_id = f.acc_sloc_id
+	and   tax.ho_org_id = f.ho_org_id
+	and   tax.tax_id = f.acc_type_id
+	and   tax.tax_reg_type = 'T'
+
+	and        a.gl_cld_id = org_cld_id --new
+	and   a.gl_org_id = c.org_id
+
+	and   a.gl_cld_id = d.doc_cld_id
+	and   a.gl_sloc_id = d.doc_sloc_id
+	and   a.gl_org_id = d.doc_org_id
+	and   d.doc_id = 56
+	--and g.gl_amt_typ = 'cr'
+	and   a.gl_vou_id = d.doc_txn_id
+)) y2
+where y1.account_id =y2.account_id
+and y1.voucher_id=y2.voucherid]]>
+	</queryString>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="TAX_NAME" class="java.lang.String"/>
+	<field name="TAX_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="TAX_AMOUNT_2013" class="java.math.BigDecimal"/>
+	<field name="TAXABLE_AMT" class="java.math.BigDecimal"/>
+	<variable name="totTaxY1" class="java.math.BigDecimal" resetType="Group" resetGroup="OrgId" calculation="Sum">
+		<variableExpression><![CDATA[$F{TAX_AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="totTaxY2" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{TAX_AMOUNT_2013}]]></variableExpression>
+	</variable>
+	<group name="OrgId">
+		<groupExpression><![CDATA[$P{OrgId}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band height="50">
+				<staticText>
+					<reportElement x="0" y="0" width="555" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+					<reportElement x="256" y="0" width="133" height="20"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{totTaxY1}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+					<reportElement x="406" y="0" width="133" height="20"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{totTaxY2}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[     Tax]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="26" y="0" width="220" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TAX_NAME}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="256" y="0" width="133" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TAX_AMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="406" y="0" width="133" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TAX_AMOUNT_2013}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

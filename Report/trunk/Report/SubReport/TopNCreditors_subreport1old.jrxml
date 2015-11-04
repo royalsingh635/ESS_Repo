@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="TopNCreditors_subreport1" language="groovy" pageWidth="121" pageHeight="20" columnWidth="121" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Organisation" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ValueOfN" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Total" class="java.math.BigDecimal"/>
+	<parameter name="Amount" class="java.math.BigDecimal"/>
+	<queryString>
+		<![CDATA[select sum(amt) total
+from (
+select  A.AP_COA_ID,B.COA_NM COA_NM,sum(A.AP_AMT_SP)  amt ,C.ORG_DESC org from ap A , fin$coa B,app.org c
+where A.AP_TXN_TYP_ADV ='N'
+AND A.AP_COA_ID=B.COA_ID
+AND A.AP_SLOC_ID=B.COA_SLOC_ID
+and
+A.AP_ORG_ID=C.ORG_ID
+and
+A.AP_ORG_ID like nvl($P{Organisation},'%')
+group by A.AP_COA_ID,B.COA_NM,C.ORG_DESC
+order by amt desc )
+WHERE rownum <= $P{ValueOfN}]]>
+	</queryString>
+	<field name="TOTAL" class="java.math.BigDecimal"/>
+	<variable name="Percentage" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[($P{Amount}*100)/$F{TOTAL}]]></variableExpression>
+	</variable>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="121" height="20"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Percentage}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

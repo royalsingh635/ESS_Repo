@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="TrialBalance_GroupWise_subreport2" language="groovy" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Org_ID" class="java.lang.String"/>
+	<parameter name="COG_ID" class="java.lang.String"/>
+	<parameter name="ToDate" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String"/>
+	<parameter name="PostFlag" class="java.lang.String"/>
+	<parameter name="SlocId" class="java.lang.Integer"/>
+	<parameter name="COA_ID" class="java.math.BigDecimal"/>
+	<parameter name="NA_ID" class="java.math.BigDecimal"/>
+	<parameter name="TotalDebitAmount" class="java.math.BigDecimal"/>
+	<parameter name="TotalOpeningBalance" class="java.math.BigDecimal"/>
+	<parameter name="TotalCreditAmount" class="java.math.BigDecimal"/>
+	<parameter name="TotalClosingAmount" class="java.math.BigDecimal"/>
+	<queryString>
+		<![CDATA[Select
+f.org_desc,
+a.org_sloc_id,
+a.ORG_ID,
+a.ORG_FY_ID,
+a.ORG_COA_ID,
+d.coa_nm,
+A.ORG_COA_COG_ID,
+e.COG_NM,
+
+
+decode($P{PostFlag},
+'A', decode(ltrim(rtrim(upper(nvl(a.ORG_COA_OP_BAL_TYP,'Dr')))),
+'DR', abs(nvl(a.ORG_COA_OP_BAL,0) + nvl(b1.gl_dr_amt_op,0) - nvl(b1.gl_cr_amt_op,0) + nvl(c1.tmp_dr_amt_op,0) - nvl(c1.tmp_cr_amt_op,0)),
+'CR', abs(nvl(a.ORG_COA_OP_BAL,0) - nvl(b1.gl_dr_amt_op,0) + nvl(b1.gl_cr_amt_op,0) - nvl(c1.tmp_dr_amt_op,0) + nvl(c1.tmp_cr_amt_op,0))
+) ,
+'P',decode( ltrim(rtrim(upper(nvl(a.ORG_COA_OP_BAL_TYP,'Dr')))),
+'DR', abs(nvl(a.ORG_COA_OP_BAL,0) + nvl(b1.gl_dr_amt_op,0) - nvl(b1.gl_cr_amt_op,0)),
+'CR', abs(nvl(a.ORG_COA_OP_BAL,0) - nvl(b1.gl_dr_amt_op,0) + nvl(b1.gl_cr_amt_op,0))
+)
+) OP_BAL,
+
+decode($P{PostFlag},
+'A', decode( ltrim(rtrim(upper(nvl(a.ORG_COA_OP_BAL_TYP,'Dr')))),
+'DR', DECODE(sign(nvl(a.ORG_COA_OP_BAL,0) + nvl(b1.gl_dr_amt_op,0) - nvl(b1.gl_cr_amt_op,0) + nvl(c1.tmp_dr_amt_op,0) - nvl(c1.tmp_cr_amt_op,0)),0,'Dr',1,'Dr',-1,'Cr'),
+'CR', DECODE(sign(nvl(a.ORG_COA_OP_BAL,0) - nvl(b1.gl_dr_amt_op,0) + nvl(b1.gl_cr_amt_op,0) - nvl(c1.tmp_dr_amt_op,0) + nvl(c1.tmp_cr_amt_op,0)),0,'Dr',1,'Cr',-1,'Dr')
+),
+'P',decode( ltrim(rtrim(upper(nvl(a.ORG_COA_OP_BAL_TYP,'Dr')))),
+'DR', DECODE(sign(nvl(a.ORG_COA_OP_BAL,0) + nvl(b1.gl_dr_amt_op,0) - nvl(b1.gl_cr_amt_op,0)),0,'Dr',1,'Dr',-1,'Cr'),
+'CR', DECODE(sign(nvl(a.ORG_COA_OP_BAL,0) - nvl(b1.gl_dr_amt_op,0) + nvl(b1.gl_cr_amt_op,0)),0,'Dr',1,'Cr',-1,'Dr')
+)
+) OP_BAL_type,
+
+decode($P{PostFlag},'A', nvl(b2.gl_dr_amt,0) + nvl(c2.tmp_dr_amt,0), 'P', nvl(b2.gl_dr_amt,0)) dr_amt,
+
+decode($P{PostFlag},'A', nvl(b2.gl_cr_amt,0) + nvl(c2.tmp_cr_amt,0), 'P', nvl(b2.gl_cr_amt,0)) cr_amt,
+
+decode($P{PostFlag},
+'A', decode( ltrim(rtrim(upper(nvl(a.ORG_COA_OP_BAL_TYP,'Dr')))),
+'DR', abs(nvl(a.ORG_COA_OP_BAL,0) + nvl(b1.gl_dr_amt_op,0) - nvl(b1.gl_cr_amt_op,0) + nvl(c1.tmp_dr_amt_op,0) - nvl(c1.tmp_cr_amt_op,0) + nvl(b2.gl_dr_amt,0) - nvl(b2.gl_cr_amt,0) + nvl(c2.tmp_dr_amt,0) - nvl(c2.tmp_cr_amt,0)),
+'CR', abs(nvl(a.ORG_COA_OP_BAL,0) - nvl(b1.gl_dr_amt_op,0) + nvl(b1.gl_cr_amt_op,0) - nvl(c1.tmp_dr_amt_op,0) + nvl(c1.tmp_cr_amt_op,0) - nvl(b2.gl_dr_amt,0) + nvl(b2.gl_cr_amt,0) - nvl(c2.tmp_dr_amt,0) + nvl(c2.tmp_cr_amt,0))
+),
+'P',decode( ltrim(rtrim(upper(nvl(a.ORG_COA_OP_BAL_TYP,'Dr')))),
+'DR', abs(nvl(a.ORG_COA_OP_BAL,0) + nvl(b1.gl_dr_amt_op,0) - nvl(b1.gl_cr_amt_op,0) + nvl(b2.gl_dr_amt,0) - nvl(b2.gl_cr_amt,0)),
+'CR', abs(nvl(a.ORG_COA_OP_BAL,0) - nvl(b1.gl_dr_amt_op,0) + nvl(b1.gl_cr_amt_op,0) - nvl(b2.gl_dr_amt,0) + nvl(b2.gl_cr_amt,0))
+)
+) cl_BAL,
+
+decode($P{PostFlag},
+'A', decode(ltrim(rtrim(upper(nvl(a.ORG_COA_OP_BAL_TYP,'Dr')))),
+'DR', DECODE(sign(nvl(a.ORG_COA_OP_BAL,0) + nvl(b1.gl_dr_amt_op,0) - nvl(b1.gl_cr_amt_op,0) + nvl(c1.tmp_dr_amt_op,0) - nvl(c1.tmp_cr_amt_op,0) + nvl(b2.gl_dr_amt,0) - nvl(b2.gl_cr_amt,0) + nvl(c2.tmp_dr_amt,0) - nvl(c2.tmp_cr_amt,0)),0,'Dr',1,'Dr',-1,'Cr'),
+'CR', DECODE(sign(nvl(a.ORG_COA_OP_BAL,0) - nvl(b1.gl_dr_amt_op,0) + nvl(b1.gl_cr_amt_op,0) - nvl(c1.tmp_dr_amt_op,0) + nvl(c1.tmp_cr_amt_op,0) - nvl(b2.gl_dr_amt,0) + nvl(b2.gl_cr_amt,0) - nvl(c2.tmp_dr_amt,0) + nvl(c2.tmp_cr_amt,0)),0,'Dr',1,'Cr',-1,'Dr')
+),
+'P',decode( ltrim(rtrim(upper(nvl(a.ORG_COA_OP_BAL_TYP,'Dr')))),
+'DR', DECODE(sign(nvl(a.ORG_COA_OP_BAL,0) + nvl(b1.gl_dr_amt_op,0) - nvl(b1.gl_cr_amt_op,0) + nvl(b2.gl_dr_amt,0) - nvl(b2.gl_cr_amt,0)),0,'Dr',1,'Dr',-1,'Cr'),
+'CR', DECODE(sign(nvl(a.ORG_COA_OP_BAL,0) - nvl(b1.gl_dr_amt_op,0) + nvl(b1.gl_cr_amt_op,0) - nvl(b2.gl_dr_amt,0) + nvl(b2.gl_cr_amt,0)),0,'Dr',1,'Cr',-1,'Dr')
+)
+) cl_BAL_type
+
+FROM ORG$COA$FY A,
+(SELECT
+A.GL_SLOC_ID,
+A.GL_ORG_ID,
+A.GL_COA_ID,
+app.pkg_APP.get_ORG_fy_id(A.GL_VOU_DT,A.GL_ORG_ID,'FY') FY_ID,
+nvl(SUM(DECODE(GL_AMT_TYP,'Dr',GL_AMT_BS,0)),0) gl_dr_amt_op,
+nvl(SUM(DECODE(GL_AMT_TYP,'Cr',GL_AMT_BS,0)),0) gl_cr_amt_op
+FROM GL_LINES A,
+GL B
+where
+a.GL_SLOC_ID = nvl($P{SlocId},a.GL_SLOC_ID)
+and a.GL_ORG_ID = nvl($P{Org_ID},a.GL_ORG_ID )
+and a.GL_COA_ID LIKE NVL($P{COA_ID},a.GL_COA_ID)
+and a.GL_COG_ID LIKE NVL($P{COG_ID},a.GL_COG_ID)
+and a.GL_NA_ID LIKE NVL($P{NA_ID},a.GL_NA_ID)
+AND A.GL_VOU_ID = B.GL_VOU_ID
+and B.GL_STAT = decode($P{PostFlag},'A',B.GL_STAT,'P','FLC')
+and trunc(a.GL_VOU_DT) >= app.pkg_APP.get_ORG_fy_start_DATE(TO_dATE(to_date($P{FromDate},'YYYY-mm-dd'),'DD-MM-YYYY'),A.GL_ORG_ID,'FY')
+and trunc(a.GL_VOU_DT) < to_date($P{FromDate},'YYYY-mm-dd')
+GROUP BY A.GL_SLOC_ID,
+A.GL_ORG_ID,
+A.GL_COA_ID,
+app.pkg_APP.get_ORG_fy_id(A.GL_VOU_DT,A.GL_ORG_ID,'FY')
+order by A.GL_SLOC_ID,
+A.GL_ORG_ID,
+A.GL_COA_ID) B1,
+
+(SELECT
+A.GL_SLOC_ID,
+A.GL_ORG_ID,
+A.GL_COA_ID,
+app.pkg_APP.get_org_fy_id(A.GL_VOU_DT,A.GL_ORG_ID,'FY') FY_ID,
+nvl(SUM(DECODE(GL_AMT_TYP,'Dr',GL_AMT_BS,0)),0) gl_dr_amt,
+nvl(SUM(DECODE(GL_AMT_TYP,'Cr',GL_AMT_BS,0)),0) gl_cr_amt
+FROM GL_LINES A,
+GL B
+where a.GL_SLOC_ID =nvl($P{SlocId}, a.GL_SLOC_ID)
+AND a.GL_TXN_TYP_MIG not in('MO','O')
+and a.GL_ORG_ID = nvl($P{Org_ID},a.GL_ORG_ID)
+and a.GL_COA_ID LIKE NVL($P{COA_ID},a.GL_COA_ID)
+and a.GL_COG_ID LIKE NVL($P{COG_ID},a.GL_COG_ID)
+and a.GL_NA_ID LIKE NVL($P{NA_ID},a.GL_NA_ID)
+AND A.GL_VOU_ID = B.GL_VOU_ID
+and B.GL_STAT = decode($P{PostFlag},'A',B.GL_STAT,'P','FLC')
+and trunc(a.GL_VOU_DT) between to_date($P{FromDate},'YYYY-mm-dd') and to_date($P{ToDate},'YYYY-mm-dd')
+GROUP BY A.GL_SLOC_ID,
+A.GL_ORG_ID,
+A.GL_COA_ID,
+app.pkg_APP.get_org_fy_id(A.GL_VOU_DT,A.GL_ORG_ID,'FY')
+order by A.GL_SLOC_ID,
+A.GL_ORG_ID,
+A.GL_COA_ID) B2,
+
+(SELECT
+TVOU_SLOC_ID,
+TVOU_ORG_ID,
+TVOU_COA_ID,
+app.pkg_APP.get_org_fy_id(TVOU_DT,TVOU_ORG_ID,'FY') FY_ID,
+nvl(SUM(DECODE(TVOU_AMT_TYP,'Dr',TVOU_AMT_BS,0)),0) tmp_dr_amt_op,
+nvl(SUM(DECODE(TVOU_AMT_TYP,'Cr',TVOU_AMT_BS,0)),0) tmp_cr_amt_op
+FROM TVOU_LINES
+where tvou_SLOC_ID = nvl($P{SlocId},tvou_SLOC_ID)
+and tvou_ORG_ID = nvl($P{Org_ID},tvou_ORG_ID)
+and tvou_COA_ID LIKE NVL($P{COA_ID},tvou_COA_ID)
+and tvou_COG_ID LIKE NVL($P{COG_ID},tvou_COG_ID)
+and tvou_NA_ID LIKE NVL($P{NA_ID},tvou_NA_ID)
+and trunc(tVOU_DT) >= app.pkg_APP.get_org_fy_start_DATE(TO_dATE(to_date($P{FromDate},'YYYY-mm-dd'),'DD-MM-YYYY'),TVOU_ORG_ID,'FY')
+and trunc(tVOU_DT) <  to_date($P{FromDate},'YYYY-mm-dd')
+GROUP BY TVOU_SLOC_ID,
+TVOU_COA_ID,
+TVOU_ORG_ID,
+app.pkg_APP.get_org_fy_id(TVOU_DT,TVOU_ORG_ID,'FY')
+order by TVOU_SLOC_ID,
+TVOU_COA_ID,
+TVOU_ORG_ID) C1,
+
+(SELECT
+TVOU_SLOC_ID,
+TVOU_ORG_ID,
+TVOU_COA_ID,
+app.pkg_APP.get_org_fy_id(TVOU_DT,TVOU_ORG_ID,'FY') FY_ID,
+nvl(SUM(DECODE(TVOU_AMT_TYP,'Dr',TVOU_AMT_BS,0)),0) tmp_dr_amt,
+nvl(SUM(DECODE(TVOU_AMT_TYP,'Cr',TVOU_AMT_BS,0)),0) tmp_cr_amt
+FROM TVOU_LINES
+where tvou_SLOC_ID =nvl($P{SlocId},tvou_SLOC_ID)
+and tvou_ORG_ID = nvl($P{Org_ID},tvou_ORG_ID)
+and tvou_COA_ID LIKE NVL($P{COA_ID},tvou_COA_ID)
+and tvou_COG_ID LIKE NVL($P{COG_ID},tvou_COG_ID)
+and tvou_NA_ID LIKE NVL($P{NA_ID},tvou_NA_ID)
+and trunc(tVOU_DT) between to_date($P{FromDate},'YYYY-mm-dd') and to_date($P{ToDate},'YYYY-mm-dd')
+GROUP BY TVOU_SLOC_ID,
+TVOU_COA_ID,
+TVOU_ORG_ID,
+app.pkg_APP.get_org_fy_id(TVOU_DT,TVOU_ORG_ID,'FY')
+order by TVOU_SLOC_ID,
+TVOU_COA_ID,
+TVOU_ORG_ID) C2,
+fin$coa d,
+fin$cog e,
+app.org f
+
+WHERE a.ORG_FY_ID = app.pkg_APP.get_org_fy_id(to_date($P{FromDate},'YYYY-MM-DD'),a.org_id,'FY')
+and a.org_sloc_id = nvl($P{SlocId},a.org_sloc_id)
+and a.ORG_ID = nvl($P{Org_ID},a.ORG_ID )
+and a.ORG_COA_ID LIKE NVL($P{COA_ID},a.ORG_COA_ID)
+and a.ORG_COA_COG_ID LIKE NVL($P{COG_ID},a.ORG_COA_COG_ID)
+and a.ORG_COA_NA_ID LIKE NVL($P{NA_ID},a.ORG_COA_NA_ID)
+and e.COG_SUBLDGR='Y'
+and a.org_sloc_id = d.COA_SLOC_ID
+and a.ORG_COA_ID = d.COA_ID
+
+and a.org_sloc_id = e.COG_SLOC_ID
+and a.ORG_COA_COG_ID = e.COG_ID
+
+and a.ORG_FY_ID = b1.FY_ID(+)
+and a.org_sloc_id = b1.GL_SLOC_ID(+)
+and a.ORG_ID = b1.GL_ORG_ID(+)
+and a.ORG_COA_ID = b1.GL_COA_ID(+)
+
+and a.ORG_FY_ID = b2.FY_ID(+)
+and a.org_sloc_id = b2.GL_SLOC_ID(+)
+and a.ORG_ID = b2.GL_ORG_ID(+)
+and a.ORG_COA_ID = b2.GL_COA_ID(+)
+
+and a.ORG_FY_ID = c1.FY_ID(+)
+and a.org_sloc_id = c1.tvou_SLOC_ID(+)
+and a.ORG_ID = c1.tvou_ORG_ID(+)
+and a.ORG_COA_ID = c1.tvou_COA_ID(+)
+
+and a.ORG_FY_ID = c2.FY_ID(+)
+and a.org_sloc_id = c2.tvou_SLOC_ID(+)
+and a.ORG_ID = c2.tvou_ORG_ID(+)
+and a.ORG_COA_ID = c2.tvou_COA_ID(+)
+and a.ORG_ID=f.org_id
+ORDER BY 2,1,8,6,4,5]]>
+	</queryString>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="ORG_SLOC_ID" class="java.math.BigDecimal"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="ORG_FY_ID" class="java.math.BigDecimal"/>
+	<field name="ORG_COA_ID" class="java.math.BigDecimal"/>
+	<field name="COA_NM" class="java.lang.String"/>
+	<field name="ORG_COA_COG_ID" class="java.lang.String"/>
+	<field name="COG_NM" class="java.lang.String"/>
+	<field name="OP_BAL" class="java.math.BigDecimal"/>
+	<field name="OP_BAL_TYPE" class="java.lang.String"/>
+	<field name="DR_AMT" class="java.math.BigDecimal"/>
+	<field name="CR_AMT" class="java.math.BigDecimal"/>
+	<field name="CL_BAL" class="java.math.BigDecimal"/>
+	<field name="CL_BAL_TYPE" class="java.lang.String"/>
+	<variable name="DebitAmount" class="java.math.BigDecimal" resetType="Group" resetGroup="COG" calculation="Sum">
+		<variableExpression><![CDATA[$F{DR_AMT}]]></variableExpression>
+	</variable>
+	<variable name="OpeningBalance" class="java.math.BigDecimal" resetType="Group" resetGroup="COG" calculation="Sum">
+		<variableExpression><![CDATA[( $F{OP_BAL_TYPE}=="Dr" ? $F{OP_BAL} : -$F{OP_BAL} )]]></variableExpression>
+	</variable>
+	<variable name="CreditAmount" class="java.math.BigDecimal" resetType="Group" resetGroup="COG" calculation="Sum">
+		<variableExpression><![CDATA[$F{CR_AMT}]]></variableExpression>
+	</variable>
+	<variable name="ClosingBalance" class="java.math.BigDecimal" resetType="Group" resetGroup="COG" calculation="Sum">
+		<variableExpression><![CDATA[( $F{CL_BAL_TYPE}=="Dr" ? $F{CL_BAL} : -$F{CL_BAL} )]]></variableExpression>
+	</variable>
+	<variable name="OpeningBalanceType" class="java.lang.String" resetType="Group" resetGroup="COG">
+		<variableExpression><![CDATA[($V{OpeningBalance}>=0.00 ? "Dr" : "Cr" )]]></variableExpression>
+	</variable>
+	<variable name="ClosingBalanceType" class="java.lang.String" resetType="Group" resetGroup="COG">
+		<variableExpression><![CDATA[($V{ClosingBalance}>=0.00 ? "Dr" : "Cr" )]]></variableExpression>
+	</variable>
+	<variable name="TotalOpeningType" class="java.lang.String">
+		<variableExpression><![CDATA[($V{TotalOpeningBalance}>=0.00 ? "Dr" : "Cr" )]]></variableExpression>
+	</variable>
+	<variable name="TotalClosingType" class="java.lang.String">
+		<variableExpression><![CDATA[($V{TotalClosingBalance}>=0.00 ? "Dr" : "Cr" )]]></variableExpression>
+	</variable>
+	<variable name="TotalOpeningBalance" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[($F{OP_BAL_TYPE}=="Dr"? $F{OP_BAL} : -$F{OP_BAL} )]]></variableExpression>
+	</variable>
+	<variable name="TotalClosingBalance" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[($F{CL_BAL_TYPE}=="Dr"? $F{CL_BAL} : -$F{CL_BAL} )]]></variableExpression>
+	</variable>
+	<variable name="TotalDebitAmount" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{DR_AMT}]]></variableExpression>
+	</variable>
+	<variable name="TotalCreditBalance" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{CR_AMT}]]></variableExpression>
+	</variable>
+	<group name="Org">
+		<groupExpression><![CDATA[$F{ORG_ID}]]></groupExpression>
+		<groupFooter>
+			<band height="26">
+				<line>
+					<reportElement x="0" y="23" width="555" height="1"/>
+				</line>
+				<line>
+					<reportElement x="0" y="2" width="555" height="1"/>
+				</line>
+				<textField pattern="###0.00;(###0.00)" isBlankWhenNull="true">
+					<reportElement x="455" y="5" width="65" height="15"/>
+					<box>
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalClosingBalance}+$P{TotalClosingAmount}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0.00;(###0.00)" isBlankWhenNull="true">
+					<reportElement x="317" y="5" width="65" height="15"/>
+					<box>
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalDebitAmount}+$P{TotalDebitAmount}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="296" y="5" width="20" height="15"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{TotalOpeningType}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0.00;(###0.00)" isBlankWhenNull="true">
+					<reportElement x="387" y="5" width="65" height="15"/>
+					<box>
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalCreditBalance}+$P{TotalCreditAmount}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="524" y="5" width="25" height="15"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{TotalClosingType}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0.00" isBlankWhenNull="true">
+					<reportElement x="223" y="5" width="70" height="15"/>
+					<box>
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalOpeningBalance}+$P{TotalOpeningBalance}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="COG">
+		<groupExpression><![CDATA[$F{COG_NM}]]></groupExpression>
+		<groupHeader>
+			<band height="21">
+				<textField isBlankWhenNull="true">
+					<reportElement x="0" y="0" width="317" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{COG_NM}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="45">
+				<textField isBlankWhenNull="true">
+					<reportElement x="524" y="0" width="25" height="15"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{ClosingBalanceType}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0.00;(###0.00)" isBlankWhenNull="true">
+					<reportElement x="317" y="0" width="65" height="15"/>
+					<box>
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{DebitAmount}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0.00;(###0.00)" isBlankWhenNull="true">
+					<reportElement x="387" y="0" width="65" height="15"/>
+					<box>
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{CreditAmount}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0.00" isBlankWhenNull="true">
+					<reportElement x="223" y="0" width="70" height="15"/>
+					<box>
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{OpeningBalance}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="296" y="0" width="20" height="15"/>
+					<textElement verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{OpeningBalanceType}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0.00;(###0.00)" isBlankWhenNull="true">
+					<reportElement x="455" y="0" width="65" height="15"/>
+					<box>
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0"/>
+						<leftPen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{ClosingBalance}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+</jasperReport>

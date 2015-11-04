@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ProductionVsRejection_JC_Subreprot" language="groovy" pageWidth="586" pageHeight="802" columnWidth="586" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="HoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="JCDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT  E.DOC_ID, E.DOC_DT,  E.JC_ID,   E.JC_STAT, L.OP_ID, L.OP_DESC, E.WC_ID,  F.WC_DESC,
+        E.WS_ID,    G.WS_DESC,    E.SHIFT_ID, H.SHIFT_NM  , E.EMP_ID, I.EO_NM EMP_NM,   E.STRT_DT,  E.END_DT,   E.LOC_TYPE,   E.OUTPT_ITM_ID
+       , E.OUTPT_ITM_QTY,      E.OP_SR_NO,             E.WH_ID,    J.WH_NM,      E.RQMT_AREA_ID, K.RQMT_AREA_NM,  E.ACT_OUTPT_ITM_QTY
+      , E.OUTPT_ITM_QTY,    E.ACT_OUTPT_ITM_QTY
+      ,DECODE(M.DOC_TYPE_SRC ,82, (SELECT PDO_ID FROM MNF$PDO WHERE CLD_ID = M.CLD_ID
+                                                        AND  SLOC_ID = M.SLOC_ID
+                                                        AND ORG_ID  = M.ORG_ID
+                                                        AND  HO_ORG_ID  = M.HO_ORG_ID
+                                                        AND   DOC_ID  = M.DOC_ID_SRC)--PDO
+                             , 83,  (SELECT MPP_ID FROM MNF$MPP WHERE CLD_ID = M.CLD_ID
+                                                                AND   SLOC_ID = M.SLOC_ID
+                                                                AND   ORG_ID   = M.ORG_ID
+                                                                AND   HO_ORG_ID = M.HO_ORG_ID
+                                                                AND   DOC_ID    = M.DOC_ID_SRC)--GPP
+                             ,93 ,(SELECT RC_ID FROM MNF$RC WHERE CLD_ID  = M.CLD_ID
+                                                            AND   SLOC_ID = M.SLOC_ID
+                                                            AND   ORG_ID  = M.ORG_ID
+                                                            AND   HO_ORG_ID = M.HO_ORG_ID
+                                                            AND   DOC_ID  = M.DOC_ID_SRC) --RC
+                             )DOC_SRC
+        ,     DECODE(M.DOC_TYPE_SRC ,82, (SELECT DOC_DT FROM MNF$PDO WHERE CLD_ID = M.CLD_ID
+                                                        AND  SLOC_ID = M.SLOC_ID
+                                                        AND ORG_ID  = M.ORG_ID
+                                                        AND  HO_ORG_ID  = M.HO_ORG_ID
+                                                        AND   DOC_ID  = M.DOC_ID_SRC)--PDO
+                             , 83,  (SELECT DOC_DT FROM MNF$MPP WHERE CLD_ID = M.CLD_ID
+                                                                AND   SLOC_ID = M.SLOC_ID
+                                                                AND   ORG_ID   = M.ORG_ID
+                                                                AND   HO_ORG_ID = M.HO_ORG_ID
+                                                                AND   DOC_ID    = M.DOC_ID_SRC)--GPP
+                             ,93 ,(SELECT DOC_DT FROM MNF$RC WHERE CLD_ID  = M.CLD_ID
+                                                            AND   SLOC_ID = M.SLOC_ID
+                                                            AND   ORG_ID  = M.ORG_ID
+                                                            AND   HO_ORG_ID = M.HO_ORG_ID
+                                                            AND   DOC_ID  = M.DOC_ID_SRC) --RC
+                             )DOC_SRC_DT
+      ,E.JC_BASIS,  (SELECT ATT_NM FROM MNF$DS$ATT WHERE ATT_ID = E.JC_BASIS)JC_BASIS_NM
+FROM  MNF$JC E,  MNF$WC F, MNF$WS G, APP.APP$SHIFT H,   APP.APP$EO I,   APP.APP$WH$ORG J, APP.APP$RQMT$AREA  K,  MNF$OP L,  MNF$JC$SRC M
+WHERE E.CLD_ID    = F.CLD_ID
+AND   E.SLOC_ID   = F.SLOC_ID
+AND   E.HO_ORG_ID = F.HO_ORG_ID
+AND   E.WC_ID     = F.WC_ID
+AND   E.CLD_ID    = G.CLD_ID(+)
+AND   E.SLOC_ID   = G.SLOC_ID(+)
+AND   E.HO_ORG_ID = G.HO_ORG_ID(+)
+AND   E.WS_ID     = G.WS_ID(+)
+AND   E.CLD_ID    = H.CLD_ID
+AND   E.SLOC_ID   = H.SLOC_ID
+AND   E.HO_ORG_ID = H.HO_ORG_ID
+AND   E.SHIFT_ID  = H.SHIFT_ID
+AND   E.CLD_ID    = I.EO_CLD_ID
+AND   E.SLOC_ID   = I.EO_SLOC_ID
+AND   E.HO_ORG_ID = I.EO_HO_ORG_ID
+AND   E.EMP_ID    = I.EO_ID
+AND   E.CLD_ID    = J.CLD_ID
+AND   E.SLOC_ID   = J.SLOC_ID
+AND   E.ORG_ID    = J.ORG_ID
+AND   E.WH_ID     = J.WH_ID
+AND   E.CLD_ID    = K.CLD_ID
+AND   E.SLOC_ID   = K.SLOC_ID
+AND   E.ORG_ID    = K.ORG_ID
+AND   E.RQMT_AREA_ID  = K.RQMT_AREA_ID
+AND   E.CLD_ID    = L.CLD_ID
+AND   E.SLOC_ID   = L.SLOC_ID
+AND   E.HO_ORG_ID = L.HO_ORG_ID
+AND   E.OP_ID     = L.DOC_ID
+--AND   E.JC_STAT = 74
+AND   E.CLD_ID    = M.CLD_ID
+AND   E.SLOC_ID   = M.SLOC_ID
+AND   E.ORG_ID    = M.ORG_ID
+AND   E.HO_ORG_ID = M.HO_ORG_ID
+AND   E.DOC_ID    = M.DOC_ID
+AND     E.CLD_ID    = $P{CldId}
+AND     E.SLOC_ID   = $P{SlocId}
+AND     E.ORG_ID    = $P{OrgId}
+AND     E.HO_ORG_ID  = $P{HoOrgId}
+AND  E.DOC_ID = $P{JCDocId}]]>
+	</queryString>
+	<field name="DOC_ID" class="java.lang.String"/>
+	<field name="DOC_DT" class="java.sql.Timestamp"/>
+	<field name="JC_ID" class="java.lang.String"/>
+	<field name="JC_STAT" class="java.math.BigDecimal"/>
+	<field name="OP_ID" class="java.lang.String"/>
+	<field name="OP_DESC" class="java.lang.String"/>
+	<field name="WC_ID" class="java.lang.String"/>
+	<field name="WC_DESC" class="java.lang.String"/>
+	<field name="WS_ID" class="java.lang.String"/>
+	<field name="WS_DESC" class="java.lang.String"/>
+	<field name="SHIFT_ID" class="java.lang.String"/>
+	<field name="SHIFT_NM" class="java.lang.String"/>
+	<field name="EMP_ID" class="java.math.BigDecimal"/>
+	<field name="EMP_NM" class="java.lang.String"/>
+	<field name="STRT_DT" class="java.sql.Timestamp"/>
+	<field name="END_DT" class="java.sql.Timestamp"/>
+	<field name="LOC_TYPE" class="java.math.BigDecimal"/>
+	<field name="OUTPT_ITM_ID" class="java.lang.String"/>
+	<field name="OUTPT_ITM_QTY" class="java.math.BigDecimal"/>
+	<field name="OP_SR_NO" class="java.math.BigDecimal"/>
+	<field name="WH_ID" class="java.lang.String"/>
+	<field name="WH_NM" class="java.lang.String"/>
+	<field name="RQMT_AREA_ID" class="java.math.BigDecimal"/>
+	<field name="RQMT_AREA_NM" class="java.lang.String"/>
+	<field name="ACT_OUTPT_ITM_QTY" class="java.math.BigDecimal"/>
+	<field name="DOC_SRC" class="java.lang.String"/>
+	<field name="DOC_SRC_DT" class="java.sql.Timestamp"/>
+	<field name="JC_BASIS" class="java.math.BigDecimal"/>
+	<field name="JC_BASIS_NM" class="java.lang.String"/>
+	<group name="JCDocID">
+		<groupExpression><![CDATA[$F{DOC_ID}]]></groupExpression>
+		<groupHeader>
+			<band height="60">
+				<staticText>
+					<reportElement x="0" y="0" width="586" height="60"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="70" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Job Card No]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="15" width="70" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Job Card Date]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="30" width="70" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Job Card Basis]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="45" width="70" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Source Doc No]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="188" y="0" width="80" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Source Doc Dt]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="188" y="15" width="80" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Operation Name]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="188" y="30" width="80" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Work Station/Center]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="188" y="45" width="80" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Shift Desc]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="381" y="0" width="70" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Employee Name]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="381" y="15" width="70" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Req. Area Name]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="381" y="30" width="70" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Warehouse Name]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="78" y="0" width="100" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{JC_ID}]]></textFieldExpression>
+				</textField>
+				<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+					<reportElement x="78" y="15" width="100" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{DOC_DT}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="78" y="30" width="100" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{JC_BASIS_NM}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="459" y="15" width="127" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{RQMT_AREA_NM}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="459" y="30" width="127" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{WH_NM}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="459" y="0" width="127" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_NM}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="276" y="45" width="100" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{SHIFT_NM}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="276" y="30" width="100" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{WS_DESC}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="276" y="30" width="100" height="15">
+						<printWhenExpression><![CDATA[$F{WS_DESC}==null]]></printWhenExpression>
+					</reportElement>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{WC_DESC}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="276" y="15" width="100" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{OP_DESC}]]></textFieldExpression>
+				</textField>
+				<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+					<reportElement x="276" y="0" width="100" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{DOC_SRC_DT}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="78" y="45" width="100" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{DOC_SRC}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="70" y="0" width="8" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="70" y="15" width="8" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="70" y="30" width="8" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="70" y="45" width="8" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="268" y="0" width="8" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="268" y="15" width="8" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="268" y="30" width="8" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="268" y="45" width="8" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="451" y="0" width="8" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="451" y="15" width="8" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="451" y="30" width="8" height="15"/>
+					<box leftPadding="3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+</jasperReport>

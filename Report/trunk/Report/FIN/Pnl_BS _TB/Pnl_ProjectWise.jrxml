@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Pnl_ProjectWise" language="groovy" pageWidth="1500" pageHeight="842" columnWidth="1460" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryWithPageHeaderAndFooter="true">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="HeaderStyle">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("D")]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("R")]]></conditionExpression>
+			<style backcolor="#FF0000"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("G")]]></conditionExpression>
+			<style backcolor="#CDDB27"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("Y")]]></conditionExpression>
+			<style backcolor="#FFFF00"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("GG")]]></conditionExpression>
+			<style backcolor="#CCCCCC"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("B")]]></conditionExpression>
+			<style backcolor="#3333FF"/>
+		</conditionalStyle>
+	</style>
+	<style name="BgColorStyle">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("D")]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("R")]]></conditionExpression>
+			<style backcolor="#F5B5B5"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("G")]]></conditionExpression>
+			<style backcolor="#DDE39B"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("Y")]]></conditionExpression>
+			<style backcolor="#FFFF95"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("GG")]]></conditionExpression>
+			<style backcolor="#EBEBEB"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("B")]]></conditionExpression>
+			<style backcolor="#BEBEED"/>
+		</conditionalStyle>
+	</style>
+	<style name="DetailStyle" mode="Opaque" fill="Solid" radius="10" isBlankWhenNull="true" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{COLUMN_COUNT}%2 == 0]]></conditionExpression>
+			<style backcolor="#CCCCFF"/>
+		</conditionalStyle>
+	</style>
+	<style name="GrossProfitNLoss" mode="Opaque">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{IncomeTot_Curr}.subtract($V{ExpenseTotForCOGS_CURR}) >=0]]></conditionExpression>
+			<style forecolor="#006600"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{IncomeTot_Curr}.subtract($V{ExpenseTotForCOGS_CURR}) < 0]]></conditionExpression>
+			<style forecolor="#CC0000"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="Org_Id" class="java.lang.String"/>
+	<parameter name="PostFlag" class="java.lang.String"/>
+	<parameter name="Cld_Id" class="java.lang.String"/>
+	<parameter name="Cog_Id" class="java.lang.String"/>
+	<parameter name="AsOnDate" class="java.lang.String"/>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="GroupAccount" class="java.lang.String"/>
+	<parameter name="Include_Grp" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\DEPLOYMENT\\Report\\FIN\\SubReport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Margin_Detail" class="java.lang.String"/>
+	<parameter name="Head" class="java.lang.String"/>
+	<parameter name="BgColor" class="java.lang.String"/>
+	<parameter name="Ho_Org_Id" class="java.lang.String"/>
+	<parameter name="Sloc_Id" class="java.lang.Integer"/>
+	<parameter name="Org_Logo" class="java.lang.String"/>
+	<parameter name="Report_Type" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+a.org_id,
+a.org_desc,
+a.ORG_CURR_ID_BS,
+b.GLBL_CURR_NOTATION_ALIAS
+from app.org a,app.app$glbl$curr b
+where
+    a.org_id = $P{Org_Id}
+and a.ORG_CURR_ID_BS=b.GLBL_CURR_ID
+
+
+order by 2]]>
+	</queryString>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="ORG_CURR_ID_BS" class="java.math.BigDecimal"/>
+	<field name="GLBL_CURR_NOTATION_ALIAS" class="java.lang.String"/>
+	<variable name="IncomeTot_Curr" class="java.math.BigDecimal"/>
+	<variable name="ExpenseTot_Curr" class="java.math.BigDecimal"/>
+	<variable name="PnlValue_Curr" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{IncomeTot_Curr}-$V{ExpenseTot_Curr}]]></variableExpression>
+	</variable>
+	<variable name="ExpenseTotForCOGS_CURR" class="java.math.BigDecimal">
+		<initialValueExpression><![CDATA[0.00]]></initialValueExpression>
+	</variable>
+	<variable name="GrossProfit_Curr" class="java.math.BigDecimal"/>
+	<variable name="IncomeTot_Prev" class="java.math.BigDecimal"/>
+	<variable name="ExpenseTot_Prev" class="java.math.BigDecimal"/>
+	<variable name="PnlValue_Prev" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{IncomeTot_Prev}-$V{ExpenseTot_Prev}]]></variableExpression>
+	</variable>
+	<variable name="ExpenseTotForCOGS_PREV" class="java.math.BigDecimal">
+		<initialValueExpression><![CDATA[0.00]]></initialValueExpression>
+	</variable>
+	<variable name="GrossProfit_Prev" class="java.math.BigDecimal"/>
+	<group name="Org">
+		<groupExpression><![CDATA[$F{ORG_DESC}]]></groupExpression>
+	</group>
+	<group name="IncomeGrp">
+		<groupExpression><![CDATA[$F{ORG_ID}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="ExpenseGrp">
+		<groupExpression><![CDATA[$F{ORG_ID}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<background>
+		<band/>
+	</background>
+	<pageHeader>
+		<band height="69">
+			<printWhenExpression><![CDATA[$P{Report_Type} == "P"]]></printWhenExpression>
+			<textField>
+				<reportElement x="1139" y="16" width="303" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Profit & Loss - Project Wise"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1322" y="31" width="57" height="14"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10"/>
+				</textElement>
+				<text><![CDATA[As On Date:]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="1383" y="32" width="58" height="14"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{AsOnDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<image onErrorType="Blank">
+				<reportElement x="1" y="1" width="136" height="45"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+($P{Org_Logo} == null ? "Org-logo.png":$P{Org_Logo})]]></imageExpression>
+			</image>
+			<line>
+				<reportElement x="0" y="65" width="1460" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="68" width="1460" height="1"/>
+			</line>
+			<textField>
+				<reportElement x="1139" y="1" width="304" height="16" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="Arial" size="11" isBold="true" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="47" width="312" height="15">
+					<printWhenExpression><![CDATA[$P{Org_Id} == ""]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Organization Name : "+ $F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1383" y="46" width="59" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[( $P{PostFlag}!= "P" ? "All" : "Posted" )]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1263" y="46" width="117" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Voucher Status :]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="50">
+			<subreport>
+				<reportElement x="0" y="0" width="1460" height="50"/>
+				<subreportParameter name="Org_Id">
+					<subreportParameterExpression><![CDATA[$P{Org_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Include_Grp">
+					<subreportParameterExpression><![CDATA[$P{Include_Grp}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Head">
+					<subreportParameterExpression><![CDATA[$P{Head}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Curr">
+					<subreportParameterExpression><![CDATA[$F{GLBL_CURR_NOTATION_ALIAS}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Cog_Id">
+					<subreportParameterExpression><![CDATA[$P{Cog_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PostFlag">
+					<subreportParameterExpression><![CDATA[$P{PostFlag}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Path">
+					<subreportParameterExpression><![CDATA[$P{Path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Cld_Id">
+					<subreportParameterExpression><![CDATA[$P{Cld_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="AsOnDate">
+					<subreportParameterExpression><![CDATA[$P{AsOnDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="GroupAccount">
+					<subreportParameterExpression><![CDATA[$P{GroupAccount}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Sloc_Id">
+					<subreportParameterExpression><![CDATA[$P{Sloc_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Report_Type">
+					<subreportParameterExpression><![CDATA[$P{Report_Type}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Ho_Org_Id">
+					<subreportParameterExpression><![CDATA[$P{Ho_Org_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Pnl_Proj_Subreport.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="15"/>
+	</detail>
+	<pageFooter>
+		<band height="25">
+			<printWhenExpression><![CDATA[$P{Report_Type} == "P"]]></printWhenExpression>
+			<line>
+				<reportElement x="0" y="0" width="1460" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="4" width="1460" height="1"/>
+			</line>
+			<textField pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="1" y="5" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1341" y="5" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="1421" y="5" width="39" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="30">
+			<printWhenExpression><![CDATA[$P{Report_Type} == "P"]]></printWhenExpression>
+			<line>
+				<reportElement x="0" y="4" width="1460" height="1"/>
+			</line>
+			<line>
+				<reportElement x="0" y="0" width="1460" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<textField pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="1" y="5" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="5" width="1460" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated By  ebizframe 10
+     ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="1341" y="6" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="1421" y="6" width="39" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+	<summary>
+		<band>
+			<printWhenExpression><![CDATA[$P{Report_Type} == "P"]]></printWhenExpression>
+		</band>
+	</summary>
+</jasperReport>

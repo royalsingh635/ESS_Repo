@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PaymentReg_Inst_SubReport" language="groovy" pageWidth="216" pageHeight="25" whenNoDataType="NoDataSection" columnWidth="216" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="org_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="coa_id" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cld_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="vou_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select nvl(a.gl_instrmnt_no,'CASH') cheque_number,
+       a.gl_instrmnt_dt cheque_date,
+       a.gl_amt_sp chq_amt,
+       nvl(a.GL_INSTRMNT_STAT, 0) status,
+       (select att_nm from app.app$ds$att where att_type_id = 25 and att_id = a.gl_instrmnt_typ) type
+from   gl_line_instrumnt a
+where
+a.gl_cld_id = $P{cld_id}
+and a.gl_org_id = $P{org_id}
+and a.gl_vou_id = $P{vou_id}
+and a.gl_coa_id = $P{coa_id}]]>
+	</queryString>
+	<field name="CHEQUE_NUMBER" class="java.lang.String"/>
+	<field name="CHEQUE_DATE" class="java.sql.Timestamp"/>
+	<field name="CHQ_AMT" class="java.math.BigDecimal"/>
+	<field name="STATUS" class="java.math.BigDecimal"/>
+	<field name="TYPE" class="java.lang.String"/>
+	<sortField name="CHEQUE_DATE"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="66" y="0" width="40" height="10"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Arial" size="7" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{CHEQUE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="106" y="0" width="40" height="10"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{CHEQUE_DATE}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="66" height="10"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{CHQ_AMT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="146" y="0" width="35" height="10"/>
+				<textElement textAlignment="Center">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TYPE}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="181" y="1" width="35" height="10"/>
+				<textElement textAlignment="Center">
+					<font fontName="Arial" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[($F{STATUS} == 108 ? "BOUNCED"
+    :$F{STATUS} == 109 ? "CLEARED"
+    :$F{STATUS} == 110 ? "RE-ISSUED"
+    :$F{STATUS} == 184 ? "CANCELLED"
+    :$F{STATUS} == 186 ? "RE-VALIDATE"
+    :$F{STATUS}== 0 ? "RECEIVED":null)]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

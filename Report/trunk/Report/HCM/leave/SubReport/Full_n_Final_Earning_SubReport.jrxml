@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Salary_Slip_Earning_subreport" language="groovy" pageWidth="270" pageHeight="802" columnWidth="270" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="desgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="shiftId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+B.DOC_ID DOC_ID,
+B.EMP_DOC_ID EMP_DOC_ID,
+--B.SAL_ID SAL_ID,
+--B.SAL_BEHAV SAL_BEHAV,
+B.SAL_AMT SAL_AMT,
+--FN.EMP_EAR_AMT,
+--FN.TOT_EXT_TIME_AMT  ,
+C.PARAM_DESC SAL_DESC
+from  hcm$emp$fnf fn, HCM$EMP$FNF$DTL  b ,HCM$SETUP C,  HCM$EMP$SHIFT e,
+  app.app$shift F
+WHERE
+
+  fn.cld_id = b.cld_id
+  and fn.org_id =b.org_id
+  and fn.sloc_id=b.sloc_Id
+  and fn.ho_org_id =B.HO_ORG_ID
+  and fn.emp_doc_id=b.emp_doc_id
+
+  AND FN.CLD_ID          =E.CLD_ID
+  AND FN.SLOC_ID         =E.SLOC_ID
+  AND FN.ORG_ID          =E.ORG_ID
+  AND FN.HO_ORG_ID       =E.HO_ORG_ID
+  AND FN.EMP_DOC_ID      =E.DOC_ID
+
+
+
+   AND B.CLD_ID =C.CLD_ID
+   AND B.HO_ORG_ID=C.HO_ORG_ID
+   AND B.SLOC_ID=C.SLOC_ID
+   AND B.SAL_ID=C.PARAM_ID
+
+   AND E.CLD_ID          = F.CLD_ID
+   AND E.HO_ORG_ID       = F.HO_ORG_ID
+   AND E.SLOC_ID         = F.SLOC_ID
+   AND E.SHIFT_ID        = F.SHIFT_ID
+
+
+AND FN.CLD_ID          = NVL($P{cldId} ,FN.CLD_ID )
+AND FN.SLOC_ID         = NVL($P{slocId},FN.SLOC_ID)
+AND FN.HO_ORG_ID       = NVL($P{hoOrgId},FN.ho_org_id)
+AND FN.ORG_ID          = NVL($P{orgId},FN.org_id)
+AND TRUNC(FN.emp_FNF_DT) >= NVL(to_date($P{FromDate},'yyyy-MM-dd'),TRUNC(FN.emp_FNF_DT))
+AND TRUNC(FN.emp_FNF_DT) <=NVL(to_date($P{ToDate},'yyyy-MM-dd'),TRUNC(FN.emp_FNF_DT))
+AND (FN.EMP_DEPT_ID    = NVL($P{crtValue},FN.EMP_DEPT_ID )
+OR FN.EMP_LOC_ID       = NVL($P{crtValue},FN.EMP_LOC_ID)
+OR FN.EMP_GRP_ID       = NVL($P{crtValue},FN.EMP_GRP_ID)
+OR FN.EMP_DOC_ID       =NVL($P{crtValue},FN.EMP_DOC_ID))
+AND FN.EMP_DOC_ID          = NVL($P{empDocId}, FN.EMP_DOC_ID)
+AND FN.EMP_DESG_ID     =NVL ($P{desgId}, FN.EMP_DESG_ID )
+AND SAL_BEHAV IN (11,12,13)
+AND E.SHIFT_ID        =NVL($P{shiftId},E.SHIFT_ID)
+
+ UNION
+ SELECT DISTINCT
+B.DOC_ID DOC_ID,
+B.EMP_DOC_ID EMP_DOC_ID,
+
+
+--B.SAL_BEHAV SAL_BEHAV,
+FN.EMP_EAR_AMT SAL_AMT,
+--FN.EMP_EAR_AMT,
+--FN.TOT_EXT_TIME_AMT  ,
+'EMP_ERNING' SAL_DESC
+from  hcm$emp$fnf fn, HCM$EMP$FNF$DTL  b ,HCM$SETUP C,  HCM$EMP$SHIFT e,
+  app.app$shift F,HCM$GRP$LVE$LYBLTY$CALC CL
+WHERE
+
+  fn.cld_id = b.cld_id
+  and fn.org_id =b.org_id
+  and fn.sloc_id=b.sloc_Id
+  and fn.ho_org_id =B.HO_ORG_ID
+  and fn.emp_doc_id=b.emp_doc_id
+
+ AND FN.CLD_id=cl.CLD_ID
+ AND FN.ORG_id =CL.ORG_ID
+ AND FN.SLOC_ID=CL.SLOC_ID
+ AND FN.HO_ORG_ID=CL.HO_ORG_ID
+
+ AND fn.emp_GRP_ID=CL.GRP_ID
+
+AND b.CLD_id=cl.CLD_ID
+ AND b.ORG_id =CL.ORG_ID
+ AND b.SLOC_ID=CL.SLOC_ID
+ AND b.HO_ORG_ID=CL.HO_ORG_ID
+ AND b.SAL_ID=CL.SAL_ID
+
+
+  AND FN.CLD_ID          =E.CLD_ID
+  AND FN.SLOC_ID         =E.SLOC_ID
+  AND FN.ORG_ID          =E.ORG_ID
+  AND FN.HO_ORG_ID       =E.HO_ORG_ID
+  AND FN.EMP_DOC_ID      =E.DOC_ID
+
+
+
+   AND B.CLD_ID =C.CLD_ID
+   AND B.HO_ORG_ID=C.HO_ORG_ID
+   AND B.SLOC_ID=C.SLOC_ID
+   AND B.SAL_ID=C.PARAM_ID
+
+   AND E.CLD_ID          = F.CLD_ID
+   AND E.HO_ORG_ID       = F.HO_ORG_ID
+   AND E.SLOC_ID         = F.SLOC_ID
+   AND E.SHIFT_ID        = F.SHIFT_ID
+
+
+AND FN.CLD_ID          = NVL($P{cldId} ,FN.CLD_ID )
+AND FN.SLOC_ID         = NVL($P{slocId},FN.SLOC_ID)
+AND FN.HO_ORG_ID       = NVL($P{hoOrgId},FN.ho_org_id)
+AND FN.ORG_ID          = NVL($P{orgId},FN.org_id)
+AND TRUNC(FN.emp_FNF_DT) >= NVL(to_date($P{FromDate},'yyyy-MM-dd'),TRUNC(FN.emp_FNF_DT))
+AND TRUNC(FN.emp_FNF_DT) <=NVL(to_date($P{ToDate},'yyyy-MM-dd'),TRUNC(FN.emp_FNF_DT))
+AND (FN.EMP_DEPT_ID    = NVL($P{crtValue},FN.EMP_DEPT_ID )
+OR FN.EMP_LOC_ID       = NVL($P{crtValue},FN.EMP_LOC_ID)
+OR FN.EMP_GRP_ID       = NVL($P{crtValue},FN.EMP_GRP_ID)
+OR FN.EMP_DOC_ID       =NVL($P{crtValue},FN.EMP_DOC_ID))
+AND FN.EMP_DOC_ID          = NVL($P{empDocId}, FN.EMP_DOC_ID)
+AND FN.EMP_DESG_ID     =NVL ($P{desgId}, FN.EMP_DESG_ID )
+--AND SAL_BEHAV IN (11,12,13)
+AND E.SHIFT_ID        =NVL($P{shiftId},E.SHIFT_ID)
+
+
+
+
+ UNION
+
+  SELECT DISTINCT
+B.DOC_ID DOC_ID,
+B.EMP_DOC_ID EMP_DOC_ID,
+--B.SAL_BEHAV SAL_BEHAV,
+--FN.EMP_EAR_AMT SAL_AMT,
+
+  FN.TOT_EXT_TIME_AMT SAL_AMT  ,
+'EXTRA_ERNING' SAL_DESC
+from  hcm$emp$fnf fn, HCM$EMP$FNF$DTL  b ,HCM$SETUP C,  HCM$EMP$SHIFT e,
+  app.app$shift F
+WHERE
+
+  fn.cld_id = b.cld_id
+  and fn.org_id =b.org_id
+  and fn.sloc_id=b.sloc_Id
+  and fn.ho_org_id =B.HO_ORG_ID
+  and fn.emp_doc_id=b.emp_doc_id
+
+  AND FN.CLD_ID          =E.CLD_ID
+  AND FN.SLOC_ID         =E.SLOC_ID
+  AND FN.ORG_ID          =E.ORG_ID
+  AND FN.HO_ORG_ID       =E.HO_ORG_ID
+  AND FN.EMP_DOC_ID      =E.DOC_ID
+
+
+
+   AND B.CLD_ID =C.CLD_ID
+   AND B.HO_ORG_ID=C.HO_ORG_ID
+   AND B.SLOC_ID=C.SLOC_ID
+   AND B.SAL_ID=C.PARAM_ID
+
+   AND E.CLD_ID          = F.CLD_ID
+   AND E.HO_ORG_ID       = F.HO_ORG_ID
+   AND E.SLOC_ID         = F.SLOC_ID
+   AND E.SHIFT_ID        = F.SHIFT_ID
+
+
+AND FN.CLD_ID          = NVL($P{cldId} ,FN.CLD_ID )
+AND FN.SLOC_ID         = NVL($P{slocId},FN.SLOC_ID)
+AND FN.HO_ORG_ID       = NVL($P{hoOrgId},FN.ho_org_id)
+AND FN.ORG_ID          = NVL($P{orgId},FN.org_id)
+AND TRUNC(FN.emp_FNF_DT) >= NVL(to_date($P{FromDate},'yyyy-MM-dd'),TRUNC(FN.emp_FNF_DT))
+AND TRUNC(FN.emp_FNF_DT) <=NVL(to_date($P{ToDate},'yyyy-MM-dd'),TRUNC(FN.emp_FNF_DT))
+AND (FN.EMP_DEPT_ID    = NVL($P{crtValue},FN.EMP_DEPT_ID )
+OR FN.EMP_LOC_ID       = NVL($P{crtValue},FN.EMP_LOC_ID)
+OR FN.EMP_GRP_ID       = NVL($P{crtValue},FN.EMP_GRP_ID)
+OR FN.EMP_DOC_ID       =NVL($P{crtValue},FN.EMP_DOC_ID))
+AND FN.EMP_DOC_ID          = NVL($P{empDocId}, FN.EMP_DOC_ID)
+AND FN.EMP_DESG_ID     =NVL ($P{desgId}, FN.EMP_DESG_ID )
+--AND SAL_BEHAV IN (11,12,13)
+AND E.SHIFT_ID        =NVL($P{shiftId},E.SHIFT_ID)
+
+
+union
+
+
+
+SELECT DISTINCT
+B.DOC_ID DOC_ID,
+B.EMP_DOC_ID EMP_DOC_ID,
+round((sl.SAL_AMt/30)*emp_leave_bal,2) sal_amt,
+--B.SAL_BEHAV SAL_BEHAV,
+--FN.EMP_EAR_AMT SAL_AMT,
+--FN.EMP_EAR_AMT,
+--FN.TOT_EXT_TIME_AMT  ,
+'Leave Encashment' SAL_DESC
+from  hcm$emp$fnf fn, HCM$EMP$FNF$DTL  b ,HCM$SETUP C,  HCM$EMP$SHIFT e,
+  app.app$shift F,HCM$GRP$LVE$LYBLTY$CALC CL ,hcm$emp$sal sl
+WHERE
+
+  fn.cld_id = b.cld_id
+  and fn.org_id =b.org_id
+  and fn.sloc_id=b.sloc_Id
+  and fn.ho_org_id =B.HO_ORG_ID
+  and fn.emp_doc_id=b.emp_doc_id
+
+ AND FN.CLD_id=cl.CLD_ID
+ AND FN.ORG_id =CL.ORG_ID
+ AND FN.SLOC_ID=CL.SLOC_ID
+ AND FN.HO_ORG_ID=CL.HO_ORG_ID
+ and b.cld_id=sl.cld_id
+ and b.org_id=sl.org_id
+ and b.sloc_id =sl.sloc_id
+ and b.emp_doc_id=sl.doc_id
+ and B.SAL_ID    =SL.SAL_ID
+
+ AND fn.emp_GRP_ID=CL.GRP_ID
+
+AND b.CLD_id=cl.CLD_ID
+ AND b.ORG_id =CL.ORG_ID
+ AND b.SLOC_ID=CL.SLOC_ID
+ AND b.HO_ORG_ID=CL.HO_ORG_ID
+ AND b.SAL_ID=CL.SAL_ID
+
+
+  AND FN.CLD_ID          =E.CLD_ID
+  AND FN.SLOC_ID         =E.SLOC_ID
+  AND FN.ORG_ID          =E.ORG_ID
+  AND FN.HO_ORG_ID       =E.HO_ORG_ID
+  AND FN.EMP_DOC_ID      =E.DOC_ID
+
+
+
+   AND B.CLD_ID =C.CLD_ID
+   AND B.HO_ORG_ID=C.HO_ORG_ID
+   AND B.SLOC_ID=C.SLOC_ID
+   AND B.SAL_ID=C.PARAM_ID
+
+   AND E.CLD_ID          = F.CLD_ID
+   AND E.HO_ORG_ID       = F.HO_ORG_ID
+   AND E.SLOC_ID         = F.SLOC_ID
+   AND E.SHIFT_ID        = F.SHIFT_ID
+
+
+AND FN.CLD_ID          = NVL($P{cldId} ,FN.CLD_ID )
+AND FN.SLOC_ID         = NVL($P{slocId},FN.SLOC_ID)
+AND FN.HO_ORG_ID       = NVL($P{hoOrgId},FN.ho_org_id)
+AND FN.ORG_ID          = NVL($P{orgId},FN.org_id)
+AND TRUNC(FN.emp_FNF_DT) >= NVL(to_date($P{FromDate},'yyyy-MM-dd'),TRUNC(FN.emp_FNF_DT))
+AND TRUNC(FN.emp_FNF_DT) <=NVL(to_date($P{ToDate},'yyyy-MM-dd'),TRUNC(FN.emp_FNF_DT))
+AND (FN.EMP_DEPT_ID    = NVL($P{crtValue},FN.EMP_DEPT_ID )
+OR FN.EMP_LOC_ID       = NVL($P{crtValue},FN.EMP_LOC_ID)
+OR FN.EMP_GRP_ID       = NVL($P{crtValue},FN.EMP_GRP_ID)
+OR FN.EMP_DOC_ID       =NVL($P{crtValue},FN.EMP_DOC_ID))
+AND FN.EMP_DOC_ID          = NVL($P{empDocId}, FN.EMP_DOC_ID)
+AND FN.EMP_DESG_ID     =NVL ($P{desgId}, FN.EMP_DESG_ID )
+--AND SAL_BEHAV IN (11,12,13)
+AND E.SHIFT_ID        =NVL($P{shiftId},E.SHIFT_ID)]]>
+	</queryString>
+	<field name="DOC_ID" class="java.lang.String"/>
+	<field name="EMP_DOC_ID" class="java.lang.String"/>
+	<field name="SAL_AMT" class="java.math.BigDecimal"/>
+	<field name="SAL_DESC" class="java.lang.String"/>
+	<sortField name="SAL_AMT" order="Descending"/>
+	<variable name="totalEarn" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{SAL_AMT}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="6" y="0" width="194" height="12"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{SAL_DESC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="207" y="0" width="63" height="12"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{SAL_AMT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

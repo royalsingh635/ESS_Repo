@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Pf_Challan" language="groovy" pageWidth="980" pageHeight="595" orientation="Landscape" columnWidth="980" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Report\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT to_date($P{FromDate}, 'yyyy-MM-dd') fromdt,
+  to_date($P{ToDate}, 'yyyy-MM-dd') todt,
+  REPLACE(SUBSTR(ED.MISC_DOC_NO, LENGTH(ED.MISC_DOC_NO) - 2), '/', '') pf_1,
+  P.DOC_ID,
+  P.EMP_NM pf_2,
+
+ CASE WHEN TO_CHAR(TO_DATE(TO_CHAR(P.EMP_DOJ, 'DD-MM-YYYY'), 'DD-MM-YYYY'),'MM-YYYY') = to_CHAR(to_date($P{FromDate}, 'YYYY-MM-DD'), 'MM-YYYY')
+	   THEN P.EMP_GUARD_NM
+		ELSE ',' END "pf_17",
+	CASE WHEN TO_CHAR(TO_DATE(TO_CHAR(P.EMP_DOJ, 'DD-MM-YYYY'), 'DD-MM-YYYY'),'MM-YYYY') = to_CHAR(to_date($P{FromDate}, 'YYYY-MM-DD'), 'MM-YYYY')
+	   THEN SUBSTR(P.EMP_REL,1,1)
+		ELSE ',' END "pf_18",
+		CASE WHEN TO_CHAR(TO_DATE(TO_CHAR(P.EMP_DOJ, 'DD-MM-YYYY'), 'DD-MM-YYYY'),'MM-YYYY') = to_CHAR(to_date($P{FromDate}, 'YYYY-MM-DD'), 'MM-YYYY')
+	   THEN TO_CHAR(P.EMP_DOB, 'DD-MM-YYYY')
+		ELSE ',' END pf_19,
+(CASE WHEN TO_CHAR(TO_DATE(TO_CHAR(P.EMP_DOJ, 'DD-MM-YYYY'),
+'DD-MM-YYYY'),'MM-YYYY') = to_CHAR(to_date($P{FromDate}, 'YYYY-MM-DD'), 'MM-YYYY')
+THEN
+(SELECT SUBSTR(SP.PARAM_DESC,1,1)
+  FROM HCM$SETUP SP
+  WHERE SP.CLD_ID  = P.CLD_ID
+  AND SP.SLOC_ID   = P.SLOC_ID
+  AND SP.HO_ORG_ID = P.HO_ORG_ID
+  AND SP.PARAM_ID  = P.EMP_GEN
+  ) else ',' END)pf_20,
+  CASE WHEN TO_CHAR(TO_DATE(TO_CHAR(P.EMP_DOJ, 'DD-MM-YYYY'), 'DD-MM-YYYY'),'MM-YYYY') = to_CHAR(to_date($P{FromDate}, 'YYYY-MM-DD'), 'MM-YYYY')
+	   THEN TO_CHAR(P.EMP_DOJ, 'DD-MON -YYYY')
+		ELSE ',' END pf_21_22,
+  ROUND((SysDate - TO_DATE(TO_CHAR(P.EMP_DOB, 'DD-MON-YYYY'), 'DD-MON-YYYY')) / 365, 2) EMP_AGE,
+  CASE TO_CHAR(P.WRK_STAT)
+    WHEN '31'
+    THEN TO_CHAR(P.WRK_STAT_DT)
+    ELSE ','
+  END "pf_23",
+  CASE TO_CHAR(P.WRK_STAT)
+    WHEN '31'
+    THEN TO_CHAR(P.WRK_STAT_DT)
+    ELSE ','
+  END "pf_24",
+  CASE TO_CHAR(P.WRK_STAT)
+    WHEN '31'
+    THEN 'C'
+    ELSE ','
+  END "pf_25",
+  D.MISC_DED_LIMIT,
+  PFD.EMP_DED_AMT PF_DED_AMT,
+  NVL(PFD.EPF_AMT, 0) "EPS contribution Due",
+  PFD.EMP_DED_AMT - NVL(PFD.EPF_AMT, 0) EG,
+  (SELECT COUNT(  *)
+  FROM HCM$TIME$MOVE$EDIT$DTL DTL
+  WHERE DTL.CLD_ID   = P.CLD_ID
+  AND DTL.SLOC_ID    = P.SLOC_ID
+  AND DTL.HO_ORG_ID  = P.HO_ORG_ID
+  AND DTL.ORG_ID     = P.ORG_ID
+  AND DTL.EMP_DOC_ID = P.DOC_ID
+  AND DTL.ATTEN_DT  >= PS.PROC_FRM_DT
+  AND DTL.ATTEN_DT  <= PS.PROC_TO_DT
+  AND DTL.DED_CH     = 'Y'
+  ) pf_11,
+  0 "EPF Contribution E_COL",
+  0 "EPF Contribution_remitted_F",
+  0 "EPS contribution_remitted_H",
+  0 "Diff EPF and EPS_J",
+  0 "pf_12",
+  0 "pf_15",
+  0 "pf_16",
+  0 "pf_14",
+  0 "pf_13",
+  CASE WHEN ROUND((SysDate - TO_DATE(TO_CHAR(P.EMP_DOB, 'DD-MON-YYYY'), 'DD-MON-YYYY')) / 365, 2)>58
+       THEN 0
+       ELSE
+       PFD.EPF_AMT END pf_7,
+  CASE WHEN ROUND((SysDate - TO_DATE(TO_CHAR(P.EMP_DOB, 'DD-MON-YYYY'), 'DD-MON-YYYY')) / 365, 2)>58
+       THEN 0
+       ELSE
+       PFD.EPF_AMT END  pf_8, ---PFD.FPF_AMT
+  PFD.EMP_DED_AMT-(CASE WHEN ROUND((SysDate - TO_DATE(TO_CHAR(P.EMP_DOB, 'DD-MON-YYYY'), 'DD-MON-YYYY')) / 365, 2)>58
+       THEN 0
+       ELSE
+       PFD.EPF_AMT END) pf_9,
+  PFD.EMP_DED_AMT-(CASE WHEN ROUND((SysDate - TO_DATE(TO_CHAR(P.EMP_DOB, 'DD-MON-YYYY'), 'DD-MON-YYYY')) / 365, 2)>58
+       THEN 0
+       ELSE
+       PFD.EPF_AMT END) pf_10,
+  PFD.EMP_DED_AMT pf_5,
+  PFD.EMPR_DED_AMT pf_6,
+
+  (
+  CASE
+    WHEN PS.SAL_AMT >15000
+    AND NVL(ED.PF_ON_ACT_BS_CHK, 'N') = 'N'
+    THEN 15000
+    WHEN PS.SAL_AMT >= 15000
+    AND NVL(ED.PF_ON_ACT_BS_CHK, 'N') = 'Y'
+    THEN PS.SAL_AMT
+    ELSE PS.SAL_AMT
+  END) pf_3,
+  (
+  CASE
+    WHEN PS.SAL_AMT >= 15000
+    AND ROUND((SysDate - TO_DATE(TO_CHAR(P.EMP_DOB, 'DD-MON-YYYY'), 'DD-MON-YYYY')) / 365, 2) < 58
+    THEN 15000
+    WHEN PS.SAL_AMT                                                                           < 15000
+    AND ROUND((SysDate - TO_DATE(TO_CHAR(P.EMP_DOB, 'DD-MON-YYYY'), 'DD-MON-YYYY')) / 365, 2) < 58
+    THEN PS.SAL_AMT
+    WHEN PS.SAL_AMT                                                                            < 15000
+    AND ROUND((SysDate - TO_DATE(TO_CHAR(P.EMP_DOB, 'DD-MON-YYYY'), 'DD-MON-YYYY')) / 365, 2) >= 58
+    THEN 0
+    ELSE 0
+  END) pf_4
+FROM HCM$DED D,
+  HCM$DS$ATT T,
+  HCM$DED$SAL DS,
+  HCM$SAL$PROC$SAL PS,
+  HCM$EMP$DED ED,
+  ORG$HCM$EMP$PRF P,
+  HCM$MON$PF$DED PFD
+WHERE DS.CLD_ID     = D.CLD_ID
+AND DS.SLOC_ID      = D.SLOC_ID
+AND DS.HO_ORG_ID    = D.HO_ORG_ID
+AND DS.ORG_ID       = D.ORG_ID
+AND DS.DOC_ID       = D.DOC_ID
+AND ED.CLD_ID       = D.CLD_ID
+AND ED.SLOC_ID      = D.SLOC_ID
+AND ED.HO_ORG_ID    = D.HO_ORG_ID
+AND ED.ORG_ID       = D.ORG_ID
+AND ED.DED_DOC_ID   = D.DOC_ID
+AND ED.CLD_ID       = PS.CLD_ID
+AND ED.SLOC_ID      = PS.SLOC_ID
+AND ED.HO_ORG_ID    = PS.HO_ORG_ID
+AND ED.ORG_ID       = PS.ORG_ID
+AND ED.EMP_DOC_ID   = PS.EMP_DOC_ID
+AND PS.CLD_ID       = DS.CLD_ID
+AND PS.SLOC_ID      = DS.SLOC_ID
+AND PS.HO_ORG_ID    = DS.HO_ORG_ID
+AND PS.ORG_ID       = DS.ORG_ID
+AND PS.SAL_ID       = DS.SAL_ID
+AND P.CLD_ID        = PS.CLD_ID
+AND P.SLOC_ID       = PS.SLOC_ID
+AND P.HO_ORG_ID     = PS.HO_ORG_ID
+AND P.ORG_ID        = PS.ORG_ID
+AND P.DOC_ID        = PS.EMP_DOC_ID
+AND PFD.CLD_ID      = PS.CLD_ID
+AND PFD.SLOC_ID     = PS.SLOC_ID
+AND PFD.HO_ORG_ID   = PS.HO_ORG_ID
+AND PFD.ORG_ID      = PS.ORG_ID
+AND PFD.EMP_DOC_ID  = PS.EMP_DOC_ID
+AND PFD.DED_DOC_ID  = D.DOC_ID
+AND PFD.PROC_FRM_DT = PS.PROC_FRM_DT
+AND PFD.PROC_TO_DT  = PS.PROC_TO_DT
+AND D.DED_TYPE      = T.ATT_ID
+AND PFD.ORG_ID      = ED.ORG_ID
+AND PFD.CLD_ID      = ED.CLD_ID
+AND PFD.SLOC_ID     = ED.SLOC_ID
+AND PFD.HO_ORG_ID   = ED.HO_ORG_ID
+AND PFD.EMP_DOC_ID  = ED.EMP_DOC_ID
+AND (P.DOC_ID       = $P{crtValue}
+OR P.EMP_DEPT_ID    = $P{crtValue}
+OR P.EMP_LOC_ID     = $P{crtValue}
+OR P.EMP_GRP_ID     = $P{crtValue})
+AND PFD.PROC_FRM_DT  = to_date(to_date($P{FromDate}, 'yyyy-mm-dd'), 'dd-mm-yy')
+AND PFD.PROC_TO_DT   = to_date(to_date($P{ToDate}, 'yyyy-mm-dd'), 'dd-mm-yy')
+AND T.ATT_ID        = 66
+AND D.ORG_ID        = $P{orgId}
+AND D.HO_ORG_ID     = $P{hoOrgId}
+AND D.SLOC_ID       = $P{slocId}
+AND D.CLD_ID        = $P{cldId}]]>
+	</queryString>
+	<field name="FROMDT" class="java.sql.Timestamp"/>
+	<field name="TODT" class="java.sql.Timestamp"/>
+	<field name="PF_1" class="java.lang.String"/>
+	<field name="DOC_ID" class="java.lang.String"/>
+	<field name="PF_2" class="java.lang.String"/>
+	<field name="pf_17" class="java.lang.String"/>
+	<field name="pf_18" class="java.lang.String"/>
+	<field name="PF_19" class="java.lang.String"/>
+	<field name="PF_20" class="java.lang.String"/>
+	<field name="PF_21_22" class="java.lang.String"/>
+	<field name="EMP_AGE" class="java.math.BigDecimal"/>
+	<field name="pf_23" class="java.lang.String"/>
+	<field name="pf_24" class="java.lang.String"/>
+	<field name="pf_25" class="java.lang.String"/>
+	<field name="MISC_DED_LIMIT" class="java.math.BigDecimal"/>
+	<field name="PF_DED_AMT" class="java.math.BigDecimal"/>
+	<field name="EPS contribution Due" class="java.math.BigDecimal"/>
+	<field name="EG" class="java.math.BigDecimal"/>
+	<field name="PF_11" class="java.math.BigDecimal"/>
+	<field name="EPF Contribution E_COL" class="java.math.BigDecimal"/>
+	<field name="EPF Contribution_remitted_F" class="java.math.BigDecimal"/>
+	<field name="EPS contribution_remitted_H" class="java.math.BigDecimal"/>
+	<field name="Diff EPF and EPS_J" class="java.math.BigDecimal"/>
+	<field name="pf_12" class="java.math.BigDecimal"/>
+	<field name="pf_15" class="java.math.BigDecimal"/>
+	<field name="pf_16" class="java.math.BigDecimal"/>
+	<field name="pf_14" class="java.math.BigDecimal"/>
+	<field name="pf_13" class="java.math.BigDecimal"/>
+	<field name="PF_7" class="java.math.BigDecimal"/>
+	<field name="PF_8" class="java.math.BigDecimal"/>
+	<field name="PF_9" class="java.math.BigDecimal"/>
+	<field name="PF_10" class="java.math.BigDecimal"/>
+	<field name="PF_5" class="java.math.BigDecimal"/>
+	<field name="PF_6" class="java.math.BigDecimal"/>
+	<field name="PF_3" class="java.math.BigDecimal"/>
+	<field name="PF_4" class="java.math.BigDecimal"/>
+	<detail>
+		<band height="25" splitType="Prevent">
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="31" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{PF_1}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="30" y="0" width="35" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{PF_2}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="91" y="0" width="40" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PF_4}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="449" y="0" width="29" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PF_11}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="771" y="0" width="24" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{PF_19}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="824" y="0" width="35" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{PF_21_22}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="858" y="0" width="30" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{PF_21_22}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="64" y="0" width="27" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PF_3}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="257" y="0" width="50" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PF_9}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="307" y="0" width="51" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PF_10}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="358" y="0" width="44" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PF_7}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="402" y="0" width="48" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PF_8}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="130" y="0" width="66" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PF_5}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="196" y="0" width="61" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PF_6}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="477" y="0" width="40" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{pf_12}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="516" y="0" width="42" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{pf_13}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="557" y="0" width="42" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{pf_14}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="599" y="0" width="38" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{pf_15}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="637" y="0" width="36" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{pf_16}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="672" y="0" width="41" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{pf_17}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="712" y="0" width="60" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{pf_18}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="794" y="0" width="31" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{PF_20}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="887" y="0" width="29" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{pf_23}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="915" y="0" width="30" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{pf_24}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="944" y="0" width="30" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{pf_25}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

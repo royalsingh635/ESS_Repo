@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AccReceivableChequePrint" language="groovy" pageWidth="595" pageHeight="264" columnWidth="573" leftMargin="8" rightMargin="14" topMargin="2" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Org_Id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="From_Date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="To_Date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="Cld_Id" class="java.lang.String"/>
+	<parameter name="Sloc_Id" class="java.lang.Integer"/>
+	<parameter name="Vou_From_Date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Vou_To_Date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Bank_Coa_Id" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Party_Coa_id" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Amount-X1" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Amount-X2" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Disp_Vou_Id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT a.org_desc,
+gl_instrmnt_nm "in favor of",
+gl_instrmnt_no,
+gl_instrmnt_dt,
+SUBSTR(to_char(gl_instrmnt_dt,'ddmmyyyy'),1,1)||'   '||
+SUBSTR(to_char(gl_instrmnt_dt,'ddmmyyyy'),2,1)||'   '||
+SUBSTR(to_char(gl_instrmnt_dt,'ddmmyyyy'),3,1)||'   '||
+SUBSTR(to_char(gl_instrmnt_dt,'ddmmyyyy'),4,1)||'   '||
+SUBSTR(to_char(gl_instrmnt_dt,'ddmmyyyy'),5,1)||'   '||
+SUBSTR(to_char(gl_instrmnt_dt,'ddmmyyyy'),6,1)||'   '||
+SUBSTR(to_char(gl_instrmnt_dt,'ddmmyyyy'),7,1)||'   '||
+SUBSTR(to_char(gl_instrmnt_dt,'ddmmyyyy'),8,1) dt,
+gl_vou_dt,
+gl_amt_sp,
+amt_in_words,
+decode(instr(amt_in_words,'+'),0,amt_in_words,substr(amt_in_words,1,instr(amt_in_words,'+')-1)) str1,
+decode(instr(amt_in_words,'+'),0,null,substr(amt_in_words,instr(amt_in_words,'+')+1)) str2,
+DD,
+b.coa_nm coa_nm
+FROM app.org a,
+     (
+     SELECT b.gl_cld_id,
+            b.gl_org_id org,
+            a.coa_nm,
+            b.gl_instrmnt_nm,
+            b.gl_instrmnt_no,
+            b.gl_instrmnt_dt,
+            gl_vou_dt,
+            b.gl_amt_sp,
+            'ChqNo.'||b.gl_instrmnt_no|| '   '||a.coa_nm as DD,
+	  app.FN_DGT_TO_WORD(gl_amt_sp,73,null,null,'Y',80,'N','P','P','Y','I') amt_in_words,
+      DECODE (gl_type_id, '2', b.gl_coa_id, '3',gl_coa_bnk_id) as rec
+
+	  FROM fin$coa a,
+	  gl_line_instrumnt b,
+	  app.app$doc$txn c
+
+	  WHERE b.gl_cld_id = nvl($P{Cld_Id},b.gl_cld_id)
+      and b.gl_sloc_id = nvl($P{Sloc_Id},b.gl_sloc_id)
+      and b.gl_org_id = nvl($P{Org_Id},b.gl_org_id)
+	  and b.gl_coa_bnk_id = nvl($P{Bank_Coa_Id},b.gl_coa_bnk_id)
+      and b.gl_coa_id = nvl($P{Party_Coa_id},b.gl_coa_id)
+      and b.gl_vou_dt between nvl(to_date($P{Vou_From_Date},'yyyy-MM-dd'),b.gl_vou_dt )and  nvl(to_date($P{Vou_To_Date},'yyyy-MM-dd'),b.gl_vou_dt)
+      AND b.gl_instrmnt_dt between nvl(to_date($P{From_Date},'yyyy-MM-dd'),b.gl_instrmnt_dt) and  nvl(to_date($P{To_Date},'yyyy-MM-dd'),b.gl_instrmnt_dt)
+      and b.gl_amt_sp >= nvl($P{Amount-X1},0)
+      and b.gl_amt_sp <= nvl($P{Amount-X2},9999999999)
+
+	  and a.coa_cld_id = b.gl_cld_id
+      and a.coa_sloc_id = b.gl_sloc_id
+      and a.coa_ho_org_id = b.gl_ho_org_id
+	  and a.coa_id = b.gl_coa_id
+
+	  --and DECODE (gl_type_id, '2', b.gl_coa_id, '3',gl_coa_bnk_id) = a.coa_id
+
+	  and b.gl_cld_id = c.DOC_CLD_ID
+      and b.gl_sloc_id = c.DOC_SLOC_ID
+      and b.gl_org_id = c.DOC_ORG_ID
+      and b.gl_vou_id = c.DOC_TXN_ID
+      and substr(c.DOC_TXN_ID_DISP,3) like nvl($P{Disp_Vou_Id},substr(c.DOC_TXN_ID_DISP,3))
+      ) b
+where a.org_cld_id = nvl($P{Cld_Id},a.org_cld_id)
+and a.org_id = nvl($P{Org_Id},a.org_id)
+and b.gl_cld_id = a.org_cld_id
+and b.org = a.org_id]]>
+	</queryString>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="in favor of" class="java.lang.String"/>
+	<field name="GL_INSTRMNT_NO" class="java.lang.String"/>
+	<field name="GL_INSTRMNT_DT" class="java.sql.Timestamp"/>
+	<field name="DT" class="java.lang.String"/>
+	<field name="GL_VOU_DT" class="java.sql.Timestamp"/>
+	<field name="GL_AMT_SP" class="java.math.BigDecimal"/>
+	<field name="AMT_IN_WORDS" class="java.lang.String"/>
+	<field name="STR1" class="java.lang.String"/>
+	<field name="STR2" class="java.lang.String"/>
+	<field name="DD" class="java.lang.String"/>
+	<field name="COA_NM" class="java.lang.String"/>
+	<variable name="fn_split_string" class="java.lang.String"/>
+	<group name="ChequeNoGroup" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{GL_INSTRMNT_NO}]]></groupExpression>
+		<groupHeader>
+			<band height="262">
+				<textField pattern="">
+					<reportElement x="434" y="10" width="139" height="15"/>
+					<textElement verticalAlignment="Top">
+						<font size="11" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{DT}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="58" y="49" width="362" height="14"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{in favor of}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00">
+					<reportElement x="452" y="91" width="104" height="20"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{GL_AMT_SP}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="90" y="73" width="405" height="18"/>
+					<textElement>
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{STR1}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="57" y="96" width="377" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{STR2}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="208" y="179" width="100" height="15"/>
+					<textElement>
+						<font size="10" isBold="true" isUnderline="true"/>
+					</textElement>
+					<text><![CDATA[A/C Payee Only]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+	</group>
+</jasperReport>

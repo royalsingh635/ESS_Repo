@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Atten_Register" pageWidth="1940" pageHeight="842" columnWidth="1900" leftMargin="20" rightMargin="20" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="1141"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select nvl(ac.atten_dt,dt.all_dt) atten_dt,(select org_desc from app.org where org_id=$P{orgId} and org_cld_id=$P{cldId}) org_desc,org_id,
+(case when ac.leave_id is not null or ac.ded_ch='F' or ac.ded_ch='H' then 'A' else 'P' end) att,emp_nm,
+nvl(TO_CHAR (in_time, 'HH24:MI'),'') in_time,nvl(TO_CHAR (out_time, 'HH24:MI'),'') out_time,dept
+from
+(select --to_char(trunc(t.atten_dt),'DD-MON-YY') atten_dt
+t.atten_dt,t.leave_id,t.ded_ch,e.emp_nm,
+(select d.dept_nm from app.app$dept d
+	        where d.cld_id = e.cld_id
+                  and d.sloc_id = e.sloc_id
+                  and d.ho_org_id = e.ho_org_id
+                  and rownum=1)dept,
+
+(select org_desc from app.org where org_id=e.org_id and org_cld_id=e.cld_id) org_desc,t.org_id
+,t.in_time,t.out_time
+from hcm$time$move$edit$dtl t,org$hcm$emp$prf e
+where t.cld_id(+)=e.cld_id
+and t.sloc_id(+)=e.sloc_id
+and t.org_id(+)=e.org_id
+and t.ho_org_id(+)=e.ho_org_id
+and t.emp_doc_id(+)=e.doc_id
+--and t.atten_dt(+) = dd.all_dt(+)
+AND trunc(t.atten_dt) >= nvl(to_date($P{FromDate},'yyyy-MM-dd'),trunc(t.atten_dt))
+AND trunc(t.atten_dt) <=nvl(to_date($P{ToDate},'yyyy-MM-dd'),trunc(t.atten_dt))
+AND t.CLD_ID = nvl($P{cldId},t.CLD_ID)
+AND t.SLOC_ID = nvl($P{slocId},t.SLOC_ID)
+AND t.HO_ORG_ID = nvl($P{hoOrgId},t.HO_ORG_ID)
+AND t.ORG_ID = nvl($P{orgId},t.ORG_ID)
+AND (e.EMP_DEPT_ID = $P{crtValue} OR e.EMP_LOC_ID =  $P{crtValue}
+OR e.EMP_GRP_ID = $P{crtValue} OR e.DOC_ID =$P{crtValue})
+AND e.DOC_ID = NVL($P{empDocId}, e.DOC_ID)) ac,
+(SELECT (TRUNC (to_date($P{FromDate},'yyyy-MM-dd'), 'MON') +rownum-1) all_dt
+FROM DUAL
+CONNECT BY LEVEL <= substr(to_date($P{ToDate},'yyyy-MM-dd'),0,2))dt
+where ac.atten_dt(+) = dt.all_dt
+order by dt.all_dt]]>
+	</queryString>
+	<field name="ATTEN_DT" class="java.sql.Timestamp"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="ATT" class="java.lang.String"/>
+	<field name="EMP_NM" class="java.lang.String"/>
+	<field name="IN_TIME" class="java.lang.String"/>
+	<field name="OUT_TIME" class="java.lang.String"/>
+	<field name="DEPT" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="72" splitType="Stretch">
+			<textField>
+				<reportElement x="1609" y="5" width="284" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[( $P{orgId} == "" ? "All Organisation" : $F{ORG_DESC} )]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement x="0" y="6" width="156" height="36"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<line>
+				<reportElement x="0" y="65" width="1900" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="68" width="1900" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField hyperlinkType="Reference">
+				<reportElement x="4" y="46" width="259" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Organisation : "+$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1607" y="26" width="284" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10"/>
+				</textElement>
+				<text><![CDATA[Daily Hours Detail]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="1791" y="45" width="100" height="15"/>
+				<subreportParameter name="ToDate">
+					<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="FromDate">
+					<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Date_SubReport.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</pageHeader>
+	<pageFooter>
+		<band height="22" splitType="Stretch">
+			<textField>
+				<reportElement x="1773" y="7" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="4" y="6" width="120" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="1853" y="7" width="40" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="4" width="1900" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="5" width="1900" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.0"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="31">
+			<staticText>
+				<reportElement x="469" y="11" width="313" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated by ebizframe 10]]></text>
+			</staticText>
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="1855" y="12" width="40" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="1775" y="12" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="1" y="11" width="120" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="7" width="1900" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.0"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="3" width="1900" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</lastPageFooter>
+	<summary>
+		<band height="55" splitType="Stretch">
+			<elementGroup>
+				<crosstab>
+					<reportElement x="0" y="0" width="1900" height="55"/>
+					<crosstabHeaderCell>
+						<cellContents>
+							<box>
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="104" height="20" backcolor="#F0F8FF"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Left" verticalAlignment="Middle">
+									<font fontName="Arial" isBold="true"/>
+								</textElement>
+								<text><![CDATA[  STAFF]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="20" width="104" height="22" backcolor="#F0F8FF"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Left" verticalAlignment="Middle">
+									<font fontName="Arial" isBold="true"/>
+								</textElement>
+								<text><![CDATA[  NAME]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="104" y="0" width="79" height="20" backcolor="#F0F8FF"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Left" verticalAlignment="Middle">
+									<font fontName="Arial" isBold="true"/>
+								</textElement>
+								<text><![CDATA[]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="104" y="20" width="79" height="22" backcolor="#F0F8FF"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Left" verticalAlignment="Middle">
+									<font fontName="Arial" isBold="true"/>
+								</textElement>
+								<text><![CDATA[  DEPARTMENT]]></text>
+							</staticText>
+						</cellContents>
+					</crosstabHeaderCell>
+					<rowGroup name="EMP_NM" width="104">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{EMP_NM}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents mode="Opaque">
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="5" y="0" width="99" height="20" isRemoveLineWhenBlank="true"/>
+									<textElement textAlignment="Left" verticalAlignment="Middle">
+										<font fontName="Arial" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{EMP_NM}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+							</cellContents>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Department" width="79">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{DEPT}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="79" height="20"/>
+									<box>
+										<topPen lineWidth="0.5"/>
+										<leftPen lineWidth="0.5"/>
+										<bottomPen lineWidth="0.5"/>
+										<rightPen lineWidth="0.5"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{Department}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<columnGroup name="ATTEN_DT" height="20">
+						<bucket>
+							<bucketExpression class="java.sql.Timestamp"><![CDATA[$F{ATTEN_DT}]]></bucketExpression>
+						</bucket>
+						<crosstabColumnHeader>
+							<cellContents backcolor="#F0F8FF" mode="Opaque">
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textField pattern="dd-MMM" isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="54" height="20"/>
+									<box>
+										<topPen lineWidth="0.5"/>
+										<leftPen lineWidth="0.5"/>
+										<bottomPen lineWidth="0.5"/>
+										<rightPen lineWidth="0.5"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression class="java.sql.Timestamp"><![CDATA[$V{ATTEN_DT}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabColumnHeader>
+						<crosstabTotalColumnHeader>
+							<cellContents>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+							</cellContents>
+						</crosstabTotalColumnHeader>
+					</columnGroup>
+					<columnGroup name="InOut" height="22" totalPosition="End">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA["In     Out"]]></bucketExpression>
+						</bucket>
+						<crosstabColumnHeader>
+							<cellContents>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="54" height="22" backcolor="#F0F8FF"/>
+									<box>
+										<topPen lineWidth="0.5"/>
+										<leftPen lineWidth="0.5"/>
+										<bottomPen lineWidth="0.5"/>
+										<rightPen lineWidth="0.5"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" isBold="true"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{InOut}]]></textFieldExpression>
+								</textField>
+								<line>
+									<reportElement style="Crosstab Data Text" x="26" y="0" width="1" height="22"/>
+								</line>
+							</cellContents>
+						</crosstabColumnHeader>
+						<crosstabTotalColumnHeader>
+							<cellContents/>
+						</crosstabTotalColumnHeader>
+					</columnGroup>
+					<measure name="InTime" class="java.lang.String">
+						<measureExpression><![CDATA[$F{IN_TIME}]]></measureExpression>
+					</measure>
+					<measure name="OutTime" class="java.lang.String">
+						<measureExpression><![CDATA[$F{OUT_TIME}]]></measureExpression>
+					</measure>
+					<measure name="Time" class="java.lang.String" calculation="Count">
+						<measureExpression><![CDATA[""]]></measureExpression>
+					</measure>
+					<crosstabCell width="54" height="20">
+						<cellContents>
+							<box>
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textField isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="27" height="20"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8"/>
+								</textElement>
+								<textFieldExpression class="java.lang.String"><![CDATA[$V{InTime}]]></textFieldExpression>
+							</textField>
+							<textField isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="26" y="0" width="27" height="20"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8"/>
+								</textElement>
+								<textFieldExpression class="java.lang.String"><![CDATA[$V{OutTime}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell height="25" rowTotalGroup="EMP_NM">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25"/>
+								<textElement/>
+								<textFieldExpression class="java.lang.String"><![CDATA[$V{Time}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="50" columnTotalGroup="ATTEN_DT">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25"/>
+								<textElement/>
+								<textFieldExpression class="java.lang.String"><![CDATA[$V{Time}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="EMP_NM" columnTotalGroup="ATTEN_DT">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25"/>
+								<textElement/>
+								<textFieldExpression class="java.lang.String"><![CDATA[$V{Time}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="0" height="20" columnTotalGroup="InOut">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="EMP_NM" columnTotalGroup="InOut">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Department">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Department" columnTotalGroup="ATTEN_DT">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Department" columnTotalGroup="InOut">
+						<cellContents/>
+					</crosstabCell>
+				</crosstab>
+			</elementGroup>
+		</band>
+	</summary>
+</jasperReport>

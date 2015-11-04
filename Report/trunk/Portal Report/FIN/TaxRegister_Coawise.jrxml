@@ -1,0 +1,1005 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="TaxRegister_Coawise" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="400"/>
+	<style name="HeaderStyle">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("D")]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("R")]]></conditionExpression>
+			<style backcolor="#FF0000"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("G")]]></conditionExpression>
+			<style backcolor="#CDDB27"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("Y")]]></conditionExpression>
+			<style backcolor="#FFFF00"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("GG")]]></conditionExpression>
+			<style backcolor="#CCCCCC"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("B")]]></conditionExpression>
+			<style backcolor="#3333FF"/>
+		</conditionalStyle>
+	</style>
+	<style name="BgColorStyle">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("D")]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("R")]]></conditionExpression>
+			<style backcolor="#F5B5B5"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("G")]]></conditionExpression>
+			<style backcolor="#DDE39B"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("Y")]]></conditionExpression>
+			<style backcolor="#FFFF95"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("GG")]]></conditionExpression>
+			<style backcolor="#EBEBEB"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("B")]]></conditionExpression>
+			<style backcolor="#BEBEED"/>
+		</conditionalStyle>
+	</style>
+	<style name="DetailStyle" mode="Opaque" fill="Solid" radius="10" isBlankWhenNull="true" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{COLUMN_COUNT}%2 == 0]]></conditionExpression>
+			<style backcolor="#CCCCFF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="Org_Id" class="java.lang.String"/>
+	<parameter name="From_Date" class="java.lang.String"/>
+	<parameter name="To_Date" class="java.lang.String"/>
+	<parameter name="Cld_Id" class="java.lang.String"/>
+	<parameter name="Coa_Id" class="java.math.BigDecimal"/>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="Margin_Detail" class="java.lang.String"/>
+	<parameter name="Head" class="java.lang.String"/>
+	<parameter name="BgColor" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT
+TYPE_APAR,
+ORG_DESC,
+TAX_NAME,
+PERCENTAGE,
+ACCOUNT_NAME,
+ACCOUNT_ID,
+BASEAMOUNT BASE_AMOUNT,
+VOUCHERID VOUCHER_ID,
+VOUCHERDATE VOUCHER_DATE,
+TDSTYPE TAX_TYPE,
+TDSAMOUNT TAX_AMOUNT,
+TDS_AMT Taxable_Amt
+FROM(
+
+	select
+	'AP' TYPE_APAR,
+	c.org_desc,
+	b.coa_nm tax_name,
+	tax.TAX_PER Percentage,
+	AP.coa_nm account_name,
+	ap.AP_COA_ID Account_id,
+	--nvl(ap.AP_AMT_SP,0)*nvl(ap.AP_CC,1) BaseAmount,
+	a.GL_TDS_RULE_OP_AMT_LINE BaseAmount,
+	substr(d.DOC_TXN_ID_DISP,3) VoucherId,
+	a.GL_VOU_DT VoucherDate,
+	a.GL_TDS_RULE_BAL_TYPE TdsType,
+	a.GL_TDS_RULE_TDS_AMT_SP TdsAmount,
+	a.GL_TDS_RULE_OP_AMT_LINE TDS_AMT
+	from  (select distinct a.gl_cld_id gl_cld_id,
+						a.ap_sloc_id,
+						a.gl_ho_org_id,
+						a.ap_org_id,
+						a.ap_coa_id,
+						a.ap_vou_id,
+						e.coa_nm
+				from ap a,
+								fin$coa e
+				where a.GL_CLD_ID = $P{Cld_Id}
+				and   a.AP_ORG_ID = nvl( $P{Org_Id}, A.AP_ORG_ID)
+				and   a.AP_COA_ID = nvl( $P{Coa_Id}, a.AP_COA_ID)
+				and   TRUNC(a.AP_VOU_DT) > = to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD')
+				and   TRUNC(a.AP_VOU_DT) < = to_date(NVL($P{To_Date},SYSDATE),'YYYY-MM-DD')
+
+				and   a.gl_cld_id = e.coa_cld_id
+				and   a.ap_sloc_id = e.coa_sloc_id
+				and   a.gl_ho_org_id = e.coa_ho_org_id
+				and   a.ap_coa_id = e.coa_id) ap,
+				gl_tds_rule_line a,
+				fin$coa b ,
+				app.org c,
+				app.app$doc$txn d,
+				app.app$tax$rule$line tb,
+				app.app$tax$rule tt,
+				app.app$tax tax
+	where a.GL_CLD_ID = $P{Cld_Id}
+	and   a.GL_ORG_ID = nvl( $P{Org_Id}, a.GL_ORG_ID)
+	and   TRUNC(a.GL_VOU_DT) > = to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD')
+	and   TRUNC(a.GL_VOU_DT) < = to_date(NVL($P{To_Date},SYSDATE),'YYYY-MM-DD')
+	and   a.gl_tds_rule_priority <> 0
+	and   a.gl_tds_rule_slno <> 1 --new
+
+	and   a.gl_cld_id = b.coa_cld_id
+	and   a.gl_sloc_id = b.coa_sloc_id
+	and   a.gl_ho_org_id = b.coa_ho_org_id
+	and   a.gl_tds_rule_coa_id = b.coa_id
+
+	and   a.gl_cld_id = d.doc_cld_id
+	and   a.gl_sloc_id = d.doc_sloc_id
+	and   a.gl_org_id = d.doc_org_id
+	and   d.doc_id = 56
+	and   a.gl_vou_id = d.doc_txn_id
+
+	and        a.gl_cld_id = org_cld_id --new
+	and   a.gl_org_id = c.org_id
+
+	and   a.gl_cld_id = ap.gl_cld_id
+   and   a.gl_sloc_id = ap.ap_sloc_id
+	and   a.gl_ho_org_id = ap.gl_ho_org_id
+	and   a.gl_org_id = ap.ap_org_id
+	and   a.gl_vou_id = ap.ap_vou_id
+
+	and tb.tax_cld_id = a.gl_cld_id
+	and tb.tax_rule_sloc_id = a.gl_sloc_id
+	and tb.tax_ho_org_id = a.gl_ho_org_id
+	and tb.tax_rule_id = decode(a.GL_TDS_APP_FLG, 'M', tb.tax_rule_id, a.gl_tds_rule_id)
+	and tb.tax_rule_slno = decode(a.GL_TDS_APP_FLG, 'M', tb.tax_rule_slno, a.gl_tds_rule_slno)
+	and tb.tax_id = a.gl_tds_id
+
+	and tt.tax_cld_id = tb.tax_cld_id
+	and tt.tax_rule_sloc_id = tb.tax_rule_sloc_id
+	and tt.tax_ho_org_id = tb.tax_ho_org_id
+	and tt.tax_rule_id = tb.tax_rule_id
+	and tt.tax_type_tds = 'Y'
+
+	and   tax.cld_id = tb.tax_cld_id
+	and   tax.tax_sloc_id = tb.tax_rule_sloc_id
+	and   tax.ho_org_id = tb.tax_ho_org_id
+	and   tax.tax_id = tb.tax_id
+	and        tax.TAX_REG_TYPE = 'T'
+
+	UNION
+
+	select
+	'AR' TYPE_APAR,
+	c.org_desc,
+	b.coa_nm tax_name,
+	tax.TAX_PER Percentage,
+	AR.coa_nm account_name,
+	aR.AR_COA_ID Account_id,
+	--nvl(ap.AP_AMT_SP,0)*nvl(ap.AP_CC,1) BaseAmount,
+	a.GL_TDS_RULE_OP_AMT_LINE BaseAmount,
+	substr(d.DOC_TXN_ID_DISP,3) VoucherId,
+	a.GL_VOU_DT VoucherDate,
+	a.GL_TDS_RULE_BAL_TYPE TdsType,
+	a.GL_TDS_RULE_TDS_AMT_SP TdsAmount,
+	a.GL_TDS_RULE_OP_AMT_LINE TDS_AMT
+	from  (select distinct a.gl_cld_id gl_cld_id,
+						a.ar_sloc_id,
+						a.gl_ho_org_id,
+						a.ar_org_id,
+						a.ar_coa_id,
+						a.ar_vou_id,
+						e.coa_nm
+			from ar a,
+							fin$coa e
+			where a.GL_CLD_ID = $P{Cld_Id}
+			and   a.AR_ORG_ID = nvl( $P{Org_Id}, A.AR_ORG_ID)
+			and   a.AR_COA_ID = nvl( $P{Coa_Id}, a.AR_COA_ID)
+			and   TRUNC(a.AR_VOU_DT) > = to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD')
+			and   TRUNC(a.AR_VOU_DT) < = to_date(NVL($P{To_Date},SYSDATE),'YYYY-MM-DD')
+
+			and   a.gl_cld_id = e.coa_cld_id
+			and   a.ar_sloc_id = e.coa_sloc_id
+			and   a.gl_ho_org_id = e.coa_ho_org_id
+			and   a.ar_coa_id = e.coa_id) ar,
+			gl_tds_rule_line a,
+			fin$coa b ,
+			app.org c,
+			app.app$doc$txn d,
+			app.app$tax$rule$line tb,
+			app.app$tax$rule tt,
+			app.app$tax tax
+	where a.GL_CLD_ID = $P{Cld_Id}
+	and   a.GL_ORG_ID = nvl( $P{Org_Id}, a.GL_ORG_ID)
+	and   TRUNC(a.GL_VOU_DT) > = to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD')
+	and   TRUNC(a.GL_VOU_DT) < = to_date(NVL($P{To_Date},SYSDATE),'YYYY-MM-DD')
+	and   a.gl_tds_rule_priority <> 0
+	and   a.gl_tds_rule_slno <> 1 --new
+
+	and   a.gl_cld_id = b.coa_cld_id
+	and   a.gl_sloc_id = b.coa_sloc_id
+	and   a.gl_ho_org_id = b.coa_ho_org_id
+	and   a.gl_tds_rule_coa_id = b.coa_id
+
+	and   a.gl_cld_id = d.doc_cld_id
+	and   a.gl_sloc_id = d.doc_sloc_id
+	and   a.gl_org_id = d.doc_org_id
+	and   d.doc_id = 56
+	and   a.gl_vou_id = d.doc_txn_id
+
+	and        a.gl_cld_id = org_cld_id --new
+	and   a.gl_org_id = c.org_id
+
+	and   a.gl_cld_id = ar.gl_cld_id
+	and   a.gl_sloc_id = ar.ar_sloc_id
+	and   a.gl_ho_org_id = ar.gl_ho_org_id
+	and   a.gl_org_id = ar.ar_org_id
+	and   a.gl_vou_id = ar.ar_vou_id
+
+	and tb.tax_cld_id = a.gl_cld_id
+	and tb.tax_rule_sloc_id = a.gl_sloc_id
+	and tb.tax_ho_org_id = a.gl_ho_org_id
+	and tb.tax_rule_id = a.gl_tds_rule_id
+	and tb.tax_rule_slno = a.gl_tds_rule_slno
+	and tb.tax_id = a.gl_tds_id
+
+	and tt.tax_cld_id = tb.tax_cld_id
+	and tt.tax_rule_sloc_id = tb.tax_rule_sloc_id
+	and tt.tax_ho_org_id = tb.tax_ho_org_id
+	and tt.tax_rule_id = tb.tax_rule_id
+	and tt.tax_type_tds = 'Y'
+
+	and   tax.cld_id = tb.tax_cld_id
+	and   tax.tax_sloc_id = tb.tax_rule_sloc_id
+	and   tax.ho_org_id = tb.tax_ho_org_id
+	and   tax.tax_id = tb.tax_id
+	and        tax.TAX_REG_TYPE = 'T'
+
+      union
+
+	select
+	'AP' TYPE_APAR,
+	c.org_desc,
+	b.coa_nm tax_name,
+	tax.TAX_PER Percentage,
+	AP.coa_nm account_name,
+	ap.AP_COA_ID Account_id,
+	--nvl(ap.AP_AMT_SP,0)*nvl(ap.AP_CC,1) BaseAmount,
+	a.GL_TAX_RULE_OP_AMT_LINE BaseAmount,
+	substr(d.DOC_TXN_ID_DISP,3) VoucherId,
+	a.GL_VOU_DT VoucherDate,
+	a.GL_TAX_RULE_BAL_TYPE TdsType,
+	a.GL_TAX_RULE_TAXABLE_AMT_SP TdsAmount,
+	a.GL_TAX_RULE_OP_AMT_LINE TDS_AMT
+	from  (select distinct a.gl_cld_id gl_cld_id,
+						a.ap_sloc_id,
+						a.gl_ho_org_id,
+						a.ap_org_id,
+						a.ap_coa_id,
+						a.ap_vou_id,
+						e.coa_nm
+				from ap a,
+								fin$coa e
+				where a.GL_CLD_ID = $P{Cld_Id}
+				and   a.AP_ORG_ID = nvl( $P{Org_Id}, A.AP_ORG_ID)
+				and   a.AP_COA_ID = nvl( $P{Coa_Id}, a.AP_COA_ID)
+				and   TRUNC(a.AP_VOU_DT) > = to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD')
+				and   TRUNC(a.AP_VOU_DT) < = to_date(NVL($P{To_Date},SYSDATE),'YYYY-MM-DD')
+
+				and   a.gl_cld_id = e.coa_cld_id
+				and   a.ap_sloc_id = e.coa_sloc_id
+				and   a.gl_ho_org_id = e.coa_ho_org_id
+				and   a.ap_coa_id = e.coa_id) ap,
+				gl_tax_rule_line a,
+				fin$coa b ,
+				app.org c,
+				app.app$doc$txn d,
+				app.app$tax$rule$line tb,
+				app.app$tax$rule tt,
+				app.app$tax tax
+	where a.GL_CLD_ID = $P{Cld_Id}
+	and   a.GL_ORG_ID = nvl( $P{Org_Id}, a.GL_ORG_ID)
+	and   TRUNC(a.GL_VOU_DT) > = to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD')
+	and   TRUNC(a.GL_VOU_DT) < = to_date(NVL($P{To_Date},SYSDATE),'YYYY-MM-DD')
+	and   a.gl_tax_rule_priority <> 0
+	and   a.gl_tax_rule_slno <> 1 --new
+
+	and   a.gl_cld_id = b.coa_cld_id
+	and   a.gl_sloc_id = b.coa_sloc_id
+	and   a.gl_ho_org_id = b.coa_ho_org_id
+	and   a.gl_tax_rule_coa_id = b.coa_id
+
+	and   a.gl_cld_id = d.doc_cld_id
+	and   a.gl_sloc_id = d.doc_sloc_id
+	and   a.gl_org_id = d.doc_org_id
+	and   d.doc_id = 56
+	and   a.gl_vou_id = d.doc_txn_id
+
+	and        a.gl_cld_id = org_cld_id --new
+	and   a.gl_org_id = c.org_id
+
+	and   a.gl_cld_id = ap.gl_cld_id
+   and   a.gl_sloc_id = ap.ap_sloc_id
+	and   a.gl_ho_org_id = ap.gl_ho_org_id
+	and   a.gl_org_id = ap.ap_org_id
+	and   a.gl_vou_id = ap.ap_vou_id
+
+	and tb.tax_cld_id = a.gl_cld_id
+	and tb.tax_rule_sloc_id = a.gl_sloc_id
+	and tb.tax_ho_org_id = a.gl_ho_org_id
+	and tb.tax_rule_id = a.gl_tax_rule_id
+	and tb.tax_rule_slno = a.gl_tax_rule_slno
+	and tb.tax_id = a.gl_tax_id
+
+	and tt.tax_cld_id = tb.tax_cld_id
+	and tt.tax_rule_sloc_id = tb.tax_rule_sloc_id
+	and tt.tax_ho_org_id = tb.tax_ho_org_id
+	and tt.tax_rule_id = tb.tax_rule_id
+	and tt.tax_type_tds = 'N'
+
+	and   tax.cld_id = tb.tax_cld_id
+	and   tax.tax_sloc_id = tb.tax_rule_sloc_id
+	and   tax.ho_org_id = tb.tax_ho_org_id
+	and   tax.tax_id = tb.tax_id
+	and        tax.TAX_REG_TYPE = 'T'
+
+	UNION
+
+	select
+	'AR' TYPE_APAR,
+	c.org_desc,
+	b.coa_nm tax_name,
+	tax.TAX_PER Percentage,
+	AR.coa_nm account_name,
+	aR.AR_COA_ID Account_id,
+	--nvl(ap.AP_AMT_SP,0)*nvl(ap.AP_CC,1) BaseAmount,
+	a.GL_TAX_RULE_OP_AMT_LINE BaseAmount,
+	substr(d.DOC_TXN_ID_DISP,3) VoucherId,
+	a.GL_VOU_DT VoucherDate,
+	a.GL_TAX_RULE_BAL_TYPE TdsType,
+	a.GL_TAX_RULE_TAXABLE_AMT_SP TdsAmount,
+	a.GL_TAX_RULE_OP_AMT_LINE TDS_AMT
+	from  (select distinct a.gl_cld_id gl_cld_id,
+						a.ar_sloc_id,
+						a.gl_ho_org_id,
+						a.ar_org_id,
+						a.ar_coa_id,
+						a.ar_vou_id,
+						e.coa_nm
+			from ar a,
+							fin$coa e
+			where a.GL_CLD_ID = $P{Cld_Id}
+			and   a.AR_ORG_ID = nvl( $P{Org_Id}, A.AR_ORG_ID)
+			and   a.AR_COA_ID = nvl( $P{Coa_Id}, a.AR_COA_ID)
+			and   TRUNC(a.AR_VOU_DT) > = to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD')
+			and   TRUNC(a.AR_VOU_DT) < = to_date(NVL($P{To_Date},SYSDATE),'YYYY-MM-DD')
+
+			and   a.gl_cld_id = e.coa_cld_id
+			and   a.ar_sloc_id = e.coa_sloc_id
+			and   a.gl_ho_org_id = e.coa_ho_org_id
+			and   a.ar_coa_id = e.coa_id) ar,
+			gl_tax_rule_line a,
+			fin$coa b ,
+			app.org c,
+			app.app$doc$txn d,
+			app.app$tax$rule$line tb,
+			app.app$tax$rule tt,
+			app.app$tax tax
+	where a.GL_CLD_ID = $P{Cld_Id}
+	and   a.GL_ORG_ID = nvl( $P{Org_Id}, a.GL_ORG_ID)
+	and   TRUNC(a.GL_VOU_DT) > = to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD')
+	and   TRUNC(a.GL_VOU_DT) < = to_date(NVL($P{To_Date},SYSDATE),'YYYY-MM-DD')
+	and   a.gl_tax_rule_priority <> 0
+	and   a.gl_tax_rule_slno <> 1 --new
+
+	and   a.gl_cld_id = b.coa_cld_id
+	and   a.gl_sloc_id = b.coa_sloc_id
+	and   a.gl_ho_org_id = b.coa_ho_org_id
+	and   a.gl_tax_rule_coa_id = b.coa_id
+
+	and   a.gl_cld_id = d.doc_cld_id
+	and   a.gl_sloc_id = d.doc_sloc_id
+	and   a.gl_org_id = d.doc_org_id
+	and   d.doc_id = 56
+	and   a.gl_vou_id = d.doc_txn_id
+
+	and        a.gl_cld_id = org_cld_id --new
+	and   a.gl_org_id = c.org_id
+
+	and   a.gl_cld_id = ar.gl_cld_id
+	and   a.gl_sloc_id = ar.ar_sloc_id
+	and   a.gl_ho_org_id = ar.gl_ho_org_id
+	and   a.gl_org_id = ar.ar_org_id
+	and   a.gl_vou_id = ar.ar_vou_id
+
+	and a.gl_cld_id = tb.tax_cld_id
+	and a.gl_sloc_id = tb.tax_rule_sloc_id
+	and a.gl_ho_org_id = tb.tax_ho_org_id
+	--and a.gl_tax_rule_id = decode(a.gl_tax_app_flg, 'M', 0 , tb.tax_rule_id)
+	--and a.gl_tax_rule_slno = decode(a.gl_tax_app_flg, 'M', 0 , tb.tax_rule_slno )
+	and a.gl_tax_rule_id = decode(a.gl_tax_app_flg, 'M', a.gl_tax_rule_id , tb.tax_rule_id)
+	and a.gl_tax_rule_slno = decode(a.gl_tax_app_flg, 'M', a.gl_tax_rule_slno , tb.tax_rule_slno )
+	and a.gl_tax_id = tb.tax_id
+
+	and tt.tax_cld_id = tb.tax_cld_id
+	and tt.tax_rule_sloc_id = tb.tax_rule_sloc_id
+	and tt.tax_ho_org_id = tb.tax_ho_org_id
+	and tt.tax_rule_id = tb.tax_rule_id
+	and tt.tax_type_tds = 'N'
+
+	and   tax.cld_id = tb.tax_cld_id
+	and   tax.tax_sloc_id = tb.tax_rule_sloc_id
+	and   tax.ho_org_id = tb.tax_ho_org_id
+	and   tax.tax_id = tb.tax_id
+	and        tax.TAX_REG_TYPE = 'T'
+)]]>
+	</queryString>
+	<field name="TYPE_APAR" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="TAX_NAME" class="java.lang.String"/>
+	<field name="PERCENTAGE" class="java.math.BigDecimal"/>
+	<field name="ACCOUNT_NAME" class="java.lang.String"/>
+	<field name="ACCOUNT_ID" class="java.math.BigDecimal"/>
+	<field name="BASE_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="VOUCHER_ID" class="java.lang.String"/>
+	<field name="VOUCHER_DATE" class="java.sql.Timestamp"/>
+	<field name="TAX_TYPE" class="java.lang.String"/>
+	<field name="TAX_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="TAXABLE_AMT" class="java.math.BigDecimal"/>
+	<sortField name="ACCOUNT_NAME"/>
+	<sortField name="TAX_NAME"/>
+	<sortField name="PERCENTAGE"/>
+	<sortField name="VOUCHER_DATE"/>
+	<sortField name="VOUCHER_ID"/>
+	<variable name="TotalVoucherAMtCoa" class="java.math.BigDecimal" resetType="Group" resetGroup="COA" calculation="Sum">
+		<variableExpression><![CDATA[$F{TAXABLE_AMT}]]></variableExpression>
+	</variable>
+	<variable name="TotalVoucherAMtOrg" class="java.math.BigDecimal" resetType="Group" resetGroup="Org" calculation="Sum">
+		<variableExpression><![CDATA[$F{TAXABLE_AMT}]]></variableExpression>
+	</variable>
+	<variable name="TotalTaxAmtCoa" class="java.math.BigDecimal" resetType="Group" resetGroup="COA" calculation="Sum">
+		<variableExpression><![CDATA[$F{TAX_AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="TotalTaxAmtOrg" class="java.math.BigDecimal" resetType="Group" resetGroup="Org" calculation="Sum">
+		<variableExpression><![CDATA[$F{TAX_AMOUNT}]]></variableExpression>
+	</variable>
+	<group name="Org" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{ORG_DESC}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band height="25">
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="421" y="0" width="60" height="25"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalVoucherAMtOrg}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="487" y="0" width="59" height="25"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalTaxAmtOrg}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="10" y="0" width="410" height="25"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA["Total of Organisation ( "+$F{ORG_DESC}+" ) :   "]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="487" y="0" width="68" height="25"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="421" y="0" width="66" height="25"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="421" height="25"/>
+					<box>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="COA" keepTogether="true">
+		<groupExpression><![CDATA[$F{ACCOUNT_ID}]]></groupExpression>
+		<groupHeader>
+			<band height="15" splitType="Prevent">
+				<textField isBlankWhenNull="true">
+					<reportElement x="3" y="0" width="349" height="15" forecolor="#0000CC"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{ACCOUNT_NAME}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement mode="Transparent" x="0" y="0" width="555" height="15"/>
+					<box>
+						<leftPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="25">
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="421" y="0" width="60" height="25" forecolor="#0000CC"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalVoucherAMtCoa}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="487" y="0" width="59" height="25" forecolor="#0000CC"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalTaxAmtCoa}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="10" y="0" width="410" height="25" forecolor="#0000CC"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA["Total :   "]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="421" y="0" width="66" height="25"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="487" y="0" width="68" height="25"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="421" height="25"/>
+					<box>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band height="572">
+			<rectangle>
+				<reportElement style="BgColorStyle" mode="Opaque" x="-20" y="-20" width="597" height="592"/>
+				<graphicElement>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+				</graphicElement>
+			</rectangle>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-20" y="0" width="20" height="175">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="SansSerif" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-19" y="175" width="20" height="192">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="SansSerif" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-20" y="367" width="20" height="205">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="SansSerif" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<image hAlign="Center" onErrorType="Blank">
+				<reportElement key="" mode="Transparent" x="1" y="0" width="556" height="572">
+					<printWhenExpression><![CDATA[$P{BgColor}.equals( "D" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org_logo_dim.png"]]></imageExpression>
+			</image>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="557" y="367" width="20" height="205">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="SansSerif" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="557" y="0" width="20" height="175">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="SansSerif" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="557" y="175" width="20" height="192">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="SansSerif" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+		</band>
+	</background>
+	<pageHeader>
+		<band height="52" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="265" y="16" width="290" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{Org_Id} == ""?"Tax Register (Consolidated)":"Tax Register"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="265" y="1" width="290" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{Org_Id} == ""?"All Organizations" : $F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement x="1" y="1" width="220" height="45"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<subreport>
+				<reportElement x="477" y="35" width="35" height="12"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{From_Date}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="524" y="35" width="31" height="12"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{To_Date}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="443" y="35" width="34" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Period :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="512" y="37" width="12" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="49" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="15">
+			<textField isBlankWhenNull="true">
+				<reportElement style="HeaderStyle" mode="Opaque" x="0" y="0" width="555" height="15"/>
+				<textElement/>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="487" y="0" width="68" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Tax Amount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="285" y="0" width="70" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Voucher Number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="355" y="0" width="65" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Voucher Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="50" y="0" width="171" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Tax Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="420" y="0" width="67" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Taxable Amount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="220" y="0" width="65" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Percentage]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="0" width="50" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="50" y="0" width="170" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TAX_NAME}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="226" y="0" width="40" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PERCENTAGE}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="285" y="0" width="67" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{VOUCHER_ID}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="361" y="0" width="59" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[$F{VOUCHER_DATE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="421" y="0" width="60" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TAXABLE_AMT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="487" y="0" width="59" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TAX_AMOUNT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="220" height="20"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="220" y="0" width="65" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="285" y="0" width="70" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="355" y="0" width="65" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="421" y="0" width="66" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="487" y="0" width="68" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="30">
+			<textField evaluationTime="Report">
+				<reportElement x="532" y="10" width="22" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MMM-yyyy HH.mm.ss" isBlankWhenNull="true">
+				<reportElement x="0" y="10" width="82" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="466" y="9" width="80" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="8" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineColor="#666666"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="4" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="40">
+			<staticText>
+				<reportElement x="0" y="10" width="555" height="30"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[--------End Of Report--------
+Generated By ebizframe10]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="4" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="8" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineColor="#666666"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="466" y="10" width="80" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MMM-yyyy HH.mm.ss" isBlankWhenNull="true">
+				<reportElement x="0" y="10" width="82" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="532" y="10" width="26" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+</jasperReport>

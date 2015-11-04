@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PurchaseInvoiceRegister_subreport_Tot_Sum" language="groovy" pageWidth="281" pageHeight="20" columnWidth="281" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EoIdSrc" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="InvcType" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select sum(tot.gross_price)tot_gros_pric, sum(tot.disc_amt_sp)tot_disc, SUM(TOT.FINAL_RCPT_QTY)FINAL_RCPT_QTY
+from
+(select distinct A.ORG_ID, D.ORG_DESC, A.DOC_ID,  A.INVC_NO,  A.INVC_DT, A.EO_ID_SRC, E.EO_NM, A.CURR_ID_SP, F.CURR_DESC
+,A.TOT_AMT_SP tot_amt_sp, A.TOT_AMT_BS, A.ORG_ID_SRC, A.WH_ID_SRC, G.ATT_NM INVC_TYPE,  B.FINAL_RCPT_QTY
+,SUM(B.DISC_AMT_SP) DISC_AMT_SP, SUM(B.DISC_AMT_BS)DISC_AMT_BS,   SUM(B.ITM_AMT_SP)ITM_AMT_SP
+, SUM(B.ITM_AMT_BS)ITM_AMT_BS, sum(B.FINAL_RCPT_QTY * B.ITM_PRICE) GROSS_PRICE
+--, sum(nvl(C.TAX_AMT,0))TAX_AMT, SUM(nvl(C.TAX_AMT_BS,0))TAX_AMT_BS
+--,FC.Coa_Nm TAX_NM, sum(nvl(C.TAX_AMT_SP,0)) tax_amt_sp
+from mm.mm$invc A, MM.MM$INVC$ITM B, MM$INVC$TR$LINES C, App.Org D, App.App$EO E, APP.APP$CURR F, app.app$ds$att G
+, FIN.FIN$COA FC
+WHERE A.CLD_ID = B.CLD_ID
+AND A.SLOC_ID = B.SLOC_ID
+AND A.ORG_ID = B.ORG_ID
+AND A.DOC_ID = B.DOC_ID
+
+and b.CLD_ID = c.cld_id(+)
+and b.SLOC_ID = c.sloc_id(+)
+and b.ORG_ID = c.org_id(+)
+and b.DOC_ID = c.doc_id(+)
+and b.DOC_ID_RCPT = c.doc_id_rcpt(+)
+and b.DOC_ID_PO = c.doc_id_po(+)
+and b.DLV_SCHDL_NO = c.dlv_schdl_no(+)
+and b.ITM_ID = c.itm_id(+)
+and b.ITM_UOM = C.ITM_UOM(+)
+
+AND A.CLD_ID = D.ORG_CLD_ID
+AND A.SLOC_ID = D.ORG_CREATE_REF_SLOC_ID
+AND A.ORG_ID = D.ORG_ID
+AND A.CLD_ID = E.EO_CLD_ID
+AND A.SLOC_ID = E.EO_SLOC_ID
+AND A.EO_ID_SRC = E.EO_ID
+AND MM.MM_GET_HO_ORG(A.CLD_ID, A.SLOC_ID, A.ORG_ID)= E.EO_HO_ORG_ID
+AND A.CLD_ID = F.CLD_ID
+AND A.SLOC_ID = F.CURR_SLOC_ID
+AND A.CURR_ID_SP = F.CURR_ID
+AND A.INVC_TYPE = G.ATT_ID
+AND A.AUTH_STAT = 'Y'
+AND A.INVC_STAT = 874
+and a.INVC_TYPE <> 492
+AND C.CLD_ID = FC.COA_CLD_ID(+)
+AND C.SLOC_ID = FC.COA_SLOC_ID(+)
+--AND MM.MM_GET_HO_ORG(C.CLD_ID, C.SLOC_ID, C.ORG_ID) = FC.COA_HO_ORG_ID(+)
+AND APP.FN_GET_PARENT_ORG_L0(C.CLD_ID, C.ORG_ID) = FC.COA_HO_ORG_ID(+)
+AND C.TAX_COA_ID = FC.COA_ID(+)
+
+AND A.INVC_TYPE = NVL($P{InvcType},A.INVC_TYPE)
+AND A.CLD_ID = NVL($P{CldId},A.CLD_ID)
+AND A.SLOC_ID = NVL($P{SlocId},A.SLOC_ID)
+AND A.ORG_ID = NVL($P{OrgId},A.ORG_ID)
+AND A.DOC_ID= NVL($P{DocId},A.DOC_ID)
+AND A.EO_ID_SRC = NVL($P{EoIdSrc},A.EO_ID_SRC)
+AND trunc(A.INVC_DT) >= NVL(TO_DATE($P{FromDate},'yyyy,mm,dd'),trunc(A.INVC_DT))
+AND trunc(A.INVC_DT) <= NVL(TO_DATE($P{ToDate},'yyyy,mm,dd'),trunc(A.INVC_DT))
+GROUP BY A.ORG_ID, D.ORG_DESC, A.DOC_ID,  A.INVC_NO,  A.INVC_DT, A.EO_ID_SRC, E.EO_NM, A.CURR_ID_SP, F.CURR_DESC
+,A.TOT_AMT_SP, A.TOT_AMT_BS, A.ORG_ID_SRC, A.WH_ID_SRC, G.ATT_NM,FC.Coa_Nm,  B.FINAL_RCPT_QTY, B.ITM_ID
+--having sum(nvl(C.TAX_AMT_SP,0)) >0
+ORDER BY A.INVC_NO, A.INVC_DT)tot]]>
+	</queryString>
+	<field name="TOT_GROS_PRIC" class="java.math.BigDecimal"/>
+	<field name="TOT_DISC" class="java.math.BigDecimal"/>
+	<field name="FINAL_RCPT_QTY" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField pattern="###0.000;-###0.000" isBlankWhenNull="true">
+				<reportElement x="51" y="0" width="70" height="20"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_GROS_PRIC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.000;-###0.000" isBlankWhenNull="true">
+				<reportElement x="121" y="0" width="51" height="20"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_DISC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.000;-###0.000" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="51" height="20"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{FINAL_RCPT_QTY}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

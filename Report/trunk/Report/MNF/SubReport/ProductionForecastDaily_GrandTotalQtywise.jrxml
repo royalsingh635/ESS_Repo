@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="StockLedgerWithValueComplete_QuntVal" language="groovy" pageWidth="555" pageHeight="802" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="WhId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GrpId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ItmId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FyId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="HoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT U.uom_nm,U.ITM_UOM,
+SUM(U.inpt_itm_req_qty)U_inpt_itm_req_qty,
+SUM(U.inpt_itm_qty)U_inpt_itm_qty,
+SUM(U.inpt_itm_avl_qty)U_inpt_itm_avl_qty,
+SUM(U.itm_bal_qty) U_itm_bal_qty
+from
+(SELECT a.CLD_ID,
+  a.SLOC_ID,
+  a.HO_ORG_ID,
+  a.ORG_ID,
+  a.EO_ID,
+  c.ITM_ID,
+  I.ITM_DESC, G.GRP_NM, O.ORG_DESC,
+  e.OUTPT_ITM_QTY outpt_itm_dlv_qty,
+  c.PRD_DTL_START_DT,
+  e.ITM_ID inpt_itm_id, II.ITM_DESC INPT_ITM_DESC,
+  (e.itm_qty     * c.ITM_QTY / e.OUTPT_ITM_QTY) inpt_itm_req_qty,
+  SUM(e.itm_qty * c.ITM_QTY / e.OUTPT_ITM_QTY) Over (Partition BY e.ITM_ID Order By c.PRD_DTL_START_DT) resv_qty,
+  mnf.fn_mnf_pln_get_avl_stk(a.CLD_ID, a.SLOC_ID, a.ORG_ID, e.ITM_ID, 'RM') inpt_itm_avl_qty,
+  (e.itm_qty * c.ITM_QTY / e.OUTPT_ITM_QTY) inpt_itm_qty,
+  mnf.fn_mnf_pln_get_avl_stk(a.CLD_ID, a.SLOC_ID, a.ORG_ID, e.ITM_ID, 'RM') - SUM(e.itm_qty * c.ITM_QTY / e.OUTPT_ITM_QTY) Over (Partition BY e.ITM_ID Order By c.PRD_DTL_START_DT) itm_bal_qty,
+  e.ITM_PRICE inpt_itm_price,
+  e.itm_qty * c.ITM_QTY / e.OUTPT_ITM_QTY * e.ITM_PRICE inpt_itm_amt_bs,
+  e.itm_qty * c.ITM_QTY / e.OUTPT_ITM_QTY * e.ITM_PRICE inpt_itm_amt_sp,
+  e.itm_qty * c.ITM_QTY / e.OUTPT_ITM_QTY * e.ITM_PRICE inpt_itm_cost,
+  E.ITM_UOM ,
+  e.DOC_ID,
+  u.uom_nm
+FROM bdg.bdg$eo$budget a,
+  bdg.bdg$eo$budget$prod$dtl b,
+  bdg.bdg$eo$budget$prod$prd$dtl c,app.org o, app.app$itm$prf i, app.app$grp g,app.app$uom$conv$std u,APP.APP$ITM$PRF II,
+  (SELECT x.CLD_ID,
+    x.SLOC_ID,
+    x.HO_ORG_ID,
+    x.DOC_ID,
+    x.OUTPT_ITM_ID,
+    x.OUTPT_ITM_QTY,
+    x.BOM_ID,
+    x.BOM_DESC,
+    y.ITM_ID,
+    Y.ITM_UOM,
+    SUM(y.ITM_QTY) itm_qty,
+    x.BOM_DFLT_FLG,
+    x.BOM_ACTV,
+    x.BOM_MODE,
+    x.OUTPT_ITM_LEAD_TM lead_time,
+    y.ITM_PRICE
+  FROM mnf$bom x,
+    mnf$bom$op$itm y
+  WHERE x.DOC_ID  = y.DOC_ID
+  AND y.ITM_TYPE IN (62, 63)
+  AND x.CLD_ID    = $P{CldId}
+  AND x.SLOC_ID   = $P{SlocId}
+  AND x.HO_ORG_ID = $P{HoOrgId}
+  AND NOT EXISTS
+    (SELECT 1
+    FROM mnf$bom$op$itm p
+    WHERE y.DOC_ID  = p.DOC_ID
+    AND y.ITM_ID    = p.ITM_ID
+    AND p.ITM_TYPE IN (64, 65, 67)
+    )
+  GROUP BY x.CLD_ID,
+    x.SLOC_ID,
+    x.HO_ORG_ID,
+    x.DOC_ID,
+    x.OUTPT_ITM_ID,
+    x.OUTPT_ITM_QTY,
+    x.BOM_ID,
+    x.BOM_DESC,
+    y.ITM_ID,
+    Y.ITM_UOM,
+    x.BOM_DFLT_FLG,
+    x.BOM_ACTV,
+    x.BOM_MODE,
+    x.OUTPT_ITM_LEAD_TM,
+    y.ITM_PRICE
+  ) e
+WHERE a.CLD_ID     = b.CLD_ID
+AND a.SLOC_ID      = b.SLOC_ID
+AND a.ORG_ID       = b.ORG_ID
+AND a.HO_ORG_ID    = b.HO_ORG_ID
+AND a.BDG_FY_ID    = b.BDG_FY_ID
+AND a.DOC_ID       = b.DOC_ID
+AND a.EO_ID        = b.EO_ID
+AND b.CLD_ID       = c.CLD_ID
+AND b.SLOC_ID      = c.SLOC_ID
+AND b.ORG_ID       = c.ORG_ID
+AND b.HO_ORG_ID    = c.HO_ORG_ID
+AND b.DOC_ID       = c.DOC_ID
+AND b.EO_ID        = c.EO_ID
+AND b.CUST_EO_ID   = c.CUST_EO_ID
+AND b.ITM_GRP_ID   = c.ITM_GRP_ID
+AND b.ITM_ID       = c.ITM_ID
+AND b.REGION       = c.REGION
+AND e.CLD_ID       = c.CLD_ID
+AND e.SLOC_ID      = c.SLOC_ID
+AND e.HO_ORG_ID    = c.HO_ORG_ID
+AND e.OUTPT_ITM_ID = c.ITM_ID/*
+AND a.CLD_ID       = f.CLD_ID(+)
+AND a.SLOC_ID      = f.SLOC_ID(+)
+AND a.ORG_ID       = f.ORG_ID(+)
+AND e.ITM_ID       = f.ITM_ID(+)*/
+AND c.ITM_ID       = NVL($P{ItmId}, c.ITM_ID)
+AND e.BOM_MODE     = 43
+AND e.BOM_ACTV     = 'Y'
+AND e.BOM_DFLT_FLG = 'Y'
+AND B.CLD_ID    = I.CLD_ID
+AND B.SLOC_ID   = I.SLOC_ID
+AND B.HO_ORG_ID = I.HO_ORG_ID
+AND B.ITM_ID    = I.ITM_ID
+--AND B.ITM_UOM   = D.UOM_ID
+AND A.ORG_ID    = O.ORG_ID
+AND B.CLD_ID  = G.CLD_ID
+AND B.SLOC_ID = G.SLOC_ID
+AND B.ORG_ID  = G.ORG_ID
+AND B.HO_ORG_ID = G.HO_ORG_ID
+AND B.ITM_GRP_ID = G.GRP_ID
+and E.itm_uom = u.uom_id
+AND A.BUDGET_METHOD = 2
+AND E.CLD_ID = II.CLD_ID
+AND E.SLOC_ID = II.SLOC_ID
+AND E.HO_ORG_ID  = II.HO_ORG_ID
+AND E.ITM_ID = II.ITM_ID
+--AND A.BUDGET_STAT = 3
+AND A.CLD_ID  = NVL($P{CldId}, A.CLD_ID)
+AND A.SLOC_ID = NVL( $P{SlocId}, A.SLOC_ID)
+AND A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+AND A.HO_ORG_ID = NVL($P{HoOrgId}, A.HO_ORG_ID)
+AND B.ITM_GRP_ID = NVL($P{GrpId}, B.ITM_GRP_ID)
+AND B.ITM_ID	= NVL($P{ItmId}, B.ITM_ID)
+AND TRUNC(c.PRD_DTL_START_DT) BETWEEN NVL(TO_DATE($P{FromDate},'YYYY-MM-DD'),TRUNC(c.PRD_DTL_START_DT)) AND  NVL(TO_DATE($P{ToDate},'YYYY-MM-DD'),TRUNC(c.PRD_DTL_START_DT))
+)U
+group by U.uom_nm,U.ITM_UOM]]>
+	</queryString>
+	<field name="UOM_NM" class="java.lang.String"/>
+	<field name="ITM_UOM" class="java.lang.String"/>
+	<field name="U_INPT_ITM_REQ_QTY" class="java.math.BigDecimal"/>
+	<field name="U_INPT_ITM_QTY" class="java.math.BigDecimal"/>
+	<field name="U_INPT_ITM_AVL_QTY" class="java.math.BigDecimal"/>
+	<field name="U_ITM_BAL_QTY" class="java.math.BigDecimal"/>
+	<group name="UOMID">
+		<groupExpression><![CDATA[$F{UOM_NM}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="15"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[Group Wise Unit Total:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="15"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="15"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="220" y="0" width="33" height="15"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{UOM_NM}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.0000;-#,##0.0000" isBlankWhenNull="true">
+				<reportElement x="253" y="0" width="73" height="15"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_INPT_ITM_REQ_QTY}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.0000;-#,##0.0000" isBlankWhenNull="true">
+				<reportElement x="326" y="0" width="76" height="15"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_INPT_ITM_QTY}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.0000;-#,##0.0000" isBlankWhenNull="true">
+				<reportElement x="402" y="0" width="77" height="15"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_INPT_ITM_AVL_QTY}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.0000;-#,##0.0000" isBlankWhenNull="true">
+				<reportElement x="479" y="0" width="76" height="15"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_ITM_BAL_QTY}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

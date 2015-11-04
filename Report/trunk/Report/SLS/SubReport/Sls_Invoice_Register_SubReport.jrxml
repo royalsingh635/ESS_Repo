@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Sls_Invoice_Register_SubReport" language="groovy" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="HoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EoId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ItmId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GrpId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CurrId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="InvType" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String">
+		<defaultValueExpression><![CDATA["D:/Report/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Status" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EoCatId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AssignTo" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ReportType" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT DISTINCT  a.cld_id, a.eo_catg,co.coa_nm,trl.sr_no,
+
+
+               a.org_id, a.ho_org_id, a.invoice_doc_id,
+
+                SUBSTR (a.invoice_id, 3) invoice_id, to_char(a.invoice_doc_dt,'dd-MM-yyyy') invoice_doc_dt,
+
+                a.inv_type, a.inv_typ_nm, a.curr_id_sp, a.curr_rate, a.eo_id,
+
+                 a.eo_nm,
+                a.itm_id, b.itm_desc itm_desc,
+
+                a.itm_rate, a.itm_uom, e.uom_nm uom_nm, a.itm_ship_qty,
+
+                NVL (DECODE (a.itm_disc_typ,
+
+                             'A', a.itm_disc_val,
+
+                             'P', (  (  NVL (a.itm_ship_qty, 0)
+
+                                      * NVL (a.itm_rate, 0)
+
+                                     )
+
+                                   * NVL (a.itm_disc_val, 0)
+
+                                   / 100
+
+                              )
+
+                            ),
+
+                     0
+
+                    ) discount,
+
+                 NVL((NVL (a.itm_ship_qty, 0) * NVL (a.itm_rate, 0)) - n.tax_amt_sp +
+  NVL (DECODE (a.itm_disc_typ,
+
+                             'A', a.itm_disc_val,
+
+                             'P', (  (  NVL (a.itm_ship_qty, 0)
+
+                                      * NVL (a.itm_rate, 0)
+
+                                     )
+
+                                   * NVL (a.itm_disc_val, 0)
+
+                                   / 100
+
+                              )
+
+                            ),
+
+                     0
+
+                    ),(NVL (a.itm_ship_qty, 0) * NVL (a.itm_rate, 0))) itm_amt_gs,
+
+                a.itm_amt_bs, a.itm_amt_sp, a.tot_amt_sp, a.tot_amt_bs,
+
+                a.itm_cost, m.att_nm inv_wf_stat_desc, f.org_desc,
+
+                m.att_nm inv_mode,
+
+                --(SELECT adds
+
+                 --  FROM app.app$adds$vw
+
+                --  WHERE app.app$adds$vw.adds_id = a.bill_add) adds,
+
+               nvl(n.tax_amt_sp,0) tax_amt_sp,
+
+              --  NVL (n.tax_amt_bs, 0) tax_amt_bs, a.grp_nm,
+
+                o.curr_notation_alias
+
+           FROM sls$invoice$dtl_vw a,sls$inv inv,fin.fin$coa co,sls$inv$tr$lines trl,
+
+                app.app$sls$itm_vw b,
+
+                sls.sls$so c,
+
+                app.app$uom$conv$std e,
+
+                app.org f,
+
+                (SELECT eo_cld_id, x.eo_sloc_id, x.eo_ho_org_id, x.eo_id,
+
+                        x.eo_nm
+
+                   FROM app.app$eo x
+
+                  WHERE x.eo_cld_id = NVL ($P{CldId}, x.eo_cld_id)
+
+                    AND x.eo_sloc_id = NVL ($P{SlocId}, x.eo_sloc_id)
+
+                    AND x.eo_type = '80') l,
+
+                (SELECT y.att_nm, y.att_id
+
+                   FROM app.app$ds$att y
+
+                  WHERE att_type_id = 69) m,
+
+                (SELECT ee_sub_type att_nm, ee_sub_type_id att_id
+
+            FROM app.app$ee$prf$sub$type
+
+           WHERE ee_type_id = 68
+
+           and      ee_cld_id=$P{CldId}
+
+           and      ee_sloc_id=$P{SlocId}
+) z,
+
+                sls.sls$inv$tr n,
+
+                app.app$curr_vw o
+
+          WHERE a.sloc_id = b.sloc_id
+
+            AND a.itm_id = b.itm_id
+
+            AND a.org_id = b.org_id
+
+            AND a.cld_id = b.cld_id
+
+            AND a.ho_org_id = b.ho_org_id
+
+            AND a.sloc_id = c.sloc_id
+
+            AND a.org_id = c.org_id
+
+            AND a.cld_id = c.cld_id
+
+            AND a.ho_org_id = c.ho_org_id
+
+            AND a.so_id = c.so_id
+
+            AND a.sloc_id = e.sloc_id
+
+            AND a.cld_id = e.cld_id
+
+            AND a.itm_uom = e.uom_id
+
+            AND a.cld_id = f.org_cld_id
+
+            AND a.org_id = f.org_id
+
+        AND a.ho_org_id = inv.ho_org_id
+
+            AND a.sloc_id = inv.sloc_id
+
+            AND a.org_id = inv.org_id
+
+           AND a.cld_id = inv.cld_id
+
+           and a.invoice_doc_id = inv.doc_id
+
+            AND c.cld_id = l.eo_cld_id(+)
+
+            AND c.sloc_id = l.eo_sloc_id(+)
+
+            AND c.ho_org_id = l.eo_ho_org_id(+)
+
+            AND c.assigned_to = l.eo_id(+)
+
+            AND a.inv_mode = m.att_id
+
+            AND a.eo_catg = z.att_id
+
+            AND a.cld_id = n.cld_id(+)
+
+            AND a.sloc_id = n.sloc_id(+)
+
+            AND a.ho_org_id = n.ho_org_id(+)
+
+            AND a.invoice_doc_id = n.doc_id(+)
+            AND a.itm_id = n.itm_id(+)
+            AND a.curr_id_sp = o.curr_id and
+inv.doc_id=trl.doc_id
+
+and   inv.CLD_ID=co.coa_CLD_ID
+
+and   inv.SLOC_ID=co.coa_SLOC_ID
+
+and   inv.HO_ORG_ID=co.coa_HO_ORG_ID
+
+and   trl.tax_coa_ID =co.coa_ID and
+trl.sr_no <> 1 and
+ inv.inv_stat!=220 and
+  A.CLD_ID = nvl($P{CldId},a.cld_id) AND
+  A.SLOC_ID = nvl($P{SlocId},a.sloc_id) AND
+  A.ORG_ID = nvl($P{OrgId},a.org_id) AND
+  A.HO_ORG_ID = nvl($P{HoOrgId},a.ho_org_id) AND
+
+  A.INVOICE_DOC_ID = nvl($P{DocId},A.INVOICE_DOC_ID) AND
+ a.eo_id = NVL ($P{EoId}, a.eo_id)  AND
+  A.ITM_ID=nvl($P{ItmId},a.itm_id) and
+  a.grp_id =nvl($P{GrpId},a.grp_id) and
+  NVL (C.order_stat, 217)   = NVL ($P{Status}, NVL (C.order_stat, 217))and
+A.EO_CATG=NVL($P{EoCatId},A.EO_CATG) and
+  A.CURR_ID_SP=nvl($P{CurrId},a.curr_id_sp) and
+  a.inv_type=nvl($P{InvType},a.inv_type) and
+  trunc(a.invoice_doc_dt) >= nvl (to_date ($P{FromDate}, 'yyyy-MM-dd'), trunc(a.invoice_doc_dt)) and
+  trunc(a.invoice_doc_dt) <= nvl (to_date ($P{ToDate}, 'yyyy-MM-dd'), trunc(a.invoice_doc_dt))
+order by eo_nm]]>
+	</queryString>
+	<field name="CLD_ID" class="java.lang.String"/>
+	<field name="EO_CATG" class="java.math.BigDecimal"/>
+	<field name="COA_NM" class="java.lang.String"/>
+	<field name="SR_NO" class="java.math.BigDecimal"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="HO_ORG_ID" class="java.lang.String"/>
+	<field name="INVOICE_DOC_ID" class="java.lang.String"/>
+	<field name="INVOICE_ID" class="java.lang.String"/>
+	<field name="INVOICE_DOC_DT" class="java.lang.String"/>
+	<field name="INV_TYPE" class="java.math.BigDecimal"/>
+	<field name="INV_TYP_NM" class="java.lang.String"/>
+	<field name="CURR_ID_SP" class="java.math.BigDecimal"/>
+	<field name="CURR_RATE" class="java.math.BigDecimal"/>
+	<field name="EO_ID" class="java.math.BigDecimal"/>
+	<field name="EO_NM" class="java.lang.String"/>
+	<field name="ITM_ID" class="java.lang.String"/>
+	<field name="ITM_DESC" class="java.lang.String"/>
+	<field name="ITM_RATE" class="java.math.BigDecimal"/>
+	<field name="ITM_UOM" class="java.lang.String"/>
+	<field name="UOM_NM" class="java.lang.String"/>
+	<field name="ITM_SHIP_QTY" class="java.math.BigDecimal"/>
+	<field name="DISCOUNT" class="java.math.BigDecimal"/>
+	<field name="ITM_AMT_GS" class="java.math.BigDecimal"/>
+	<field name="ITM_AMT_BS" class="java.math.BigDecimal"/>
+	<field name="ITM_AMT_SP" class="java.math.BigDecimal"/>
+	<field name="TOT_AMT_SP" class="java.math.BigDecimal"/>
+	<field name="TOT_AMT_BS" class="java.math.BigDecimal"/>
+	<field name="ITM_COST" class="java.math.BigDecimal"/>
+	<field name="INV_WF_STAT_DESC" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="INV_MODE" class="java.lang.String"/>
+	<field name="TAX_AMT_SP" class="java.math.BigDecimal"/>
+	<field name="CURR_NOTATION_ALIAS" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="43">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="100" height="43" backcolor="#F0F8FF"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[Net Amount]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="45" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="100" height="45"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_AMT_SP}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

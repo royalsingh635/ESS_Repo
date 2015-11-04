@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PurchaseInvoiceRegister_subreport_Tot_Sum_Cancel" language="groovy" pageWidth="281" pageHeight="20" columnWidth="281" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EoIdSrc" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="InvcType" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select sum(B.FINAL_RCPT_QTY) FINAL_RCPT_QTY,sum(NVL(B.DISC_AMT_SP,0)) tot_disc, sum((B.FINAL_RCPT_QTY * B.ITM_PRICE)) tot_gros_pric
+from mm.mm$invc A, MM.MM$INVC$ITM B
+WHERE A.CLD_ID = B.CLD_ID
+AND A.SLOC_ID = B.SLOC_ID
+AND A.ORG_ID = B.ORG_ID
+AND A.DOC_ID = B.DOC_ID
+AND A.AUTH_STAT = 'Y'
+AND A.INVC_STAT IS NOT null
+--and a.INVC_TYPE <> 492
+AND A.INVC_TYPE = NVL($P{InvcType},A.INVC_TYPE)
+AND A.CLD_ID = NVL($P{CldId},A.CLD_ID)
+AND A.SLOC_ID = NVL($P{SlocId},A.SLOC_ID)
+AND A.ORG_ID = NVL($P{OrgId},A.ORG_ID)
+AND A.DOC_ID= NVL($P{DocId},A.DOC_ID)
+AND A.EO_ID_SRC = NVL($P{EoIdSrc},A.EO_ID_SRC)
+AND trunc(A.INVC_DT) >= NVL(TO_DATE($P{FromDate},'yyyy,mm,dd'),trunc(A.INVC_DT))
+AND trunc(A.INVC_DT) <= NVL(TO_DATE($P{ToDate},'yyyy,mm,dd'),trunc(A.INVC_DT))
+ORDER BY A.INVC_NO, A.INVC_DT]]>
+	</queryString>
+	<field name="FINAL_RCPT_QTY" class="java.math.BigDecimal"/>
+	<field name="TOT_DISC" class="java.math.BigDecimal"/>
+	<field name="TOT_GROS_PRIC" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField pattern="###0.000;-###0.000" isBlankWhenNull="true">
+				<reportElement x="51" y="0" width="70" height="20"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_GROS_PRIC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.000;-###0.000" isBlankWhenNull="true">
+				<reportElement x="121" y="0" width="51" height="20"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_DISC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.000;-###0.000" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="51" height="20"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{FINAL_RCPT_QTY}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

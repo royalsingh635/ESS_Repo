@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report1" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Org_Logo" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select dt, hol_id,hol_desc,hol_type,att_nm,nvl(hol_dt,ref_dt)hol_dt,org_desc ,HOL_YEAR
+from (
+     select DISTINCT r.RANDOM_HOL_DT-(LEVEL) dt, a.hol_id,a.hol_desc,a.cld_id,a.sloc_id,a.ho_org_id,
+
+     a.hol_type,att_nm,a.RANDOM_HOL_DT hol_dt,c.org_desc ,r.random_hol_dt ref_dt,A.HOL_YEAR
+     from  hcm$hol$cal a, hcm$ds$att b,app.org c,hcm$hol$cal r
+     where a.hol_type=B.ATT_ID
+    -- and a.hol_type not in(38)
+     and a.cld_id        = C.ORG_CLD_ID
+     and a.ho_org_id     = c.org_id
+     and a.ref_hol_id = r.hol_id
+    CONNECT BY LEVEL <=(A.REF_COUNT_BEFORE)
+)
+
+   where cld_id        = NVL($P{cldId},CLD_ID)
+   and sloc_id       = NVL($P{slocId},SLOC_ID)
+   and ho_Org_Id     = NVL($P{hoOrgId},HO_ORG_ID)
+   and nvl(hol_dt,ref_dt) >= nvl(to_DATE($P{FromDate} ,'yyyy-MM-dd'),nvl(hol_dt,ref_dt))
+   and nvl(hol_dt,ref_dt) <= nvl(to_DATE($P{ToDate} ,'yyyy-MM-dd'),nvl(hol_dt,ref_dt))
+
+
+   union
+    select hol_dt dt, hol_id,hol_desc,hol_type,att_nm,nvl(hol_dt,ref_dt)hol_dt,org_desc,HOL_YEAR
+from (
+          select a.hol_id,a.hol_desc,a.cld_id,a.sloc_id,a.ho_org_id, a.hol_type,att_nm,
+                 a.RANDOM_HOL_DT hol_dt,c.org_desc ,r.random_hol_dt ref_dt,A.HOL_YEAR
+         from  hcm$hol$cal a, hcm$ds$att b,app.org c,hcm$hol$cal r
+         where a.hol_type=B.ATT_ID
+ --        and a.hol_type not in(38)
+         and a.cld_id        = C.ORG_CLD_ID
+         and a.ho_org_id     = c.org_id
+          and a.ref_hol_id    = r.hol_id(+)
+)
+
+   where cld_id      = NVL($P{cldId},CLD_ID)
+   and sloc_id       = NVL($P{slocId},SLOC_ID)
+   and ho_Org_Id     = NVL($P{hoOrgId},HO_ORG_ID)
+   and hol_dt >= nvl(to_DATE($P{FromDate} ,'yyyy-MM-dd'),hol_dt)
+   and hol_dt <= nvl(to_DATE($P{ToDate} ,'yyyy-MM-dd'),hol_dt)
+
+   union
+
+   select dt, hol_id,hol_desc,hol_type,att_nm,nvl(hol_dt,ref_dt)hol_dt,org_desc ,HOL_YEAR
+from (
+     select DISTINCT r.RANDOM_HOL_DT+(LEVEL) dt, a.hol_id,a.hol_desc,a.cld_id,a.sloc_id,a.ho_org_id,
+
+     a.hol_type,att_nm,a.RANDOM_HOL_DT hol_dt,c.org_desc ,r.random_hol_dt ref_dt,A.HOL_YEAR
+     from  hcm$hol$cal a, hcm$ds$att b,app.org c,hcm$hol$cal r
+     where a.hol_type=B.ATT_ID
+    -- and a.hol_type not in(38)
+     and a.cld_id        = C.ORG_CLD_ID
+     and a.ho_org_id     = c.org_id
+     and a.ref_hol_id = r.hol_id
+    CONNECT BY LEVEL <=(A.REF_COUNT_AFTER)
+)
+
+   where cld_id        = NVL($P{cldId},CLD_ID)
+   and sloc_id       = NVL($P{slocId},SLOC_ID)
+   and ho_Org_Id     = NVL($P{hoOrgId},HO_ORG_ID)
+   and nvl(hol_dt,ref_dt) >= nvl(to_DATE($P{FromDate} ,'yyyy-MM-dd'),nvl(hol_dt,ref_dt))
+   and nvl(hol_dt,ref_dt) <= nvl(to_DATE($P{ToDate} ,'yyyy-MM-dd'),nvl(hol_dt,ref_dt))]]>
+	</queryString>
+	<field name="DT" class="java.sql.Timestamp"/>
+	<field name="HOL_ID" class="java.lang.String"/>
+	<field name="HOL_DESC" class="java.lang.String"/>
+	<field name="HOL_TYPE" class="java.math.BigDecimal"/>
+	<field name="ATT_NM" class="java.lang.String"/>
+	<field name="HOL_DT" class="java.sql.Timestamp"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="HOL_YEAR" class="java.math.BigDecimal"/>
+	<sortField name="DT"/>
+	<sortField name="HOL_TYPE"/>
+	<sortField name="HOL_DESC"/>
+	<variable name="sNo" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$V{sNo}]]></variableExpression>
+		<initialValueExpression><![CDATA[1]]></initialValueExpression>
+	</variable>
+	<pageHeader>
+		<band height="74" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="70" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="66" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<image onErrorType="Blank">
+				<reportElement x="3" y="4" width="108" height="41"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+ ($P{Org_Logo}==null?"Org-logo.png":$P{Org_Logo})]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="363" y="27" width="190" height="16" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[List of Holidays
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="467" y="45" width="41" height="15" forecolor="#6600CC"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Year]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="508" y="45" width="5" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="9" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="512" y="45" width="41" height="15" forecolor="#6600CC"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{HOL_YEAR}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="364" y="11" width="190" height="16" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="11" isBold="true" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement mode="Opaque" x="24" y="0" width="132" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="156" y="0" width="188" height="20" backcolor="#C1DDF9"/>
+				<box leftPadding="0">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Holiday  Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="344" y="0" width="211" height="20" backcolor="#C1DDF9"/>
+				<box leftPadding="0">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Holiday Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="24" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[S.No.]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="24" y="0" width="132" height="20"/>
+				<box leftPadding="2">
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{DT}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="156" y="0" width="188" height="20"/>
+				<box leftPadding="5">
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{HOL_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="344" y="0" width="211" height="20"/>
+				<box leftPadding="6">
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ATT_NM}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="24" height="20"/>
+				<box rightPadding="2">
+					<topPen lineWidth="0.5" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{sNo}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="28" splitType="Stretch">
+			<textField evaluationTime="Report">
+				<reportElement x="525" y="12" width="29" height="13" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="1" y="12" width="122" height="13"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="467" y="12" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="4" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="8" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="30">
+			<staticText>
+				<reportElement x="0" y="8" width="555" height="22"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated By ebizframe10]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="1" y="11" width="122" height="12"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="524" y="12" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="466" y="12" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="3" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="7" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</lastPageFooter>
+</jasperReport>

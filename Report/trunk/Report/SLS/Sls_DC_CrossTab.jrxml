@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Sls_DC_CrossTab" language="groovy" pageWidth="1500" pageHeight="842" columnWidth="1460" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="CldId" class="java.lang.String"/>
+	<parameter name="SlocId" class="java.lang.Integer"/>
+	<parameter name="OrgId" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String"/>
+	<parameter name="ToDate" class="java.lang.String"/>
+	<parameter name="ItmId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="HoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Status" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AssignTo" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EoId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgLogo" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\SVN_Report\\Report\\SLS\\SubReport\\"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[(SELECT assigned_count,
+  cld_id,
+  ho_org_id,
+  org_id,
+  sloc_id,
+  stage_nm,
+  sales_exec,
+  org_desc,
+  SUM(expctd_amt)expctd_amt
+FROM
+  ((SELECT DISTINCT SUM(assigned_count) assigned_count,
+    cld_id,
+    ho_org_id,
+    org_id,
+    sloc_id,
+    '1'
+    || stage_nm AS stage_nm,
+    sales_exec,
+    org_desc,
+    SUM(expctd_amt) expctd_amt
+  FROM
+    (SELECT COUNT(a.assigned_to)assigned_count,
+      a.CLD_ID,
+      a.HO_ORG_ID,
+      a.ORG_ID,
+      a.SLOC_ID,
+      b.STAGE_NM,
+      C.EO_NM SALES_EXEC,
+      (SELECT O.ORG_DESC
+      FROM APP.ORG O
+      WHERE a.CLD_ID = O.ORG_CLD_ID
+      AND a.SLOC_ID  = O.ORG_CREATE_REF_SLOC_ID
+      AND a.ORG_ID   = O.ORG_ID
+      )ORG_DESC,
+      A.EXPCTD_AMT
+    FROM SLS$DC a,
+      SLS$DC$STAGE b,
+      (SELECT eo_cld_id cld_id,
+        x.eo_sloc_id sloc_id,
+        x.eo_ho_org_id ho_org_id,
+        x.eo_id,
+        x.eo_nm
+      FROM app.app$eo x
+      WHERE x.eo_cld_id = NVL ($P{CldId}, x.eo_cld_id)
+      AND x.eo_sloc_id  = NVL ($P{SlocId}, x.eo_sloc_id)
+      AND x.eo_type     = '80'
+      ) c
+    WHERE a.cld_id       = b.cld_id
+    AND a.sloc_id        = b.sloc_id
+    AND a.org_id         = b.org_id
+    AND a.ho_org_id      = b.ho_org_id
+    AND a.stage_id       = b.stage_id
+    AND a.cld_id         =c.cld_id(+)
+    AND a.sloc_id        = c.sloc_id(+)
+    AND a.ho_org_id      = c.ho_org_id(+)
+    AND A.ASSIGNED_TO    =c.eo_id(+)
+    AND a.cld_id         =NVL($P{CldId},a.cld_id)
+    AND a.sloc_id        =NVL($P{SlocId},a.sloc_id)
+    AND a.ho_org_id      =NVL($P{HoOrgId},a.ho_org_id)
+    AND a.org_id         =NVL($P{OrgId},a.org_id)
+    AND a.doc_id         =NVL($P{DocId},a.doc_id)
+    AND NVL(a.stage_id,0)=NVL($P{Status},NVL(a.stage_id,0))
+    AND a.assigned_to    =NVL($P{AssignTo},a.assigned_to)
+    AND a.eo_id          =NVL($P{EoId},a.eo_id)
+    AND TRUNC(a.doc_dt) >=NVL (TO_DATE ( $P{FromDate}, 'yyyy-MM-dd'),TRUNC(A.DOC_DT))
+    AND TRUNC(a.doc_dt) <=NVL (TO_DATE ($P{ToDate} , 'yyyy-MM-dd'), TRUNC(A.DOC_DT))
+    GROUP BY a.CLD_ID,
+      a.HO_ORG_ID,
+      a.ORG_ID,
+      a.SLOC_ID,
+      A.ASSIGNED_TO,
+      b.STAGE_NM,
+      C.EO_NM,
+      EXPCTD_AMT
+    )
+  GROUP BY cld_id,
+    ho_org_id,
+    org_id,
+    sloc_id,
+    stage_nm,
+    sales_exec,
+    org_desc
+  )
+UNION ALL
+  (SELECT SUM(assigned_count),
+    CLD_ID,
+    HO_ORG_ID,
+    ORG_ID,
+    SLOC_ID,
+    '2'
+    || STAGE_NM AS STAGE_NM,
+    sales_exec,
+    ORG_DESC,
+    0 EXPCTD_AMT
+  FROM
+    (SELECT COUNT(a.assigned_to) assigned_count,
+      a.CLD_ID,
+      a.HO_ORG_ID,
+      a.ORG_ID,
+      a.SLOC_ID,
+      A.ASSIGNED_TO,
+      'Total' STAGE_NM,
+      C.EO_NM SALES_EXEC,
+      (SELECT O.ORG_DESC
+      FROM APP.ORG O
+      WHERE A.CLD_ID = O.ORG_CLD_ID
+      AND A.SLOC_ID  = O.ORG_CREATE_REF_SLOC_ID
+      AND A.ORG_ID   = O.ORG_ID
+      )ORG_DESC
+    FROM SLS$DC a,
+      SLS$DC$STAGE b,
+      (SELECT eo_cld_id cld_id,
+        x.eo_sloc_id sloc_id,
+        x.eo_ho_org_id ho_org_id,
+        x.eo_id,
+        x.eo_nm
+      FROM app.app$eo x
+      WHERE x.eo_cld_id = NVL ($P{CldId}, x.eo_cld_id)
+      AND x.eo_sloc_id  = NVL ($P{SlocId}, x.eo_sloc_id)
+      AND x.eo_type     = '80'
+      ) c
+    WHERE a.cld_id       = b.cld_id
+    AND a.sloc_id        = b.sloc_id
+    AND a.org_id         = b.org_id
+    AND a.ho_org_id      = b.ho_org_id
+    AND a.stage_id       = b.stage_id
+    AND a.cld_id         =c.cld_id(+)
+    AND a.sloc_id        = c.sloc_id(+)
+    AND a.ho_org_id      = c.ho_org_id(+)
+    AND A.ASSIGNED_TO    =c.eo_id(+)
+    AND a.cld_id         =NVL($P{CldId},a.cld_id)
+    AND a.sloc_id        =NVL($P{SlocId},a.sloc_id)
+    AND a.ho_org_id      =NVL($P{HoOrgId},a.ho_org_id)
+    AND a.org_id         =NVL($P{OrgId},a.org_id)
+    AND a.doc_id         =NVL($P{DocId},a.doc_id)
+    AND NVL(a.stage_id,0)=NVL($P{Status},NVL(a.stage_id,0))
+    AND a.assigned_to    =NVL($P{AssignTo},a.assigned_to)
+    AND a.eo_id          =NVL($P{EoId},a.eo_id)
+    AND TRUNC(a.doc_dt) >=NVL (TO_DATE ( $P{FromDate}, 'yyyy-MM-dd'),TRUNC(A.DOC_DT))
+    AND TRUNC(a.doc_dt) <=NVL (TO_DATE ($P{ToDate} , 'yyyy-MM-dd'), TRUNC(A.DOC_DT))
+    GROUP BY a.CLD_ID,
+      a.HO_ORG_ID,
+      a.ORG_ID,
+      a.SLOC_ID,
+      A.ASSIGNED_TO,
+      'Total',
+      C.EO_NM
+    )
+  GROUP BY cld_id,
+    HO_ORG_ID,
+    ORG_ID,
+    SLOC_ID,
+    ASSIGNED_TO,
+    STAGE_NM,
+    sales_exec,
+    ORG_DESC,
+    ''
+  )
+
+)group by assigned_count,cld_id,ho_org_id,org_id,sloc_id,stage_nm,sales_exec,org_desc)]]>
+	</queryString>
+	<field name="ASSIGNED_COUNT" class="java.math.BigDecimal"/>
+	<field name="CLD_ID" class="java.lang.String"/>
+	<field name="HO_ORG_ID" class="java.lang.String"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="SLOC_ID" class="java.math.BigDecimal"/>
+	<field name="STAGE_NM" class="java.lang.String"/>
+	<field name="SALES_EXEC" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="EXPCTD_AMT" class="java.math.BigDecimal"/>
+	<group name="Group">
+		<groupFooter>
+			<band height="86">
+				<subreport>
+					<reportElement x="0" y="0" width="1460" height="86"/>
+					<subreportParameter name="EoId">
+						<subreportParameterExpression><![CDATA[$P{EoId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="DocId">
+						<subreportParameterExpression><![CDATA[$P{DocId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ItmId">
+						<subreportParameterExpression><![CDATA[$P{ItmId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="FromDate">
+						<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="Path">
+						<subreportParameterExpression><![CDATA[$P{Path}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="SUBREPORT_DIR">
+						<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="Status">
+						<subreportParameterExpression><![CDATA[$P{Status}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ToDate">
+						<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="SlocId">
+						<subreportParameterExpression><![CDATA[$P{SlocId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="AssignTo">
+						<subreportParameterExpression><![CDATA[$P{AssignTo}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="HoOrgId">
+						<subreportParameterExpression><![CDATA[$P{HoOrgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="OrgId">
+						<subreportParameterExpression><![CDATA[$P{OrgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="CldId">
+						<subreportParameterExpression><![CDATA[$P{CldId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="OrgLogo">
+						<subreportParameterExpression><![CDATA[$P{OrgLogo}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Sls_DC_CrossTab_sub.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="58" splitType="Stretch">
+			<staticText>
+				<reportElement x="1406" y="42" width="10" height="16" forecolor="#6600CC"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="-1" y="42" width="656" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Organisation : "+$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="1418" y="41" width="40" height="15"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<textField>
+				<reportElement x="708" y="1" width="752" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[( $P{OrgId} == "" ? "All Organisation" : $F{ORG_DESC} )]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1230" y="21" width="230" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Daily Call ]]></text>
+			</staticText>
+			<image onErrorType="Blank">
+				<reportElement x="0" y="0" width="156" height="36"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path} + ($P{OrgLogo} == null ? "Org-logo.png" : $P{OrgLogo})]]></imageExpression>
+			</image>
+			<subreport>
+				<reportElement x="1365" y="41" width="40" height="15"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="1336" y="42" width="27" height="16" forecolor="#6600CC"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Period]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<pageFooter>
+		<band height="21" splitType="Stretch">
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="0" y="3" width="120" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1339" y="2" width="80" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="1419" y="2" width="40" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="2" width="1460" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="50">
+			<line>
+				<reportElement x="0" y="2" width="1460" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="1" y="3" width="120" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="1338" y="3" width="80" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="1418" y="3" width="40" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="18" width="1460" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated by ebizframe 10]]></text>
+			</staticText>
+		</band>
+	</lastPageFooter>
+</jasperReport>

@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SLS_OrderPrint_Report" language="groovy" pageWidth="609" pageHeight="842" columnWidth="569" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="DocId" class="java.lang.String"/>
+	<parameter name="SlocId" class="java.lang.Integer"/>
+	<parameter name="HoOrgId" class="java.lang.String"/>
+	<parameter name="CldId" class="java.lang.String"/>
+	<parameter name="OrgId" class="java.lang.String"/>
+	<parameter name="OrgLogo" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT p.pack_id,
+  p.doc_dt,
+  (SELECT pack_nm
+  FROM sls.sls$pack$prf prf
+  WHERE prf.pack_id=p.pack_typ_id
+  AND PRF.CLD_ID   =P.CLD_ID
+  AND prf.sloc_id  =p.sloc_id
+  AND prf.org_id   =p.org_id
+  AND PRF.HO_ORG_ID=P.HO_ORG_ID
+  and rownum=1
+  ) PACK_NAME,
+  (SELECT A.ATT_NM
+  FROM APP.APP$DS$ATT A
+  where a.att_id = p.pack_stat)status,
+  (SELECT DISTINCT e.eo_nm
+  FROM app.app$eo e
+  WHERE e.eo_id=pc.eo_id
+  AND e.eo_type=68
+and e.eo_cld_id = pc.cld_id
+and e.eo_sloc_id = pc.sloc_id
+and e.eo_ho_org_id = pc.ho_org_id
+  and rownum=1
+  ) eo_nm,
+  f.itm_desc,
+  (SELECT uom_nm
+  FROM app.app$uom$conv$std u
+  WHERE u.uom_id=pi.itm_uom
+  AND u.cld_id  =pi.cld_id
+  AND u.sloc_id =pi.sloc_id
+  ) uom_nm,
+  (SELECT org_desc FROM app.org o WHERE o.org_id=p.org_id
+  ) org_desc,
+  pi.itm_id,
+  pi.itm_uom,
+  pi.pack_qty,
+  pi.pick_qty,
+  pi.bal_qty,
+  pi.pack_no,
+  c.curr_notation_alias,e.adds,p.pick_dt,
+(select w.wh_nm from app.app$wh$org w
+  	where w.cld_id = p.cld_id
+ 	and w.sloc_id = p.sloc_id
+	and w.org_id = p.org_id
+	and w.wh_id = p.wh_id)warehouse,p.org_id,sh.pack_no pack
+FROM sls$pack p,
+  sls$pack$itm pi,
+  sls$pick pc,
+  SLS$PICK$ITM PCI,
+  sls$shipmnt$itm sh,
+  app.app$itm$prf f,
+  app.app$curr_vw c,
+(select org_id,adds from
+
+       app.app$adds$vw x,
+
+       app.org$oth$dtl y where
+
+        y.org_add_id1 = x.adds_id
+
+       ) e
+WHERE p.cld_id    =pi.cld_id
+AND p.sloc_id     =pi.sloc_id
+AND p.org_id      =pi.org_id
+AND p.ho_org_id   =pi.ho_org_id
+AND p.doc_id      =pi.doc_id
+and p.org_id = e.org_id(+)
+AND p.cld_id      =pc.cld_id
+AND p.sloc_id     =pc.sloc_id
+AND p.org_id      =pc.org_id
+AND p.ho_org_id   =pc.ho_org_id
+AND P.PICK_ID     =PC.DOC_ID
+
+AND pi.cld_id     = f.cld_id
+AND pi.sloc_id    = f.sloc_id
+AND pi.ho_org_id  = f.ho_org_id
+AND pi.itm_id     = f.itm_id
+AND pc.curr_id_sp =c.curr_id
+AND pc.cld_id     = pci.cld_id
+AND pc.sloc_id    = pci.sloc_id
+AND pc.ho_org_id  = pci.ho_org_id
+AND pc.org_id     = pci.org_id
+AND PC.DOC_ID     = PCI.DOC_ID
+and pi.itm_id     = pci.itm_id
+and pci.cld_id = sh.cld_id(+)
+and pci.sloc_id = sh.sloc_id(+)
+and pci.org_id = sh.org_id(+)
+and pci.ho_org_id = sh.ho_org_id(+)
+and pci.doc_id = sh.pick_id(+)
+and pci.itm_id = sh.itm_id(+)
+AND P.CLD_ID      =NVL($P{CldId},P.CLD_ID)
+AND P.SLOC_ID     =NVL($P{SlocId},P.SLOC_ID)
+AND P.ORG_ID      =NVL($P{OrgId},P.ORG_ID)
+AND P.HO_ORG_ID   =NVL($P{HoOrgId},P.HO_ORG_ID)
+AND P.DOC_ID      =NVL($P{DocId},P.DOC_ID)
+ORDER BY pi.itm_id]]>
+	</queryString>
+	<field name="PACK_ID" class="java.lang.String"/>
+	<field name="DOC_DT" class="java.sql.Timestamp"/>
+	<field name="PACK_NAME" class="java.lang.String"/>
+	<field name="STATUS" class="java.lang.String"/>
+	<field name="EO_NM" class="java.lang.String"/>
+	<field name="ITM_DESC" class="java.lang.String"/>
+	<field name="UOM_NM" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="ITM_ID" class="java.lang.String"/>
+	<field name="ITM_UOM" class="java.lang.String"/>
+	<field name="PACK_QTY" class="java.math.BigDecimal"/>
+	<field name="PICK_QTY" class="java.math.BigDecimal"/>
+	<field name="BAL_QTY" class="java.math.BigDecimal"/>
+	<field name="PACK_NO" class="java.lang.String"/>
+	<field name="CURR_NOTATION_ALIAS" class="java.lang.String"/>
+	<field name="ADDS" class="java.lang.String"/>
+	<field name="PICK_DT" class="java.sql.Timestamp"/>
+	<field name="WAREHOUSE" class="java.lang.String"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="PACK" class="java.lang.String"/>
+	<variable name="Count" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$V{Count}]]></variableExpression>
+		<initialValueExpression><![CDATA[1]]></initialValueExpression>
+	</variable>
+	<variable name="BAL_QTY_1" class="java.math.BigDecimal" resetType="Group" resetGroup="Org_Id" calculation="Sum">
+		<variableExpression><![CDATA[$F{BAL_QTY}]]></variableExpression>
+	</variable>
+	<variable name="PACK_QTY_1" class="java.math.BigDecimal" resetType="Group" resetGroup="Org_Id" calculation="Sum">
+		<variableExpression><![CDATA[$F{PACK_QTY}]]></variableExpression>
+	</variable>
+	<variable name="PICK_QTY_1" class="java.math.BigDecimal" resetType="Group" resetGroup="Org_Id" calculation="Sum">
+		<variableExpression><![CDATA[$F{PICK_QTY}]]></variableExpression>
+	</variable>
+	<group name="pack" isStartNewPage="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{PACK}]]></groupExpression>
+		<groupHeader>
+			<band height="169">
+				<image onErrorType="Blank">
+					<reportElement x="0" y="1" width="47" height="50"/>
+					<imageExpression class="java.lang.String"><![CDATA[$P{Path} + ($P{OrgLogo} == null ? "Org-logo.png" : $P{OrgLogo})]]></imageExpression>
+				</image>
+				<textField isBlankWhenNull="true">
+					<reportElement x="279" y="1" width="289" height="15" forecolor="#6600CC"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="11" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[( $P{OrgId} == "" ? "All Organisation" : $F{ORG_DESC} )]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="176" y="21" width="193" height="20" forecolor="#6600CC"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="16" isUnderline="true"/>
+					</textElement>
+					<text><![CDATA[PACK]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="1" y="58" width="262" height="15"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA["Organisation : "+$F{ORG_DESC}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true" hyperlinkType="RemotePage" hyperlinkTarget="Top">
+					<reportElement x="373" y="16" width="196" height="57" isPrintWhenDetailOverflows="true" forecolor="#6600CC"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{ADDS}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="100" y="97" width="176" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{EO_NM}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="96" width="569" height="1"/>
+				</line>
+				<line>
+					<reportElement x="1" y="96" width="1" height="72"/>
+				</line>
+				<staticText>
+					<reportElement x="6" y="97" width="90" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Customer Name]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="285" y="97" width="96" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Pack Id]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="285" y="114" width="96" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Pack Date]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="285" y="131" width="96" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Pack Status]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="6" y="114" width="90" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Currency]]></text>
+				</staticText>
+				<textField pattern="" isBlankWhenNull="true">
+					<reportElement x="390" y="131" width="176" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{STATUS}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="390" y="97" width="176" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{PACK_ID}]]></textFieldExpression>
+				</textField>
+				<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+					<reportElement x="390" y="114" width="176" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.util.Date"><![CDATA[$F{DOC_DT}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="168" width="569" height="1"/>
+				</line>
+				<line>
+					<reportElement x="279" y="96" width="1" height="72"/>
+				</line>
+				<textField>
+					<reportElement x="101" y="114" width="175" height="15"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{CURR_NOTATION_ALIAS}]]></textFieldExpression>
+				</textField>
+				<textField pattern="" isBlankWhenNull="true">
+					<reportElement x="390" y="148" width="176" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{PACK_NAME}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="285" y="148" width="96" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Pack Name]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="6" y="131" width="90" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Pick Date]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="6" y="148" width="90" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Warehouse]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="101" y="131" width="175" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{PICK_DT}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="101" y="148" width="175" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{WAREHOUSE}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="568" y="96" width="1" height="72"/>
+				</line>
+				<staticText>
+					<reportElement x="373" y="73" width="87" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<text><![CDATA[No. of Pkgs.]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="460" y="73" width="108" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{PACK_NO}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="20">
+				<staticText>
+					<reportElement x="279" y="0" width="65" height="20"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="569" height="20"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="494" y="0" width="75" height="20"/>
+					<box rightPadding="3"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{BAL_QTY_1}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="419" y="0" width="75" height="20"/>
+					<box rightPadding="3"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{PACK_QTY_1}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="344" y="0" width="75" height="20"/>
+					<box rightPadding="3"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{PICK_QTY_1}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="Org_Id">
+		<groupExpression><![CDATA[$F{ORG_ID}]]></groupExpression>
+		<groupHeader>
+			<band height="15">
+				<staticText>
+					<reportElement x="34" y="0" width="245" height="15"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Item Desc]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="34" y="0" width="245" height="15"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="34" height="15"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement>
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="34" height="15"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Sr. No.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="279" y="0" width="65" height="15"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[UOM]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="344" y="0" width="75" height="15"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Pick Qty]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="419" y="0" width="75" height="15"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Pack Qty]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="494" y="0" width="75" height="15"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Balance Qty]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="34" y="0" width="245" height="15"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="34" height="15"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="41" y="0" width="237" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ITM_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="2" y="0" width="23" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{Count}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="25" y="0" width="9" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[.]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="279" y="0" width="65" height="15"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{UOM_NM}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="344" y="0" width="75" height="15"/>
+				<box rightPadding="3">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PICK_QTY}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="419" y="0" width="75" height="15"/>
+				<box rightPadding="3">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PACK_QTY}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="494" y="0" width="75" height="15"/>
+				<box rightPadding="3">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{BAL_QTY}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<lastPageFooter>
+		<band height="15">
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="120" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="543" y="0" width="25" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="460" y="0" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+</jasperReport>

@@ -1,0 +1,747 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="TDSRegister_Taxwise" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="32"/>
+	<style name="HeaderStyle">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("D")]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("R")]]></conditionExpression>
+			<style backcolor="#FF0000"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("G")]]></conditionExpression>
+			<style backcolor="#CDDB27"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("Y")]]></conditionExpression>
+			<style backcolor="#FFFF00"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("GG")]]></conditionExpression>
+			<style backcolor="#CCCCCC"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("B")]]></conditionExpression>
+			<style backcolor="#3333FF"/>
+		</conditionalStyle>
+	</style>
+	<style name="BgColorStyle">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("D")]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("R")]]></conditionExpression>
+			<style backcolor="#F5B5B5"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("G")]]></conditionExpression>
+			<style backcolor="#DDE39B"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("Y")]]></conditionExpression>
+			<style backcolor="#FFFF95"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("GG")]]></conditionExpression>
+			<style backcolor="#EBEBEB"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("B")]]></conditionExpression>
+			<style backcolor="#BEBEED"/>
+		</conditionalStyle>
+	</style>
+	<style name="DetailStyle" mode="Opaque" fill="Solid" radius="10" isBlankWhenNull="true" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{COLUMN_COUNT}%2 == 0]]></conditionExpression>
+			<style backcolor="#CCCCFF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="Org_Id" class="java.lang.String"/>
+	<parameter name="From_Date" class="java.lang.String"/>
+	<parameter name="To_Date" class="java.lang.String"/>
+	<parameter name="Cld_Id" class="java.lang.String"/>
+	<parameter name="Coa_Id" class="java.math.BigDecimal"/>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="Margin_Detail" class="java.lang.String"/>
+	<parameter name="Head" class="java.lang.String"/>
+	<parameter name="BgColor" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select type_apar,
+		org_desc,
+		tds_name,
+		percentage,
+		account_id,account_name,
+		voucherid voucher_id,voucherdate voucher_date,
+		tdstype tds_type,tdsamount tds_amount,tds_amt Taxable_Amount
+from(
+	select 'AP' type_apar,c.org_desc,
+			b.coa_nm tds_name,
+			a.gl_tds_rule_coa_id Account_id,b.coa_nm account_name,
+			substr(d.doc_txn_id_disp,3) VoucherId,a.gl_vou_dt VoucherDate,
+			tax.tax_per Percentage,
+			a.gl_tds_rule_bal_type TdsType,a.gl_tds_rule_tds_amt_sp TdsAmount,a.gl_tds_rule_op_amt_line tds_amt
+	from  fin.gl_tds_rule_line a,
+		fin.fin$coa b ,
+		app.org c,
+		app.app$doc$txn d ,
+		app.app$tax$rule$line tb,
+		app.app$tax$rule tt,
+		app.app$tax tax
+	where a.GL_CLD_ID = $P{Cld_Id}
+	and   a.GL_TDS_RULE_COA_ID = nvl( $P{Coa_Id}, a.GL_TDS_RULE_COA_ID)
+	and   a.GL_ORG_ID = nvl( $P{Org_Id}, a.GL_ORG_ID)
+	and   TRUNC(a.GL_VOU_DT) > = to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD')
+	and   TRUNC(a.GL_VOU_DT) < = to_date(NVL($P{To_Date},SYSDATE),'YYYY-MM-DD')
+	and   a.gl_tds_rule_priority <> 0
+	and   a.GL_TDS_RULE_SLNO <> 1
+
+	and   a.gl_cld_id = b.coa_cld_id
+	and   a.gl_sloc_id = b.coa_sloc_id
+	and   a.gl_ho_org_id = b.coa_ho_org_id
+	and   a.gl_tds_rule_coa_id = b.coa_id
+
+	and   a.gl_cld_id = d.doc_cld_id
+	and   a.gl_sloc_id = d.doc_sloc_id
+	and   a.gl_org_id = d.doc_org_id
+	and   d.doc_id = 56
+	and   a.gl_vou_id = d.doc_txn_id
+	and   a.gl_cld_id = org_cld_id --new
+	and   a.gl_org_id = c.org_id
+
+	and tb.tax_cld_id = a.gl_cld_id
+	and tb.tax_rule_sloc_id = a.gl_sloc_id
+	and tb.tax_ho_org_id = a.gl_ho_org_id
+	and tb.tax_rule_id = decode(a.GL_TDS_APP_FLG, 'M', tb.tax_rule_id, a.gl_tds_rule_id)
+	and tb.tax_rule_slno = decode(a.GL_TDS_APP_FLG, 'M', tb.tax_rule_slno, a.gl_tds_rule_slno)
+	and tb.tax_id = a.gl_tds_id
+
+	and tt.tax_cld_id = tb.tax_cld_id
+	and tt.tax_rule_sloc_id = tb.tax_rule_sloc_id
+	and tt.tax_ho_org_id = tb.tax_ho_org_id
+	and tt.tax_rule_id = tb.tax_rule_id
+	and tt.tax_type_tds = 'Y'
+
+	and   tax.cld_id = tb.tax_cld_id
+	and   tax.tax_sloc_id = tb.tax_rule_sloc_id
+	and   tax.ho_org_id = tb.tax_ho_org_id
+	and   tax.tax_id = tb.tax_id
+	and   tax.TAX_REG_TYPE = 'D'
+
+	union
+
+	select 'AP' type_apar,c.org_desc,
+			b.coa_nm tds_name,
+			a.gl_coa_id Account_id, b.coa_nm account_name,
+			substr(d.doc_txn_id_disp,3) VoucherId, a.gl_vou_dt VoucherDate,
+			tax.tax_per Percentage,
+			a.gl_amt_typ TdsType,a.gl_amt_sp TdsAmount,a.gl_amt_bs tds_amt
+	from  fin.gl_lines a,
+		fin.fin$coa b ,
+		fin.fin$acc$na f,
+		app.org c,
+		app.app$doc$txn d ,
+		app.app$tax tax
+	where a.GL_CLD_ID = $P{Cld_Id}
+	and   a.GL_COA_ID = nvl( $P{Coa_Id}, a.GL_COA_ID)
+	and   a.GL_ORG_ID = nvl( $P{Org_Id}, a.GL_ORG_ID)
+	and   TRUNC(a.GL_VOU_DT) > = to_date(NVL($P{From_Date},'1000-01-01'),'YYYY-MM-DD')
+	and   TRUNC(a.GL_VOU_DT) < = to_date(NVL($P{To_Date},SYSDATE),'YYYY-MM-DD')
+	and   not exists (select 1 from fin.gl_tds_rule_line x
+					   where x.gl_vou_id = a.gl_vou_id)
+
+	and   a.gl_cld_id = b.coa_cld_id
+	and   a.gl_sloc_id = b.coa_sloc_id
+	and   a.gl_ho_org_id = b.coa_ho_org_id
+	and   a.gl_coa_id = b.coa_id
+
+	and f.acc_cld_id = b.coa_cld_id
+	and f.acc_sloc_id = b.coa_sloc_id
+	and f.ho_org_id = b.coa_ho_org_id
+	and f.acc_id = b.coa_acc_id
+	and f.acc_type = 5022
+
+	and   tax.cld_id = f.acc_cld_id
+	and   tax.tax_sloc_id = f.acc_sloc_id
+	and   tax.ho_org_id = f.ho_org_id
+	and   tax.tax_id = f.acc_type_id
+	and   tax.tax_reg_type = 'D'
+
+	and        a.gl_cld_id = org_cld_id --new
+	and   a.gl_org_id = c.org_id
+
+	and   a.gl_cld_id = d.doc_cld_id
+	and   a.gl_sloc_id = d.doc_sloc_id
+	and   a.gl_org_id = d.doc_org_id
+	and   d.doc_id = 56
+	--and g.gl_amt_typ = 'cr'
+	and   a.gl_vou_id = d.doc_txn_id
+)]]>
+	</queryString>
+	<field name="TYPE_APAR" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="TDS_NAME" class="java.lang.String"/>
+	<field name="PERCENTAGE" class="java.math.BigDecimal"/>
+	<field name="ACCOUNT_ID" class="java.math.BigDecimal"/>
+	<field name="ACCOUNT_NAME" class="java.lang.String"/>
+	<field name="VOUCHER_ID" class="java.lang.String"/>
+	<field name="VOUCHER_DATE" class="java.sql.Timestamp"/>
+	<field name="TDS_TYPE" class="java.lang.String"/>
+	<field name="TDS_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="TAXABLE_AMOUNT" class="java.math.BigDecimal"/>
+	<sortField name="ORG_DESC"/>
+	<sortField name="TDS_NAME"/>
+	<sortField name="ACCOUNT_NAME"/>
+	<sortField name="PERCENTAGE"/>
+	<sortField name="VOUCHER_DATE"/>
+	<sortField name="VOUCHER_ID"/>
+	<variable name="TotalVoucherAMtCoa" class="java.math.BigDecimal" resetType="Group" resetGroup="COA" calculation="Sum">
+		<variableExpression><![CDATA[$F{TAXABLE_AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="TotalVoucherAMtOrg" class="java.math.BigDecimal" resetType="Group" resetGroup="Org" calculation="Sum">
+		<variableExpression><![CDATA[$F{TAXABLE_AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="TotalTaxAmtCoa" class="java.math.BigDecimal" resetType="Group" resetGroup="COA" calculation="Sum">
+		<variableExpression><![CDATA[$F{TDS_AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="TotalTaxAmtOrg" class="java.math.BigDecimal" resetType="Group" resetGroup="Org" calculation="Sum">
+		<variableExpression><![CDATA[$F{TDS_AMOUNT}]]></variableExpression>
+	</variable>
+	<group name="Org" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{ORG_DESC}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band height="25">
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="487" y="0" width="60" height="25"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalVoucherAMtOrg}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="420" y="0" width="59" height="25"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalTaxAmtOrg}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="10" y="0" width="410" height="25"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA["Total Amount of "+$F{ORG_DESC}+" is :"]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="487" y="0" width="68" height="25"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="421" y="0" width="66" height="25"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="421" height="25"/>
+					<box>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="COA" keepTogether="true">
+		<groupExpression><![CDATA[$F{TDS_NAME}]]></groupExpression>
+		<groupHeader>
+			<band height="15" splitType="Prevent">
+				<textField isBlankWhenNull="true">
+					<reportElement x="7" y="0" width="318" height="15" forecolor="#0000CC"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{TDS_NAME}+"  ( @  "+$F{PERCENTAGE}.setScale( 2 )+" %) "]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="0" width="555" height="15"/>
+					<box>
+						<leftPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="25">
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="487" y="0" width="60" height="25" forecolor="#0000CC"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalVoucherAMtCoa}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="420" y="0" width="59" height="25" forecolor="#0000CC"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalTaxAmtCoa}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="10" y="0" width="410" height="25" forecolor="#0000CC"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA["Total Amount of "+$F{TDS_NAME}+" is :"]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="421" y="0" width="66" height="25"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="487" y="0" width="68" height="25"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="421" height="25"/>
+					<box>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band height="572">
+			<rectangle>
+				<reportElement style="BgColorStyle" mode="Opaque" x="-20" y="-19" width="596" height="591"/>
+				<graphicElement>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+				</graphicElement>
+			</rectangle>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-21" y="0" width="20" height="175">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="SansSerif" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-20" y="175" width="20" height="192">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="SansSerif" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-21" y="367" width="20" height="205">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="SansSerif" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<image hAlign="Center" onErrorType="Blank">
+				<reportElement key="" mode="Opaque" x="0" y="0" width="556" height="572">
+					<printWhenExpression><![CDATA[$P{BgColor}.equals( "D" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org_logo_dim.png"]]></imageExpression>
+			</image>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="556" y="0" width="20" height="175">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="SansSerif" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="556" y="175" width="20" height="192">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="SansSerif" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="556" y="367" width="20" height="205">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="SansSerif" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+		</band>
+	</background>
+	<pageHeader>
+		<band height="70" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="265" y="16" width="290" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{Org_Id} == ""?"TDS Register Tax Wise (Consolidated)":"TDS Register Tax Wise"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="265" y="1" width="290" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{Org_Id} == ""?"All Organizations" : $F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="49" width="343" height="15">
+					<printWhenExpression><![CDATA[$P{Org_Id} == ""]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Organization Name :" +$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement x="1" y="1" width="220" height="45"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<subreport>
+				<reportElement x="477" y="35" width="35" height="12"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{From_Date}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="524" y="35" width="31" height="12"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{To_Date}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="443" y="35" width="34" height="12"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Period :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="512" y="37" width="12" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="64" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="69" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineColor="#666666"/>
+				</graphicElement>
+			</line>
+			<textField isBlankWhenNull="true">
+				<reportElement x="477" y="47" width="60" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[("Posted" )]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="376" y="47" width="100" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Voucher Status :]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="15">
+			<textField isBlankWhenNull="true">
+				<reportElement style="HeaderStyle" mode="Opaque" x="0" y="0" width="555" height="14"/>
+				<textElement/>
+			</textField>
+			<staticText>
+				<reportElement mode="Transparent" x="487" y="0" width="68" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Taxable Amount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="220" y="0" width="101" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Voucher Number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="321" y="0" width="84" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Voucher Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="50" y="0" width="170" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Account Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="405" y="0" width="82" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TDS Amount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="0" width="50" height="15" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="50" y="0" width="170" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ACCOUNT_NAME}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="239" y="0" width="82" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{VOUCHER_ID}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="340" y="0" width="65" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[$F{VOUCHER_DATE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="487" y="0" width="57" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TAXABLE_AMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="420" y="0" width="59" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TDS_AMOUNT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="220" height="20"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="220" y="0" width="101" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="321" y="0" width="84" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="405" y="0" width="82" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="487" y="0" width="68" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="30">
+			<textField evaluationTime="Report">
+				<reportElement x="532" y="10" width="22" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MMM-yyyy HH.mm.ss" isBlankWhenNull="true">
+				<reportElement x="0" y="10" width="82" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="466" y="9" width="80" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="8" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineColor="#666666"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="4" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="40">
+			<staticText>
+				<reportElement x="0" y="10" width="555" height="30"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[--------End Of Report--------
+Generated By ebizframe10]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="4" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="8" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineColor="#666666"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="466" y="10" width="80" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MMM-yyyy HH.mm.ss" isBlankWhenNull="true">
+				<reportElement x="0" y="10" width="82" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="532" y="10" width="26" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+</jasperReport>

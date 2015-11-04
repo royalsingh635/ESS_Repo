@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="current_stock_summary_subreport_unit" language="groovy" pageWidth="581" pageHeight="500" columnWidth="581" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="WhId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FyId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GrpId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ItmId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="UomId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT U.UOM_DESC,U.ITM_UOM_BS, SUM(U.avl_stk) U_avl_stk, U.avlbl_VAL U_avlbl_VAL,
+
+SUM(U.TOT_STK)U_TOT_STK,  U.TOTAL_VAL U_TOTAL_VAL,
+SUM(U.REJ_STK)U_REJ_STK, U.REJ_VAL U_REJ_VAL, SUM(U.RWK_STK)U_RWK_STK,U.RWK_VAL U_RWK_VAL,
+SUM(U.SCRP_STK) U_SCRP_STK, U.SCRAP_VAL U_SCRAP_VAL,
+SUM(U.REQ_STK)U_REQ_STK, U.REQUESTED_VAL U_REQUESTED_VAL, U.GLBL_CURR_NOTATION_ALIAS
+FROM
+(SELECT A.ORG_ID,A.WH_ID,E.WH_NM,A.ITM_ID,C.ITM_DESC,A.ITM_UOM_BS,F.UOM_NM UOM_DESC,B.ORG_DESC,C.GRP_ID,D.GRP_NM,
+
+nvl(A.AVL_STK,0) avl_stk ,sum((NVL(A.AVL_STK,0) * NVL(MM.MM_GET_ITM_STK_VAL(A.CLD_ID,A.SLOC_ID,A.ORG_ID,A.WH_ID,A.FY_ID,A.ITM_ID,'T'),0))) over (partition by a.org_id)avlbl_VAL,
+
+NVL(A.TOT_STK,0) TOT_STK,
+sum((NVL(A.TOT_STK,0) * NVL(MM.MM_GET_ITM_STK_VAL(A.CLD_ID,A.SLOC_ID,A.ORG_ID,A.WH_ID,A.FY_ID,A.ITM_ID,'T'),0))) over( partition by a.org_id)TOTAL_VAL,
+
+NVL(A.REJ_STK,0) REJ_STK,
+sum((NVL(A.REJ_STK,0) * NVL(MM.MM_GET_ITM_STK_VAL(A.CLD_ID,A.SLOC_ID,A.ORG_ID,A.WH_ID,A.FY_ID,A.ITM_ID,'J'),0)))over(partition by a.org_id) REJ_VAL,
+
+NVL(A.RWK_STK,0) RWK_STK,
+sum((NVL(A.RWK_STK,0) * NVL(MM.MM_GET_ITM_STK_VAL(A.CLD_ID,A.SLOC_ID,A.ORG_ID,A.WH_ID,A.FY_ID,A.ITM_ID,'W'),0))) over(partition by a.org_id) RWK_VAL,
+
+NVL(A.SCRP_STK,0) SCRP_STK,
+sum((NVL(A.SCRP_STK,0) * NVL(MM.MM_GET_ITM_STK_VAL(A.CLD_ID,A.SLOC_ID,A.ORG_ID,A.WH_ID,A.FY_ID,A.ITM_ID,'S'),0))) over(partition by a.org_id) SCRAP_VAL,
+
+NVL(A.REQ_STK,0) REQ_STK,
+sum((NVL(A.REQ_STK,0) * NVL(MM.MM_GET_ITM_STK_VAL(A.CLD_ID,A.SLOC_ID,A.ORG_ID,A.WH_ID,A.FY_ID,A.ITM_ID,'R'),0))) over(partition by a.org_id) REQUESTED_VAL,
+
+APP.get_org_def_curr_bs1(A.CLD_ID,A.SLOC_ID,A.ORG_ID) CURR_ID,G.CURR_DESC,I.GLBL_CURR_NOTATION_ALIAS
+
+FROM MM$STK$SUMM$ITM A,APP.ORG B,APP.APP$ITM$PRF C,APP.APP$GRP D,APP.APP$WH$ORG E,APP.APP$UOM$CONV$STD F,APP.APP$CURR G,APP.APP$GLBL$CURR I
+WHERE A.ORG_ID =B.ORG_ID
+AND  A.CLD_ID =C.CLD_ID
+AND A.SLOC_ID =C.SLOC_ID
+and MM.MM_GET_HO_ORG(A.CLD_ID, A.SLOC_ID, A.ORG_ID) = C.HO_ORG_ID
+AND A.ITM_ID =C.ITM_ID
+AND C.CLD_ID =D.CLD_ID
+AND C.SLOC_ID =D.SLOC_ID
+AND C.HO_ORG_ID = D.HO_ORG_ID
+AND C.GRP_ID =D.GRP_ID
+AND A.CLD_ID =E.CLD_ID
+AND A.SLOC_ID =E.SLOC_ID
+AND A.ORG_ID =E.ORG_ID
+AND A.WH_ID =E.WH_ID
+AND A.CLD_ID =F.CLD_ID
+AND A.SLOC_ID =F.SLOC_ID
+AND A.ITM_UOM_BS =F.UOM_ID
+AND A.CLD_ID =G.CLD_ID
+AND A.SLOC_ID =G.CURR_SLOC_ID
+AND APP.get_org_def_curr_bs1(A.CLD_ID,A.SLOC_ID,A.ORG_ID)=G.CURR_ID
+AND G.CURR_ID =I.GLBL_CURR_ID
+AND A.CLD_ID =NVL($P{CldId},A.CLD_ID)
+AND A.SLOC_ID =NVL($P{SlocId},A.SLOC_ID)
+AND A.ORG_ID =NVL($P{OrgId},A.ORG_ID)
+AND A.WH_ID =NVL($P{WhId},A.WH_ID)
+AND C.GRP_ID = NVL($P{GrpId},C.GRP_ID)
+AND A.ITM_ID =NVL($P{ItmId},A.ITM_ID)
+AND A.FY_ID = NVL($P{FyId},A.FY_ID))U
+GROUP BY U.ITM_UOM_BS, U.UOM_DESC, u.GLBL_CURR_NOTATION_ALIAS, U.avlbl_VAL, U.TOTAL_VAL,
+U.REJ_VAL, U.RWK_VAL, U.SCRAP_VAL, U.REQUESTED_VAL]]>
+	</queryString>
+	<field name="UOM_DESC" class="java.lang.String"/>
+	<field name="ITM_UOM_BS" class="java.lang.String"/>
+	<field name="U_AVL_STK" class="java.math.BigDecimal"/>
+	<field name="U_AVLBL_VAL" class="java.math.BigDecimal"/>
+	<field name="U_TOT_STK" class="java.math.BigDecimal"/>
+	<field name="U_TOTAL_VAL" class="java.math.BigDecimal"/>
+	<field name="U_REJ_STK" class="java.math.BigDecimal"/>
+	<field name="U_REJ_VAL" class="java.math.BigDecimal"/>
+	<field name="U_RWK_STK" class="java.math.BigDecimal"/>
+	<field name="U_RWK_VAL" class="java.math.BigDecimal"/>
+	<field name="U_SCRP_STK" class="java.math.BigDecimal"/>
+	<field name="U_SCRAP_VAL" class="java.math.BigDecimal"/>
+	<field name="U_REQ_STK" class="java.math.BigDecimal"/>
+	<field name="U_REQUESTED_VAL" class="java.math.BigDecimal"/>
+	<field name="GLBL_CURR_NOTATION_ALIAS" class="java.lang.String"/>
+	<group name="uom_id">
+		<groupExpression><![CDATA[$F{ITM_UOM_BS}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="15">
+			<staticText>
+				<reportElement x="0" y="0" width="581" height="15"/>
+				<box leftPadding="3">
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Unit wise Grand Total :]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="581" height="15"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="498" y="0" width="47" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_RWK_STK}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="372" y="0" width="71" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_REQ_STK}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="545" y="0" width="34" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_SCRP_STK}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="297" y="0" width="75" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_TOT_STK}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="443" y="0" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_REJ_STK}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="255" y="0" width="42" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{UOM_DESC}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="30">
+			<staticText>
+				<reportElement x="0" y="0" width="581" height="15"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="297" y="15" width="75" height="15"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_TOTAL_VAL}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="255" y="15" width="42" height="15"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{GLBL_CURR_NOTATION_ALIAS}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="372" y="15" width="75" height="15"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_REQUESTED_VAL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="447" y="15" width="53" height="15"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_REJ_VAL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="547" y="15" width="34" height="15"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_SCRAP_VAL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="500" y="15" width="47" height="15"/>
+				<box rightPadding="3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{U_RWK_VAL}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="255" height="15"/>
+				<box leftPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[Total Values:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="14" width="581" height="15"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

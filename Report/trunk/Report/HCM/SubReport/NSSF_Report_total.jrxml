@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="NSSF_Report_total" language="groovy" pageWidth="412" pageHeight="802" columnWidth="412" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="ReportType" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT DOC_ID,
+  EMP_CODE,
+  EMP_NM,
+  to_char(EMP_DOB,'DD-Mon-YY')emp_dob,
+  EMP_DOJ,
+  PHONE_NO,
+  NHIF_AMOUNT,
+emp_no,
+  ORG_DESC,
+  adds,
+  BANK_MONTH,
+   EMP_ID,
+   ORG_TELEPHONE,
+   NHIF_NO,MM,YY
+FROM
+  (SELECT A.DOC_ID,
+    A.EMP_CODE,
+    A.EMP_NM,
+    SUBSTR(A.EMP_NM, 0, instr(A.EMP_NM, ' '))
+    || SUBSTR(A.EMP_NM, instr(A.EMP_NM, ' ') + 1, instr(A.EMP_NM, ' ', -1, 1) - instr(A.EMP_NM, ' ') - 1) AS first_name,
+    SUBSTR(A.EMP_NM, instr(A.EMP_NM, ' ',    -1) + 1) last_name,
+    A.EMP_DOB,
+    A.EMP_DOJ,
+    NVL(A.EMP_PHONE1, A.EMP_PHONE2) PHONE_NO,
+    A.EMP_ID,
+    i.ORG_DESC,
+    NVL(Od.Org_Mobile1,OD.ORG_MOBILE2)ORG_TELEPHONE,
+    app.fn_get_adds_1(A.SLOC_ID, A.CLD_ID, od.ORG_ADD_ID1, 'm') adds,
+    TRIM(TO_CHAR(n.PROC_FRM_DT, 'Month-YYYY')) BANK_MONTH,
+       (select D.misc_doc_no from hcm$emp$ded D
+   WHERE
+    D.CLD_ID =A.CLD_ID
+   AND D.SLOC_ID=A.SLOC_ID
+   AND D.HO_ORG_ID=A.HO_ORG_ID
+   AND D.ORG_ID=A.ORG_ID
+   AND D.EMP_DOC_ID=A.DOC_ID
+   AND D.EMP_CODE=A.EMP_CODE
+   AND D.DED_DOC_ID=N.DED_DOC_ID
+   )NHIF_NO,
+od.PF_NO emp_no,
+   N.EMP_DED_AMT NHIF_AMOUNT,
+TO_CHAR(N.PROC_FRM_DT,'MM')MM,
+TO_CHAR(N.PROC_FRM_DT,'YYYY')YY
+  FROM ORG$HCM$EMP$PRF A,Hcm$mon$nSSF$ded N,
+    HCM$SETUP S,
+    app.org i,
+    app.org$oth$dtl od
+  WHERE A.SLOC_ID    = S.SLOC_ID
+  AND A.CLD_ID       = S.CLD_ID
+  AND A.HO_ORG_ID    = S.HO_ORG_ID
+  AND A.EMP_LOC_ID   = S.PARAM_ID
+   AND N.SLOC_ID=A.SLOC_ID
+   AND N.HO_ORG_ID=A.HO_ORG_ID
+   AND N.ORG_ID=A.ORG_ID
+   AND N.EMP_DOC_ID=A.DOC_ID
+   AND N.EMP_CODE=A.EMP_CODE
+  AND i.ORG_ID       = od.ORG_ID(+)
+  AND i.ORG_CLD_ID   = od.ORG_CLD_ID(+)
+  AND A.CLD_ID       = i.ORG_CLD_ID
+  AND A.ORG_ID       = i.ORG_ID
+  AND A.DOC_ID       = NVL($P{empDocId}, A.DOC_ID)
+  AND A.CLD_ID       = $P{cldId}
+  AND A.SLOC_ID      = $P{slocId}
+  AND A.HO_ORG_ID    = $P{hoOrgId}
+  AND A.ORG_ID       = $P{orgId}
+  AND (A.EMP_DEPT_ID = $P{crtValue}
+  OR A.EMP_LOC_ID    = $P{crtValue}
+  OR A.EMP_GRP_ID    = $P{crtValue}
+  OR A.DOC_ID        = $P{crtValue})
+  AND n.PROC_FRM_DT >= to_date(to_date($P{FromDate}, 'yyyy-mm-dd'), 'dd-mm-yy')
+  AND n.PROC_FRM_DT <= to_date(to_date($P{ToDate}, 'yyyy-mm-dd'), 'dd-mm-yy')
+  )]]>
+	</queryString>
+	<field name="DOC_ID" class="java.lang.String"/>
+	<field name="EMP_CODE" class="java.math.BigDecimal"/>
+	<field name="EMP_NM" class="java.lang.String"/>
+	<field name="EMP_DOB" class="java.lang.String"/>
+	<field name="EMP_DOJ" class="java.sql.Timestamp"/>
+	<field name="PHONE_NO" class="java.lang.String"/>
+	<field name="NHIF_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="EMP_NO" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="ADDS" class="java.lang.String"/>
+	<field name="BANK_MONTH" class="java.lang.String"/>
+	<field name="EMP_ID" class="java.lang.String"/>
+	<field name="ORG_TELEPHONE" class="java.lang.String"/>
+	<field name="NHIF_NO" class="java.lang.String"/>
+	<field name="MM" class="java.lang.String"/>
+	<field name="YY" class="java.lang.String"/>
+	<variable name="feld_Count" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$V{sNO}]]></variableExpression>
+		<initialValueExpression><![CDATA[1]]></initialValueExpression>
+	</variable>
+	<variable name="Total_Sal" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{NHIF_AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="sNO" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$V{sNO}]]></variableExpression>
+		<initialValueExpression><![CDATA[1]]></initialValueExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<summary>
+		<band height="50" splitType="Stretch">
+			<staticText>
+				<reportElement x="1" y="25" width="67" height="25"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="68" y="25" width="98" height="25"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_NO}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="0" width="67" height="25"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BATCH
+NUMBER]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="233" y="0" width="99" height="25"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TOTAL VALUE
+(SHILLINGS)]]></text>
+			</staticText>
+			<textField evaluationTime="Band" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="233" y="25" width="99" height="25"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Total_Sal}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="166" y="25" width="67" height="25"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{feld_Count}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="68" y="0" width="98" height="25"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[EMPLOYER
+NUMBER]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="166" y="0" width="67" height="25"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[NO. OF
+ENTRIES]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="332" y="0" width="81" height="25"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SERIAL
+NUMBER]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="332" y="25" width="81" height="25"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Salary_Slip" language="groovy" pageWidth="595" pageHeight="520" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Report\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select a.doc_id EMP_DOC_ID, a.EMP_CODE, a.EMP_ID, a.EMP_NM, a.EMP_DOB, a.EMP_DOJ, a.EMP_DEPT_ID, a.EMP_DESG_ID, a.EMP_LOC_ID, a.EMP_GRP_ID, a.EMP_PAY_MODE, h.att_nm PAY_MODE_NM,
+a.EMP_BNK_ID, a.BNK_BRNCH_ID, (select j.eo_nm from app.app$eo j where a.cld_id = j.eo_cld_id
+and a.ho_org_id = j.eo_ho_org_id
+and a.sloc_id = j.eo_sloc_id
+and a.BNK_BRNCH_ID = j.eo_id) bank_branch_nm, a.ACC_NO, a.ACC_TYPE, a.IFSC_CODE, a.SWIFT_CODE, a.EMP_PAN_NO,
+to_char(K.PROC_FRM_DT,'yyyy-mm-dd')PROC_FRM_DT,
+to_char(K.PROC_TO_DT,'yyyy-mm-dd')PROC_TO_DT,
+(select att_nm from hcm$ds$att where att_id=66) PF,
+(select att_nm from hcm$ds$att where att_id=67) ESI,
+(select b.MISC_DOC_NO
+  from hcm$emp$ded b, HCM$DED k where a.DOC_ID = b.emp_doc_id
+and a.CLD_ID = b.cld_id
+and a.SLOC_ID = b.sloc_id
+and a.HO_ORG_ID = b.ho_org_id
+and a.ORG_ID = b.org_id
+and a.EMP_CODE = b.emp_code
+and b.cld_id = k.cld_id
+and b.sloc_id = k.sloc_id
+and b.ho_org_id = k.ho_org_id
+and b.org_id = k.org_id
+and b.ded_doc_id = k.doc_id
+and k.ded_type = 66
+AND b.ded_prf = 50) PF_NO,
+(select  b.MISC_DOC_NO  from hcm$emp$ded b,HCM$DED k where a.DOC_ID = b.emp_doc_id
+and a.CLD_ID = b.cld_id
+and a.SLOC_ID = b.sloc_id
+and a.HO_ORG_ID = b.ho_org_id
+and a.ORG_ID = b.org_id
+and a.EMP_CODE = b.emp_code
+and b.cld_id = k.cld_id
+and b.sloc_id = k.sloc_id
+and b.ho_org_id = k.ho_org_id
+and b.org_id = k.org_id
+and b.ded_doc_id = k.doc_id
+and b.ded_prf = 50 and k.ded_type = 67) ESI_NO,
+d.dept_id, d.dept_nm DEPT_NAME, e.PARAM_ID, e.PARAM_DESC DESG_NAME, f.PARAM_ID LOCAT_ID, f.PARAM_DESC LOCAT_NAME, g.PARAM_ID GROUP_ID,
+g.PARAM_DESC GROUP_NAME, i.org_desc,a.emp_doj,
+(K.PROC_TO_DT-K.PROC_FRM_DT)+1 TTL_DAYS,
+    (((K.PROC_TO_DT-K.PROC_FRM_DT)+1)- (SELECT SUM(LV) FROM
+        (
+            SELECT COUNT(*) LV
+            FROM HCM$TIME$MOVE$EDIT$DTL X
+            WHERE X.CLD_ID = A.CLD_ID AND X.SLOC_ID = a.SLOC_ID AND X.HO_ORG_ID = a.HO_ORG_ID AND X.ORG_ID = a.ORG_ID
+            AND X.ATTEN_DT> = K.PROC_FRM_DT AND X.ATTEN_DT<=K.PROC_TO_DT
+            AND X.EMP_DOC_ID=a.doc_id
+            AND X.DED_CH='F'
+            UNION ALL
+            SELECT COUNT(*)/2 LV
+            FROM HCM$TIME$MOVE$EDIT$DTL Y
+            WHERE Y.CLD_ID = A.CLD_ID AND Y.SLOC_ID = a.SLOC_ID AND Y.HO_ORG_ID = a.HO_ORG_ID AND Y.ORG_ID = a.ORG_ID
+            AND Y.ATTEN_DT> = K.PROC_FRM_DT AND Y.ATTEN_DT<=K.PROC_TO_DT
+            AND Y.EMP_DOC_ID=a.doc_id
+            AND DED_CH='H'
+        )
+    ) ) PAID_DAYS,
+(SELECT SUM(LV) FROM
+        (
+            SELECT COUNT(*) LV
+            FROM HCM$TIME$MOVE$EDIT$DTL X
+            WHERE X.CLD_ID = A.CLD_ID AND X.SLOC_ID = a.SLOC_ID AND X.HO_ORG_ID = a.HO_ORG_ID AND X.ORG_ID = a.ORG_ID
+            AND X.ATTEN_DT> = K.PROC_FRM_DT AND X.ATTEN_DT<=K.PROC_TO_DT
+            AND X.EMP_DOC_ID=a.doc_id
+            AND X.DED_CH='F'
+            UNION ALL
+            SELECT COUNT(*)/2 LV
+            FROM HCM$TIME$MOVE$EDIT$DTL Y
+            WHERE Y.CLD_ID = A.CLD_ID AND Y.SLOC_ID = a.SLOC_ID AND Y.HO_ORG_ID = a.HO_ORG_ID AND Y.ORG_ID = a.ORG_ID
+            AND Y.ATTEN_DT> = K.PROC_FRM_DT AND Y.ATTEN_DT<=K.PROC_TO_DT
+            AND Y.EMP_DOC_ID=a.doc_id
+            AND DED_CH='H'
+        )
+    )lwp
+From ORG$HCM$EMP$PRF a,  app.app$dept d, hcm$setup e, hcm$setup f, hcm$setup g , hcm$ds$att h,
+app.org i,  HCM$SAL$PROC K
+where  a.CLD_ID = d.cld_id
+and a.SLOC_ID = d.sloc_id
+and a.HO_ORG_ID = d.ho_org_id
+and a.emp_dept_ID = d.dept_id
+and a.CLD_ID = e.cld_id
+and a.SLOC_ID = e.sloc_id
+and a.HO_ORG_ID = e.ho_org_id
+and a.emp_DESG_ID = e.param_id
+and a.CLD_ID = f.cld_id
+and a.SLOC_ID = f.sloc_id
+and a.HO_ORG_ID = f.ho_org_id
+and a.emp_LOC_ID = f.param_id
+and a.CLD_ID = g.cld_id
+and a.SLOC_ID = g.sloc_id
+and a.HO_ORG_ID = g.ho_org_id
+and a.emp_GRP_ID = g.param_id
+and a.EMP_PAY_MODE = h.att_id
+and a.cld_id = i.org_cld_id
+and a.org_id = i.org_id
+AND K.CLD_ID = a.CLD_ID
+AND K.SLOC_ID = a.SLOC_ID
+AND K.HO_ORG_ID = a.HO_ORG_ID
+AND K.ORG_ID = a.ORG_ID
+AND K.EMP_DOC_ID = a.DOC_ID
+
+AND (K.PROC_FRM_DT>= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND K.PROC_FRM_DT <=to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy'))
+AND (K.PROC_TO_DT>= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND K.PROC_TO_DT <=to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy'))
+AND a.CLD_ID = $P{cldId}
+AND a.SLOC_ID = $P{slocId}
+AND a.HO_ORG_ID = $P{hoOrgId}
+AND a.ORG_ID = $P{orgId}
+AND (A.EMP_DEPT_ID = $P{crtValue} OR A.EMP_LOC_ID =  $P{crtValue}
+OR A.EMP_GRP_ID = $P{crtValue} OR A.DOC_ID =$P{crtValue})
+AND A.DOC_ID = NVL($P{empDocId}, A.DOC_ID)]]>
+	</queryString>
+	<field name="EMP_DOC_ID" class="java.lang.String"/>
+	<field name="EMP_CODE" class="java.math.BigDecimal"/>
+	<field name="EMP_ID" class="java.lang.String"/>
+	<field name="EMP_NM" class="java.lang.String"/>
+	<field name="EMP_DOB" class="java.sql.Timestamp"/>
+	<field name="EMP_DOJ" class="java.sql.Timestamp"/>
+	<field name="EMP_DEPT_ID" class="java.lang.String"/>
+	<field name="EMP_DESG_ID" class="java.lang.String"/>
+	<field name="EMP_LOC_ID" class="java.lang.String"/>
+	<field name="EMP_GRP_ID" class="java.lang.String"/>
+	<field name="EMP_PAY_MODE" class="java.math.BigDecimal"/>
+	<field name="PAY_MODE_NM" class="java.lang.String"/>
+	<field name="EMP_BNK_ID" class="java.math.BigDecimal"/>
+	<field name="BNK_BRNCH_ID" class="java.math.BigDecimal"/>
+	<field name="BANK_BRANCH_NM" class="java.lang.String"/>
+	<field name="ACC_NO" class="java.lang.String"/>
+	<field name="ACC_TYPE" class="java.lang.String"/>
+	<field name="IFSC_CODE" class="java.lang.String"/>
+	<field name="SWIFT_CODE" class="java.lang.String"/>
+	<field name="EMP_PAN_NO" class="java.lang.String"/>
+	<field name="PROC_FRM_DT" class="java.lang.String"/>
+	<field name="PROC_TO_DT" class="java.lang.String"/>
+	<field name="PF" class="java.lang.String"/>
+	<field name="ESI" class="java.lang.String"/>
+	<field name="PF_NO" class="java.lang.String"/>
+	<field name="ESI_NO" class="java.lang.String"/>
+	<field name="DEPT_ID" class="java.lang.String"/>
+	<field name="DEPT_NAME" class="java.lang.String"/>
+	<field name="PARAM_ID" class="java.lang.String"/>
+	<field name="DESG_NAME" class="java.lang.String"/>
+	<field name="LOCAT_ID" class="java.lang.String"/>
+	<field name="LOCAT_NAME" class="java.lang.String"/>
+	<field name="GROUP_ID" class="java.lang.String"/>
+	<field name="GROUP_NAME" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="TTL_DAYS" class="java.math.BigDecimal"/>
+	<field name="PAID_DAYS" class="java.math.BigDecimal"/>
+	<field name="LWP" class="java.math.BigDecimal"/>
+	<variable name="totalEarn" class="java.math.BigDecimal">
+		<initialValueExpression><![CDATA[0.00]]></initialValueExpression>
+	</variable>
+	<variable name="totalDed" class="java.math.BigDecimal">
+		<initialValueExpression><![CDATA[0.00]]></initialValueExpression>
+	</variable>
+	<variable name="LWP" class="java.math.BigDecimal"/>
+	<group name="EmployeeDocId" isStartNewPage="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[]]></groupExpression>
+		<groupHeader>
+			<band height="70">
+				<staticText>
+					<reportElement x="0" y="0" width="555" height="70"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="152" y="53" width="112" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{ESI_NO}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="273" y="19" width="128" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{DEPT_NAME}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="4" y="3" width="140" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Employee Name]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="154" y="19" width="111" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_ID}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="271" y="3" width="130" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Department]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="150" y="3" width="115" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ Employee ID]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="412" y="53" width="139" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{GROUP_NAME}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="6" y="19" width="138" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_NM}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="412" y="19" width="139" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{DESG_NAME}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="410" y="37" width="141" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Group]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="410" y="3" width="141" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ Designation]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="7" y="53" width="137" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{PF_NO}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="150" y="37" width="114" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ESI No.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="4" y="37" width="140" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[PF No.     ]]></text>
+				</staticText>
+				<line>
+					<reportElement x="0" y="69" width="555" height="1"/>
+				</line>
+				<staticText>
+					<reportElement x="272" y="37" width="129" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Date of Joining]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="274" y="53" width="127" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{EMP_DOJ}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="21">
+				<staticText>
+					<reportElement x="0" y="0" width="555" height="21"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="1.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField evaluationTime="Band" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+					<reportElement mode="Transparent" x="310" y="3" width="115" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[($V{totalDed}.equals( null )? $V{totalEarn} : ($V{totalEarn}.subtract( $V{totalDed} )))]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="4" y="3" width="100" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="true" isUnderline="false"/>
+					</textElement>
+					<text><![CDATA[Net Pay]]></text>
+				</staticText>
+			</band>
+			<band height="2">
+				<subreport>
+					<reportElement x="3" y="0" width="552" height="1" printWhenGroupChanges="EmployeeDocId"/>
+					<subreportParameter name="orgId">
+						<subreportParameterExpression><![CDATA[$P{orgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ToDate">
+						<subreportParameterExpression><![CDATA[$F{PROC_TO_DT}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="cldId">
+						<subreportParameterExpression><![CDATA[$P{cldId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="empDocId">
+						<subreportParameterExpression><![CDATA[$F{EMP_DOC_ID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="hoOrgId">
+						<subreportParameterExpression><![CDATA[$P{hoOrgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="slocId">
+						<subreportParameterExpression><![CDATA[$P{slocId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="FromDate">
+						<subreportParameterExpression><![CDATA[$F{PROC_FRM_DT}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Salary_Slip_Leave_subreport.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+			<band height="66">
+				<staticText>
+					<reportElement x="0" y="0" width="555" height="66"/>
+					<box>
+						<topPen lineWidth="1.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="1.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="3" y="0" width="211" height="15"/>
+					<textElement textAlignment="Justified" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ACCOUNT DETAILS]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="3" y="49" width="80" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Disbursement Date]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="3" y="32" width="38" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Bank]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="310" y="4" width="115" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Net Salary Paid]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="45" y="16" width="169" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{ACC_NO}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="45" y="32" width="169" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{BANK_BRANCH_NM}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Band" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+					<reportElement mode="Transparent" x="310" y="19" width="115" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[($V{totalDed}.equals( null )? $V{totalEarn} : ($V{totalEarn}.subtract( $V{totalDed} )))]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="3" y="16" width="38" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ACC No.]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band height="480" splitType="Stretch">
+			<rectangle>
+				<reportElement x="0" y="0" width="555" height="480"/>
+				<graphicElement>
+					<pen lineWidth="1.25"/>
+				</graphicElement>
+			</rectangle>
+		</band>
+	</background>
+	<pageHeader>
+		<band height="60">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="272" y="0" width="282" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement x="1" y="1" width="156" height="36"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="382" y="21" width="172" height="16" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<text><![CDATA[Salary Slip ]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="57" width="554" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<subreport>
+				<reportElement x="454" y="37" width="100" height="15"/>
+				<subreportParameter name="ToDate">
+					<subreportParameterExpression><![CDATA[$F{PROC_TO_DT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="FromDate">
+					<subreportParameterExpression><![CDATA[$F{PROC_FRM_DT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Date_SubReport.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="22" splitType="Stretch">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="555" height="22" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="1" width="555" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="5" y="4" width="249" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SALARY DETAILS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="310" y="4" width="115" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Credit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="434" y="4" width="115" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Debit]]></text>
+			</staticText>
+		</band>
+		<band height="20">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="20" printWhenGroupChanges="EmployeeDocId"/>
+				<subreportParameter name="orgId">
+					<subreportParameterExpression><![CDATA[$P{orgId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ToDate">
+					<subreportParameterExpression><![CDATA[$F{PROC_TO_DT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="cldId">
+					<subreportParameterExpression><![CDATA[$P{cldId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="empDocId">
+					<subreportParameterExpression><![CDATA[$F{EMP_DOC_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="hoOrgId">
+					<subreportParameterExpression><![CDATA[$P{hoOrgId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="FromDate">
+					<subreportParameterExpression><![CDATA[$F{PROC_FRM_DT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="slocId">
+					<subreportParameterExpression><![CDATA[$P{slocId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Path">
+					<subreportParameterExpression><![CDATA[$P{Path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="totalEarn" toVariable="totalEarn" calculation="Sum"/>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Salary_Slip_Earning_subreport_New.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="20">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="20" printWhenGroupChanges="EmployeeDocId"/>
+				<subreportParameter name="orgId">
+					<subreportParameterExpression><![CDATA[$P{orgId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ToDate">
+					<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="cldId">
+					<subreportParameterExpression><![CDATA[$P{cldId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="empDocId">
+					<subreportParameterExpression><![CDATA[$F{EMP_DOC_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="hoOrgId">
+					<subreportParameterExpression><![CDATA[$P{hoOrgId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="slocId">
+					<subreportParameterExpression><![CDATA[$P{slocId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="FromDate">
+					<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="totalDedsub" toVariable="totalDed" calculation="Sum"/>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Salary_Slip_Deduction_subreport_New.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="34">
+			<line>
+				<reportElement x="0" y="1" width="555" height="3"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="4" width="555" height="2"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="514" y="9" width="40" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="9" width="555" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated by ebizframe 10]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="416" y="9" width="98" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="9" width="100" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

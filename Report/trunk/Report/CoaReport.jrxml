@@ -1,0 +1,699 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CoaReport" language="groovy" pageWidth="900" pageHeight="595" orientation="Landscape" columnWidth="860" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CogId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="Report_Type" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+    a.org_id,
+    a.org_desc,
+    b.cog_id,
+    b.cog_nm_tree,
+    c.coa_id,
+    c.coa_nm,
+    d.acc_type,
+    e.na_type,
+    d.acc_nm,
+    f.eo_nm,
+    f.eo_mst_nm,
+    --g.att_id,
+    --g.att_nm,
+    nvl(c.coa_bs_item,'N') coa_bs_item,
+    nvl(c.coa_pnl_item,'N') coa_pnl_item,
+    nvl(c.coa_cf_item,'N') coa_cf_item,
+    nvl(c.coa_trf_bal,'N') coa_trf_bal,
+    nvl(c.part_of_bdgt,'N') part_of_bdgt,
+    nvl(c.coa_actv,'N') coa_actv,
+                    f.cid,
+                    (select nvl(att_nm,'NA') from app.app$ds$att where att_type_id = 74 and att_id = f.cid ) catg_nm
+    from    app.org a,
+            (select a.cog_cld_id,
+            a.cog_sloc_id,
+            a.cog_org_id,
+            a.cog_id,
+            a.cog_nm,
+            substr(sys_connect_by_path(a.cog_nm,'->'),3) cog_nm_tree
+            from fin$cog a,
+                (select nvl(app.FN_GET_PARENT_ORG_L0 ($P{CldId}, $P{OrgId}),$P{OrgId}) ho_org_id
+                from dual) b,
+                (select app.fn_get_def_servr_loc_id sloc_id
+                from dual) c
+            where a.cog_cld_id = $P{CldId}
+            and a.cog_sloc_id = nvl($P{SlocId},c.sloc_id)
+            and a.cog_org_id = b.ho_org_id
+            and a.cog_id = nvl($P{CogId},a.cog_id)
+            connect by prior cog_id = cog_id_parent
+            start with cog_id in ('1','2','3','4')
+            ) b,
+          fin$coa c,
+          fin$acc$na d,
+          fin$na$type_vw e,
+            (select a.eo_cld_id,
+                    a.eo_sloc_id,
+                    a.eo_ho_org_id,
+                    a.eo_org_id,
+                    a.eo_mst_id,
+                    b.eo_mst_nm,
+                    a.eo_id,
+                    a.eo_nm,
+                    a.eo_acc_id,
+                    a.eo_type,
+                    a.catg_id CID
+              from app.app$eo a ,
+                app.app$eo$mst b,
+                (select nvl(app.fn_get_parent_org_l0 ($P{CldId}, $P{OrgId}),$P{OrgId}) ho_org_id
+                from dual) c,
+                (select app.fn_get_def_servr_loc_id sloc_id
+                from dual) d
+              where a.eo_cld_id = $P{CldId}
+              and a.eo_sloc_id = nvl($P{SlocId},d.sloc_id)
+              and a.eo_ho_org_id = c.ho_org_id
+
+              and b.eo_cld_id = a.eo_cld_id
+              and b.eo_mst_sloc_id = a.eo_sloc_id
+              and b.eo_ho_org_id = a.eo_ho_org_id
+              and b.eo_mst_id = a.eo_mst_id
+              --and b.eo_mst_actv = 'Y'
+              --and a.eo_actv = 'Y'
+            ) f
+where a.org_cld_id = $P{CldId}
+and a.org_id = $P{OrgId}
+
+and b.cog_cld_id = a.org_cld_id
+and b.cog_org_id = nvl(a.org_id_parent_l0,a.org_id)
+
+and c.coa_cld_id = b.cog_cld_id
+and c.coa_sloc_id = b.cog_sloc_id
+and c.coa_ho_org_id = b.cog_org_id
+and c.coa_cog_id = b.cog_id
+
+and d.acc_cld_id = c.coa_cld_id
+and d.acc_sloc_id = c.coa_sloc_id
+and d.ho_org_id = c.coa_ho_org_id
+and d.acc_id = c.coa_acc_id
+
+and e.cld_id = d.acc_cld_id
+and e.na_type_id = d.acc_type
+
+and d.acc_cld_id = f.eo_cld_id(+)
+and d.acc_sloc_id = f.eo_sloc_id(+)
+and d.ho_org_id = f.eo_ho_org_id(+)
+and d.acc_type_id = f.eo_id(+)
+and d.acc_type = f.eo_type(+) --add]]>
+	</queryString>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="COG_ID" class="java.lang.String"/>
+	<field name="COG_NM_TREE" class="java.lang.String"/>
+	<field name="COA_ID" class="java.math.BigDecimal"/>
+	<field name="COA_NM" class="java.lang.String"/>
+	<field name="ACC_TYPE" class="java.math.BigDecimal"/>
+	<field name="NA_TYPE" class="java.lang.String"/>
+	<field name="ACC_NM" class="java.lang.String"/>
+	<field name="EO_NM" class="java.lang.String"/>
+	<field name="EO_MST_NM" class="java.lang.String"/>
+	<field name="COA_BS_ITEM" class="java.lang.String"/>
+	<field name="COA_PNL_ITEM" class="java.lang.String"/>
+	<field name="COA_CF_ITEM" class="java.lang.String"/>
+	<field name="COA_TRF_BAL" class="java.lang.String"/>
+	<field name="PART_OF_BDGT" class="java.lang.String"/>
+	<field name="COA_ACTV" class="java.lang.String"/>
+	<field name="CID" class="java.math.BigDecimal"/>
+	<field name="CATG_NM" class="java.lang.String"/>
+	<group name="Org" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{ORG_DESC}]]></groupExpression>
+	</group>
+	<group name="COG_ID" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{COG_ID}]]></groupExpression>
+		<groupHeader>
+			<band height="20">
+				<printWhenExpression><![CDATA[$P{Report_Type} == "P"]]></printWhenExpression>
+				<textField isBlankWhenNull="true">
+					<reportElement x="1" y="3" width="437" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{COG_NM_TREE}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="19" width="860" height="1"/>
+				</line>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="1">
+				<printWhenExpression><![CDATA[$P{Report_Type} == "P"]]></printWhenExpression>
+				<line>
+					<reportElement x="0" y="0" width="860" height="1"/>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<pageHeader>
+		<band height="85" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{Report_Type} == "P"]]></printWhenExpression>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="330" y="2" width="530" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{OrgId} == ""?"All Organisations" : $F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="438" y="17" width="422" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{OrgId} == ""?"Chart of Account Report(Consolidated)":"Chart of Account Report"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="62" width="343" height="15">
+					<printWhenExpression><![CDATA[$P{OrgId} == ""]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Organisation Name:"+ $F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement x="1" y="2" width="250" height="60"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<line>
+				<reportElement x="0" y="77" width="860" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="82" width="860" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="30">
+			<printWhenExpression><![CDATA[$P{Report_Type} == "P"]]></printWhenExpression>
+			<staticText>
+				<reportElement mode="Opaque" x="558" y="0" width="302" height="30" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Configuration]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="558" y="15" width="50" height="15" backcolor="#FFFFFF"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Active]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="608" y="15" width="50" height="15" backcolor="#FFFFFF"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Balance Sheet]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="658" y="15" width="50" height="15" backcolor="#FFFFFF"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Profit/Loss]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="708" y="15" width="50" height="15" backcolor="#FFFFFF"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Cash Flow]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="758" y="15" width="50" height="15" backcolor="#FFFFFF"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Transfer Balance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="808" y="15" width="52" height="15" backcolor="#FFFFFF"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Budget]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="558" height="30" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[ ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="300" y="15" width="150" height="15" backcolor="#FFFFFF"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Chart of Account]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="150" y="15" width="150" height="15" backcolor="#FFFFFF"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Entity]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="15" width="150" height="15" backcolor="#FFFFFF"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Entity Group]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="450" y="15" width="108" height="15" backcolor="#FFFFFF"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Category]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{Report_Type} == "P"]]></printWhenExpression>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="150" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EO_MST_NM}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="150" y="0" width="150" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[( $F{ACC_TYPE}== 0.00 ? "OTHERS"
+    : ( $F{ACC_TYPE}== 5022.00 ? "TAX" : $F{EO_NM} ) )]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="300" y="0" width="150" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{COA_NM}]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement x="575" y="5" width="15" height="10">
+					<printWhenExpression><![CDATA[$F{COA_ACTV}.equalsIgnoreCase( "Y" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"new_check_blue.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="576" y="5" width="15" height="10">
+					<printWhenExpression><![CDATA[$F{COA_ACTV}.equalsIgnoreCase( "N" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"new_cross_blue.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="626" y="5" width="15" height="10">
+					<printWhenExpression><![CDATA[$F{COA_BS_ITEM}.equalsIgnoreCase( "N" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"new_cross_blue.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="626" y="5" width="15" height="10">
+					<printWhenExpression><![CDATA[$F{COA_BS_ITEM}.equalsIgnoreCase( "Y" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"new_check_blue.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="677" y="5" width="15" height="10">
+					<printWhenExpression><![CDATA[$F{COA_PNL_ITEM}.equalsIgnoreCase( "N" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"new_cross_blue.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="677" y="5" width="15" height="10">
+					<printWhenExpression><![CDATA[$F{COA_PNL_ITEM}.equalsIgnoreCase( "Y" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"new_check_blue.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="778" y="5" width="15" height="10">
+					<printWhenExpression><![CDATA[$F{COA_TRF_BAL}.equalsIgnoreCase( "N" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"new_cross_blue.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="778" y="5" width="15" height="10">
+					<printWhenExpression><![CDATA[$F{COA_TRF_BAL}.equalsIgnoreCase( "Y" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"new_check_blue.png"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="560" y="0" width="50" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="609" y="0" width="50" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<image>
+				<reportElement x="724" y="5" width="15" height="10">
+					<printWhenExpression><![CDATA[$F{COA_CF_ITEM}.equalsIgnoreCase( "N" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"new_cross_blue.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="724" y="5" width="15" height="10">
+					<printWhenExpression><![CDATA[$F{COA_CF_ITEM}.equalsIgnoreCase( "Y" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"new_check_blue.png"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="659" y="0" width="50" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="709" y="0" width="50" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="760" y="0" width="50" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<image>
+				<reportElement x="833" y="5" width="15" height="10">
+					<printWhenExpression><![CDATA[$F{PART_OF_BDGT}.equalsIgnoreCase( "Y" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"new_check_blue.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="833" y="5" width="15" height="10">
+					<printWhenExpression><![CDATA[$F{PART_OF_BDGT}.equalsIgnoreCase( "N" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"new_cross_blue.png"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="810" y="0" width="50" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="450" y="0" width="110" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{CATG_NM}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="20">
+			<printWhenExpression><![CDATA[$P{Report_Type} == "E"]]></printWhenExpression>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="150" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EO_MST_NM}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="150" y="0" width="150" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[( $F{ACC_TYPE}== 0.00 ? "OTHERS"
+    : ( $F{ACC_TYPE}== 5022.00 ? "TAX" : $F{EO_NM} ) )]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="300" y="0" width="150" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{COA_NM}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="450" y="0" width="110" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{CATG_NM}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="23">
+			<printWhenExpression><![CDATA[$P{Report_Type} == "P"]]></printWhenExpression>
+			<line>
+				<reportElement x="0" y="0" width="860" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="4" width="860" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="1" y="7" width="100" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="681" y="7" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement x="761" y="7" width="40" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="44">
+			<printWhenExpression><![CDATA[$P{Report_Type} == "P"]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="21" width="802" height="23"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[--------------------End Of Report--------------------
+**Generated By ebizframe10**]]></text>
+			</staticText>
+			<textField pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="6" width="100" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="0" width="802" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="5" width="802" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isBlankWhenNull="true">
+				<reportElement x="681" y="6" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement x="761" y="6" width="40" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+</jasperReport>

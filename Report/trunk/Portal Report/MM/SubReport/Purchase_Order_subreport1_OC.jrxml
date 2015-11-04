@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Purchase_Order_subreport_OC" language="groovy" pageWidth="595" pageHeight="200" columnWidth="581" leftMargin="7" rightMargin="7" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="docId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[Select K.Coa_Nm,
+Decode(A.Tran_Type,'A',A.Oc_Amt_Sp
+                     ,'S', To_number('-'||''||A.Oc_Amt_Sp)) Oc_Amt_Sp,
+(Select Sum(Oc_Amt_Sp)From Mm$drft$po$oc
+ Where Doc_Id = $P{docId} And Tran_Type ='A') -
+(Select nvl(Sum(Oc_Amt_Sp),0) From Mm$drft$po$oc
+ Where Doc_Id = $P{docId} And Tran_Type ='S')tot_oc
+FROM FIN.FIN$COA$DTL$VW K,MM$DRFT$PO$OC A
+                  WHERE K.CLD_ID =A.CLD_ID
+                  AND K.SLOC_ID =A.SLOC_ID
+                  AND K.HO_ORG_ID = MM.MM_GET_HO_ORG(A.CLD_ID,A.SLOC_ID,A.ORG_ID)
+                  AND K.ORG_ID =A.ORG_ID
+                  And K.Coa_Id =A.Coa_Id
+                  And A.Doc_Id =$P{docId}
+                  order by tran_type]]>
+	</queryString>
+	<field name="COA_NM" class="java.lang.String"/>
+	<field name="OC_AMT_SP" class="java.math.BigDecimal"/>
+	<field name="TOT_OC" class="java.math.BigDecimal"/>
+	<variable name="OC_return_main_report" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{OC_AMT_SP}]]></variableExpression>
+	</variable>
+	<group name="DocId">
+		<groupExpression><![CDATA[$P{docId}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band height="15">
+				<staticText>
+					<reportElement x="461" y="0" width="7" height="15"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="0" width="460" height="15"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[Total OC]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="468" y="0" width="87" height="15"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="460" y="0" width="2" height="15"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+					<reportElement x="467" y="0" width="85" height="15"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_OC}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="239" y="0" width="222" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{COA_NM}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="467" y="0" width="85" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OC_AMT_SP}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="468" y="0" width="87" height="15"/>
+				<box>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="239" height="15"/>
+				<box>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="461" y="0" width="7" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<columnFooter>
+		<band/>
+	</columnFooter>
+</jasperReport>

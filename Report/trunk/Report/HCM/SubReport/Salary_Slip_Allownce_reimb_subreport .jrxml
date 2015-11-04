@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Salary_Slip_Earning_subreport" language="groovy" pageWidth="555" pageHeight="37" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT  B.CLD_ID, B.SLOC_ID, B.HO_ORG_ID,B.ORG_ID ,B.DOC_ID, B.SAL_ID,(SELECT C.PARAM_DESC FROM HCM$SETUP C WHERE C.CLD_ID=B.CLD_ID
+                                                               AND C.SLOC_ID = B.SLOC_ID
+                                                               AND C.HO_ORG_ID = B.HO_ORG_ID
+                                                               AND C.PARAM_ID = B.SAL_ID
+                                                               ) sal_desc,
+round(NVL(B.SAL_AMT,0),6) SAL_AMT
+FROM HCM$SAL$PROC$SAL B,hcm$emp$sal A,ORG$HCM$SALARY C
+where  B.CLD_ID = $P{cldId}
+and B.SLOC_ID = $P{slocId}
+and B.HO_ORG_ID = $P{hoOrgId}
+and B.ORG_ID = $P{orgId}
+and B.EMP_DOC_ID =$P{empDocId}
+and B.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+and B.PROC_TO_DT = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND A.CLD_ID(+)=B.CLD_ID
+AND A.SLOC_ID(+)=B.SLOC_ID
+AND A.HO_ORG_ID(+)=B.HO_ORG_ID
+AND A.ORG_ID(+)=B.ORG_ID
+AND A.DOC_ID(+)=B.EMP_DOC_ID
+AND A.SAL_ID(+)=B.SAL_ID
+AND B.ORG_ID = C.ORG_ID(+)
+AND B.HO_ORG_ID = C.HO_ORG_ID(+)
+AND B.CLD_ID = C.CLD_ID(+)
+AND B.ORG_ID = C.ORG_ID(+)
+AND B.SAL_ID = C.SAL_ID(+)
+and b.sal_behav in ('12','13')
+UNION
+select  A.CLD_ID, A.SLOC_ID, A.HO_ORG_ID,A.ORG_ID ,A.EMP_DOC_ID DOC_ID, A.DOC_ID SAL_ID,'ARREARS' sal_desc,
+round(NVL(a.SAL_ARREAR_AMT,0),6) SAL_AMT
+from HCM$SAL$PROC A
+where  a.CLD_ID = $P{cldId}
+and a.SLOC_ID = $P{slocId}
+and a.HO_ORG_ID = $P{hoOrgId}
+and a.ORG_ID = $P{orgId}
+and a.emp_doc_id = $P{empDocId}
+and a.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+and a.PROC_TO_DT = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND NVL(a.SAL_ARREAR_AMT,0) >0
+UNION
+SELECT  A.CLD_ID, A.SLOC_ID, A.HO_ORG_ID,A.ORG_ID ,A.EMP_DOC_ID DOC_ID, A.DOC_ID SAL_ID,'EXTRA TIME AMOUNT' sal_desc,
+round(NVL(a.TOT_EXT_TIME_AMT,0),6) SAL_AMT
+from HCM$SAL$PROC A
+where  a.CLD_ID = $P{cldId}
+and a.SLOC_ID = $P{slocId}
+and a.HO_ORG_ID = $P{hoOrgId}
+and a.ORG_ID = $P{orgId}
+and a.emp_doc_id = $P{empDocId}
+and a.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+and a.PROC_TO_DT = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND NVL(a.TOT_EXT_TIME_AMT,0) >0]]>
+	</queryString>
+	<field name="CLD_ID" class="java.lang.String"/>
+	<field name="SLOC_ID" class="java.math.BigDecimal"/>
+	<field name="HO_ORG_ID" class="java.lang.String"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="DOC_ID" class="java.lang.String"/>
+	<field name="SAL_ID" class="java.lang.String"/>
+	<field name="SAL_DESC" class="java.lang.String"/>
+	<field name="SAL_AMT" class="java.math.BigDecimal"/>
+	<variable name="totalEarnAll" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{SAL_AMT}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<columnHeader>
+		<band height="13">
+			<staticText>
+				<reportElement mode="Opaque" x="271" y="0" width="284" height="13" backcolor="#FFFFCC"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="271" height="13" backcolor="#FFFFCC"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="451" y="0" width="100" height="11"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[AMOUNT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="0" width="148" height="13"/>
+				<box leftPadding="1"/>
+				<textElement>
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[REIMBURSEMENT & ALLOWANCES]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="271" height="12"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="Arial" size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{SAL_DESC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="271" y="0" width="284" height="12"/>
+				<box rightPadding="3">
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{SAL_AMT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="12">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="271" height="12" forecolor="#000000" backcolor="#CCFFCC"/>
+				<box leftPadding="1">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="Arial" size="7" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[TOTAL REIMBURSEMENT & ALLOWANCES AMOUNT (B)]]></text>
+			</staticText>
+			<textField evaluationTime="Band" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="271" y="0" width="284" height="12" forecolor="#000000" backcolor="#CCFFCC"/>
+				<box rightPadding="3">
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{totalEarnAll}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

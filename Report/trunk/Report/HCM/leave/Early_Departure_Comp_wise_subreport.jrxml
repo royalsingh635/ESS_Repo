@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Late_arr_compny_wise" language="groovy" pageWidth="755" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="755" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="shiftId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ReportType" class="java.lang.String"/>
+	<parameter name="desgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="deptId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT org_desc,emp_doc_id,emp_id,
+  employee,
+  sft_st_tm,
+  date_in,
+  time_in,
+  shift_nm,
+  department,
+  atten_dt,
+  nvl(SUBSTR(late, 0,instr(late,'.')-1 ),'00:00') late,
+  SUBSTR(early, 0,instr(early,'.',-1) ) early
+  ,nvl(substr(early_dep,0,instr(early,'.')-1),'00:00') early_dep,
+  out_time,
+  out_date
+FROM
+  (SELECT org_desc,emp_doc_id, emp_id,
+    employee,
+    TO_CHAR(sft_St_tm,'HH24:MI:SS') sft_St_tm,
+    TO_date(TO_CHAR(date_in,'dd-MM-yyyy'),'dd-MM-yyyy') date_in,
+    TO_CHAR(time_in, 'HH24:MI:SS')time_in,
+    TO_CHAR(out_time, 'HH24:MI:SS')out_time,
+     TO_date(TO_CHAR(out_date,'dd-MM-yyyy'),'dd-MM-yyyy') out_date,
+    Shift_nm,
+    department,
+    atten_dt ,
+    (
+    CASE
+      WHEN (TIME_IN>SFT_ST_TM)
+      THEN SUBSTR((TIME_IN-SFT_ST_TM),instr((TIME_IN-SFT_ST_TM),' ')+1)
+      ELSE NULL
+    END )late ,
+    (
+    CASE
+      WHEN (TIME_IN<SFT_ST_TM)
+      THEN SUBSTR((TIME_IN-SFT_ST_TM),instr((TIME_IN-SFT_ST_TM),' ')+1)
+      ELSE NULL
+    END )early,
+
+   ( CASE
+      WHEN (out_time<SFT_nd_Time)
+      THEN SUBSTR((sft_nd_time-out_time),instr((sft_nd_time-out_time),' ')+1)
+      ELSE NULL
+    END )early_dep
+
+
+
+
+
+
+  FROM
+    (SELECT A.DOC_ID emp_doc_id,a.emp_code emp_code,
+      a.emp_id emp_id,
+      --B.emp_nm,
+      a.emp_dob emp_dob,
+      a.emp_doj emp_doj,
+      a.emp_dept_id emp_dept_id,
+      c.dept_nm department,
+      d.org_desc org_desc,
+      d.org_id org_id,
+      E.SHIFT_ID shift_id,
+      F.SHIFT_NM Shift_nm,
+      a.emp_grp_id emp_grp_id,
+      a.emp_GEN gen_id,
+      A.emp_nm employee,
+      (SELECT b.emp_nm parent
+      FROM org$hcm$emp$prf b
+      WHERE b.doc_id  =a.mgr_doc_id
+      AND b.CLD_ID    = $P{cldId}
+      AND b.SLOC_ID   = $P{slocId}
+      AND b.HO_ORG_ID = $P{hoOrgId}
+      AND b.ORG_ID    = $P{orgId}
+        --AND b.DOC_ID = e.doc_id
+      )RepTo,
+      DECODE(
+      (SELECT p.param_desc FROM hcm$setup p WHERE p.param_id = a.emp_GEN
+      AND p.cld_id                                           = a.cld_id
+      AND p.sloc_id                                          = a.sloc_id
+      AND p.ho_org_id                                        = a.ho_org_id
+      ),'MALE','Mr.','Mrs.')Emp_Alias,
+      (SELECT p.param_desc
+      FROM hcm$setup p
+      WHERE p.param_id = a.emp_grp_id
+      AND p.cld_id     = a.cld_id
+      AND p.sloc_id    = a.sloc_id
+      AND p.ho_org_id  = a.ho_org_id
+      )emp_grp_nm ,
+      a.EMP_DESG_ID emp_desg_id,
+      (SELECT p.param_desc
+      FROM hcm$setup p
+      WHERE p.param_id = a.EMP_DESG_ID
+      AND p.cld_id     = a.cld_id
+      AND p.sloc_id    = a.sloc_id
+      AND p.ho_org_id  = a.ho_org_id
+      )emp_desg_nm,
+      a.emp_loc_id loc_id,
+      (SELECT p.param_desc
+      FROM hcm$setup p
+      WHERE p.param_id = a.emp_loc_id
+      AND p.cld_id     = a.cld_id
+      AND p.sloc_id    = a.sloc_id
+      AND p.ho_org_id  = a.ho_org_id
+      )emp_loc_nm,
+      (SELECT p.param_desc
+      FROM hcm$setup p
+      WHERE p.param_id = a.emp_GEN
+      AND p.cld_id     = a.cld_id
+      AND p.sloc_id    = a.sloc_id
+      AND p.ho_org_id  = a.ho_org_id
+      )emp_GEN ,
+      t.atten_dt atten_dt,
+      T.IN_TIME intime,
+      t.IN_TIME DATE_in,
+      t.IN_TIME time_in,
+      --to_date(TO_CHAR(t.IN_TIME,'HH24$P{MI$P{SS'),'HH24$P{MI$P{SS')time_in,
+        t.OUT_TIME out_date,
+      t.OUT_TIME out_time,
+      f.SHIFT_ID sft_id,
+      f.SHIFT_STRT_TM st_time,
+      f.SHIFT_STRT_TM sft_St_tm,
+      f.SHIFT_END_TM end_tm ,
+      f.SHIFT_END_TM sft_nd_time,
+      f.SHIFT_BREAK_TM brk_tm,
+      f.SHIFT_AVL_TM avl_tm,
+      f.SHIFT_TOT_TM tot_tm
+    FROM org$hcm$emp$prf A ,
+      --org$hcm$emp$prf b,
+      app.app$dept c,
+      app.org d,
+      HCM$EMP$SHIFT e,
+      app.app$shift F,
+      hcm$time$move$edit$dtl t
+    WHERE --a.doc_id        = b.mgr_doc_id(+)
+      --AND A.CLD_ID        =B.CLD_ID(+)
+      -- AND A.ORG_ID    =B.ORG_ID(+)
+      --AND A.HO_ORG_ID =B.HO_ORG_ID(+)
+      --AND A.SLOC_ID   =B.SLOC_ID(+)
+      --AND A.EMP_ID=  B.EMP_ID
+      t.cld_id(+)          =a.cld_id
+    AND t.sloc_id(+)       = a.sloc_id
+    AND t.org_id(+)        = a.org_id
+    AND t.ho_org_id(+)     = a.ho_org_id
+    AND t.emp_doc_id(+)    = a.doc_id
+    AND a.cld_id           = c.cld_id
+    AND a.sloc_id          = c.sloc_id
+    AND a.ho_org_id        = c.ho_org_id
+    AND A.EMP_DEPT_ID      = C.DEPT_ID
+    AND A.ORG_ID           = d.org_id
+    AND a.cld_id           = d.org_cld_id
+    AND A.CLD_ID           =E.CLD_ID
+    AND A.SLOC_ID          =E.SLOC_ID
+    AND A.ORG_ID           =E.ORG_ID
+    AND A.HO_ORG_ID        =E.HO_ORG_ID
+    AND A.DOC_ID           =E.DOC_ID
+    AND E.CLD_ID           = F.CLD_ID
+    AND E.HO_ORG_ID        = F.HO_ORG_ID
+    AND E.SLOC_ID          = F.SLOC_ID
+    AND E.SHIFT_ID         = F.SHIFT_ID
+    AND t.CLD_ID           = NVL($P{cldId} ,t.CLD_ID )
+    AND t.SLOC_ID          = NVL($P{slocId},t.SLOC_ID)
+    AND t.HO_ORG_ID        = NVL($P{hoOrgId},t.ho_org_id)
+    AND t.ORG_ID           = NVL($P{orgId},t.org_id)
+    AND TRUNC(t.atten_dt) >= NVL(to_date($P{FromDate},'yyyy-MM-dd'),TRUNC(t.atten_dt))
+    AND TRUNC(t.atten_dt) <=NVL(to_date($P{ToDate},'yyyy-MM-dd'),TRUNC(t.atten_dt))
+    AND ( A.EMP_DEPT_ID    = NVL($P{crtValue}, A.EMP_DEPT_ID)
+    OR A.EMP_LOC_ID        = NVL( $P{crtValue},A.EMP_LOC_ID)
+    OR A.EMP_GRP_ID        =NVL( $P{crtValue},a.EMP_GRP_ID)
+    OR A.DOC_ID            =NVL($P{crtValue}, A.DOC_ID) )
+    AND A.DOC_ID           = NVL($P{empDocId}, A.DOC_ID)
+    AND a.EMP_DESG_ID      =NVL ($P{desgId}, a.EMP_DESG_ID )
+    AND E.SHIFT_ID         =NVL($P{shiftId},E.SHIFT_ID)
+    )
+
+)
+ where late is not null or early_dep is not null
+ORDER BY emp_id,
+    atten_dt]]>
+	</queryString>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="EMP_DOC_ID" class="java.lang.String"/>
+	<field name="EMP_ID" class="java.lang.String"/>
+	<field name="EMPLOYEE" class="java.lang.String"/>
+	<field name="SFT_ST_TM" class="java.lang.String"/>
+	<field name="DATE_IN" class="java.sql.Timestamp"/>
+	<field name="TIME_IN" class="java.lang.String"/>
+	<field name="SHIFT_NM" class="java.lang.String"/>
+	<field name="DEPARTMENT" class="java.lang.String"/>
+	<field name="ATTEN_DT" class="java.sql.Timestamp"/>
+	<field name="LATE" class="java.lang.String"/>
+	<field name="EARLY" class="java.lang.String"/>
+	<field name="EARLY_DEP" class="java.lang.String"/>
+	<field name="OUT_TIME" class="java.lang.String"/>
+	<field name="OUT_DATE" class="java.sql.Timestamp"/>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{ReportType}.equals('P')]]></printWhenExpression>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="51" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Emp Id]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="51" y="0" width="124" height="20" backcolor="#C1DDF9"/>
+				<box leftPadding="0">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Employee Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="175" y="0" width="46" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date(IN)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="221" y="0" width="56" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Time(IN)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="398" y="0" width="82" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Shift Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="480" y="0" width="131" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Department Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="611" y="0" width="65" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Late]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="676" y="0" width="79" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Early]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="339" y="0" width="59" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Time(OUT)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="277" y="0" width="62" height="20" backcolor="#C1DDF9"/>
+				<box leftPadding="0">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date(OUT)]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{ReportType}.equals('P')]]></printWhenExpression>
+			<textField>
+				<reportElement x="398" y="0" width="82" height="15"/>
+				<box leftPadding="3">
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{SHIFT_NM}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="51" height="15"/>
+				<box leftPadding="3">
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_ID}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="480" y="0" width="131" height="15"/>
+				<box leftPadding="3" rightPadding="0">
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{DEPARTMENT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="175" y="0" width="46" height="15"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{DATE_IN}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="51" y="0" width="124" height="15"/>
+				<box leftPadding="5">
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EMPLOYEE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="h.mm.ss a" isBlankWhenNull="true">
+				<reportElement x="221" y="0" width="56" height="15"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TIME_IN}]]></textFieldExpression>
+			</textField>
+			<textField pattern="h.mm.ss a" isBlankWhenNull="true">
+				<reportElement x="611" y="0" width="65" height="15"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{LATE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="h.mm.ss a" isBlankWhenNull="true">
+				<reportElement x="676" y="0" width="79" height="15"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EARLY_DEP}]]></textFieldExpression>
+			</textField>
+			<textField pattern="h.mm.ss a" isBlankWhenNull="true">
+				<reportElement x="339" y="0" width="59" height="15"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{OUT_TIME}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="277" y="0" width="62" height="15"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{OUT_DATE}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="15">
+			<printWhenExpression><![CDATA[$P{ReportType}.equals( 'E' )]]></printWhenExpression>
+			<textField isBlankWhenNull="true">
+				<reportElement x="480" y="0" width="131" height="15"/>
+				<box leftPadding="3" rightPadding="0"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{DEPARTMENT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="h.mm.ss a" isBlankWhenNull="true">
+				<reportElement x="611" y="0" width="65" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{LATE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="175" y="0" width="46" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{DATE_IN}]]></textFieldExpression>
+			</textField>
+			<textField pattern="h.mm.ss a" isBlankWhenNull="true">
+				<reportElement x="221" y="0" width="56" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TIME_IN}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="51" height="15"/>
+				<box leftPadding="3"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_ID}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="398" y="0" width="82" height="15"/>
+				<box leftPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{SHIFT_NM}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="51" y="0" width="124" height="15"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EMPLOYEE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="h.mm.ss a" isBlankWhenNull="true">
+				<reportElement x="676" y="0" width="79" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EARLY_DEP}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="277" y="0" width="62" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{OUT_DATE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="h.mm.ss a" isBlankWhenNull="true">
+				<reportElement x="339" y="0" width="59" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{OUT_TIME}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

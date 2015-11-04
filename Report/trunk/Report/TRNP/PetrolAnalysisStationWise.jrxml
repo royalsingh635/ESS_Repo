@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PetrolAnalysisStationWise" language="groovy" pageWidth="900" pageHeight="595" orientation="Landscape" columnWidth="870" leftMargin="15" rightMargin="15" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="WhId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String"/>
+	<parameter name="ToDate" class="java.lang.String"/>
+	<parameter name="HoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="StationId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT A.ORG_ID, C.ORG_DESC, A.HO_ORG_ID, G.GLBL_CURR_NOTATION_ALIAS CURR
+     ,TO_CHAR(A.INV_DT,'MM')||TO_CHAR(A.INV_DT,'MON-YYYY')DT
+   --  ,SUM(A.AMT_SP)AMT_SP, SUM(A.AMT_BS)AMT_BS
+     ,A.EO_ID, B.EO_NM
+     ,SUM(A.FUEL_QTY) FUEL_QTY, SUM(A.FUEL_RATE) FUEL_RATE, SUM(A.FUEL_RATE * A.CURR_CONV_FCTR) FUEL_RATE_BS
+	,A.FUEL_TYPE, D.ATT_NM FUEL_TYPE_NM
+
+FROM SLS$TRNP$OUTSTN$FUEL$DTL A, APP.APP$EO B, APP.ORG C,  SLS$DS$ATT D, APP.APP$GLBL$CURR G
+WHERE A.ORG_ID = C.ORG_ID
+AND   APP.get_org_def_curr_bs1(A.CLD_ID,A.SLOC_ID,A.ORG_ID) = G.GLBL_CURR_ID
+AND A.CLD_ID = B.EO_CLD_ID
+AND A.SLOC_ID = B.EO_SLOC_ID
+AND A.HO_ORG_ID = B.EO_HO_ORG_ID
+AND  A.EO_ID =  B.EO_ID
+AND A.FUEL_TYPE = D.ATT_ID
+and a.cld_id = nvl($P{CldId}, a.cld_id)
+and a.sloc_id =nvl($P{SlocId}, a.sloc_id)
+and a.org_id = nvl($P{OrgId}, a.org_id)
+and a.ho_org_id = nvl($P{HoOrgId}, a.ho_org_id)
+AND A.EO_ID = NVL($P{StationId}, A.EO_ID)
+
+and trunc(a.inv_dt) between nvl(to_date($P{FromDate},'yyyy-MM-dd'),trunc(a.inv_dt))
+and nvl(to_date($P{ToDate},'yyyy-MM-dd'),trunc(a.inv_dt))
+group by A.ORG_ID, C.ORG_DESC, A.HO_ORG_ID, A.CURR_ID_SP, G.GLBL_CURR_NOTATION_ALIAS,
+TO_CHAR(A.INV_DT,'MM')||TO_CHAR(A.INV_DT,'MON-YYYY'), A.EO_ID, B.EO_NM, A.FUEL_TYPE, D.ATT_NM, A.CURR_CONV_FCTR]]>
+	</queryString>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="HO_ORG_ID" class="java.lang.String"/>
+	<field name="CURR" class="java.lang.String"/>
+	<field name="DT" class="java.lang.String"/>
+	<field name="EO_ID" class="java.math.BigDecimal"/>
+	<field name="EO_NM" class="java.lang.String"/>
+	<field name="FUEL_QTY" class="java.math.BigDecimal"/>
+	<field name="FUEL_RATE" class="java.math.BigDecimal"/>
+	<field name="FUEL_RATE_BS" class="java.math.BigDecimal"/>
+	<field name="FUEL_TYPE" class="java.math.BigDecimal"/>
+	<field name="FUEL_TYPE_NM" class="java.lang.String"/>
+	<group name="CrossTab">
+		<groupExpression><![CDATA[$F{ORG_DESC}]]></groupExpression>
+		<groupFooter>
+			<band height="80">
+				<crosstab>
+					<reportElement x="0" y="0" width="900" height="65"/>
+					<crosstabHeaderCell>
+						<cellContents backcolor="#FFFFFF" mode="Opaque">
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="139" height="25" backcolor="#BFE1FF"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Station Name]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="139" y="0" width="50" height="25" backcolor="#BFE1FF"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Fuel Type]]></text>
+							</staticText>
+						</cellContents>
+					</crosstabHeaderCell>
+					<rowGroup name="EO_NM" width="139" totalPosition="End">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{EO_NM}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents backcolor="#FFFFFF" mode="Opaque">
+								<box>
+									<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								</box>
+								<textField>
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="139" height="20"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{EO_NM}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents backcolor="#F0F8FF" mode="Opaque">
+								<box>
+									<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+								<staticText>
+									<reportElement x="0" y="0" width="189" height="20"/>
+									<box rightPadding="3"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="Arial" size="8" isBold="true"/>
+									</textElement>
+									<text><![CDATA[Total :]]></text>
+								</staticText>
+							</cellContents>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="FuelType" width="50">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{FUEL_TYPE_NM}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textField>
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="20"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{FuelType}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<columnGroup name="DT" height="10" totalPosition="End">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{DT}]]></bucketExpression>
+						</bucket>
+						<crosstabColumnHeader>
+							<cellContents backcolor="#F0F8FF" mode="Opaque">
+								<box>
+									<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								</box>
+								<textField>
+									<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="130" height="10" backcolor="#BFE1FF"/>
+									<box>
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<leftPen lineWidth="0.5" lineStyle="Solid"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+										<rightPen lineWidth="0.5" lineStyle="Solid"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{DT}.substring( 2, $V{DT}.length() )]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabColumnHeader>
+						<crosstabTotalColumnHeader>
+							<cellContents backcolor="#BFE1FF" mode="Opaque">
+								<box>
+									<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								</box>
+							</cellContents>
+						</crosstabTotalColumnHeader>
+					</columnGroup>
+					<columnGroup name="Rate" height="15" totalPosition="End">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA["Quantity                    Rate"]]></bucketExpression>
+						</bucket>
+						<crosstabColumnHeader>
+							<cellContents>
+								<textField>
+									<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="130" height="15" backcolor="#BFE1FF"/>
+									<box>
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<leftPen lineWidth="0.5" lineStyle="Solid"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+										<rightPen lineWidth="0.5" lineStyle="Solid"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{Rate}]]></textFieldExpression>
+								</textField>
+								<staticText>
+									<reportElement style="Crosstab Data Text" x="60" y="0" width="70" height="15"/>
+									<box leftPadding="0">
+										<leftPen lineWidth="0.5"/>
+									</box>
+									<textElement>
+										<font size="5"/>
+									</textElement>
+									<text><![CDATA[]]></text>
+								</staticText>
+							</cellContents>
+						</crosstabColumnHeader>
+						<crosstabTotalColumnHeader>
+							<cellContents/>
+						</crosstabTotalColumnHeader>
+					</columnGroup>
+					<measure name="FUEL_QTYMeasure" class="java.math.BigDecimal" calculation="Sum">
+						<measureExpression><![CDATA[$F{FUEL_QTY}]]></measureExpression>
+					</measure>
+					<measure name="RateValue" class="java.math.BigDecimal" calculation="Sum">
+						<measureExpression><![CDATA[$F{FUEL_RATE_BS}]]></measureExpression>
+					</measure>
+					<crosstabCell width="130" height="20">
+						<cellContents>
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="60" height="20"/>
+								<box leftPadding="0" rightPadding="3">
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="Arial" size="8"/>
+								</textElement>
+								<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{FUEL_QTYMeasure}]]></textFieldExpression>
+							</textField>
+							<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="60" y="0" width="70" height="20"/>
+								<box rightPadding="3">
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="Arial" size="8"/>
+								</textElement>
+								<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{RateValue}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="130" height="20" rowTotalGroup="EO_NM">
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<leftPen lineWidth="0.0"/>
+							</box>
+							<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="60" height="20"/>
+								<box rightPadding="3"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{FUEL_QTYMeasure}]]></textFieldExpression>
+							</textField>
+							<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="60" y="0" width="70" height="20"/>
+								<box rightPadding="3"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{RateValue}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="0" height="20" columnTotalGroup="DT">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="0" height="20" rowTotalGroup="EO_NM" columnTotalGroup="DT">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="0" height="20" columnTotalGroup="Rate">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell width="0" height="20" rowTotalGroup="EO_NM" columnTotalGroup="Rate">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="FuelType">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="FuelType" columnTotalGroup="DT">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="FuelType" columnTotalGroup="Rate">
+						<cellContents/>
+					</crosstabCell>
+				</crosstab>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="63" splitType="Stretch">
+			<staticText>
+				<reportElement x="533" y="15" width="337" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Petrol Station Wise Monthly Fueling Analysis]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="37" width="435" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Organisation : "+$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="369" y="0" width="501" height="15" forecolor="#6600CC" backcolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{OrgId} == ""?"All Organisations":$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="RetainShape" hAlign="Left" vAlign="Top">
+				<reportElement x="0" y="0" width="120" height="35"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<line>
+				<reportElement x="0" y="56" width="870" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="60" width="870" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<subreport>
+				<reportElement x="783" y="29" width="35" height="10">
+					<printWhenExpression><![CDATA[$P{FromDate}!=null]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/FromDate_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="754" y="32" width="28" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[Period :]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="835" y="29" width="35" height="10">
+					<printWhenExpression><![CDATA[$P{ToDate}!=null]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/ToDate_SubReport.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="819" y="32" width="15" height="10"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="690" y="43" width="180" height="10">
+					<printWhenExpression><![CDATA[$F{ORG_ID}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["All Amounts are in "+$F{CURR}+"."]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<pageFooter>
+		<band height="41" splitType="Stretch">
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="2" y="16" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="783" y="16" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="841" y="16" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="8" width="870" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="4" width="870" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="53">
+			<line>
+				<reportElement x="0" y="8" width="870" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="4" width="870" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="13" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="783" y="13" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="841" y="13" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="33" width="870" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated By ebizframe10]]></text>
+			</staticText>
+		</band>
+	</lastPageFooter>
+</jasperReport>

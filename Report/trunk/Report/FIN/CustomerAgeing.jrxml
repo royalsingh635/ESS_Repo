@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CustomerAgeing" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isFloatColumnFooter="true">
+	<property name="ireport.zoom" value="1.100000000000001"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table" fill="Solid">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<parameter name="Coa_ID" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Org_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Amount" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Amount-X1" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Amount-X2" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT
+ORG_DESC,
+COA_NM,
+SUM(AMT_SP) AMT_SP,
+SUM(AMT_ADJ) AMT_ADJ,
+SUM(AMT_OS) AMT_OS,
+SUM(OS_30_DAYS) OS_30_DAYS,
+SUM(OS_60_DAYS)OS_60_DAYS,
+SUM(OS_90_DAYS) OS_90_DAYS,
+SUM(OS_120_DAYS) OS_120_DAYS,
+SUM(OS_180_DAYS) OS_180_DAYS,
+SUM(OS_1_YR) OS_1_YR
+FROM (
+SELECT B.ORG_DESC,
+         c.COA_NM,
+          a.AR_AMT_SP AMT_SP,
+          a.AR_AMT_ADJ AMT_ADJ,
+          NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0) AMT_OS,
+          TRUNC (SYSDATE - NVL (a.AR_EXT_DOC_DT,a. AR_VOU_DT)) OS_DAYS,
+          DECODE (
+             SIGN (30 - TRUNC (SYSDATE - NVL (a.AR_EXT_DOC_DT, a.AR_VOU_DT))),
+             -1,
+             0,
+             0,
+             NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0),
+             1,
+             NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0))
+             OS_30_DAYS,
+          DECODE (
+             SIGN (60 - TRUNC (SYSDATE - NVL (a.AR_EXT_DOC_DT, a.AR_VOU_DT))),
+             -1,
+             0,
+             0,
+             NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0),
+             1,
+             DECODE (
+                SIGN (TRUNC (SYSDATE - NVL (a.AR_EXT_DOC_DT, a.AR_VOU_DT)) - 30),
+                -1,
+                0,
+                0,
+                NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0),
+                1,
+                NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0)))
+             OS_60_DAYS,
+          DECODE (
+             SIGN (90 - TRUNC (SYSDATE - NVL (a.AR_EXT_DOC_DT, a.AR_VOU_DT))),
+             -1,
+             0,
+             0,
+             NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0),
+             1,
+             DECODE (
+                SIGN (TRUNC (SYSDATE - NVL (a.AR_EXT_DOC_DT, a.AR_VOU_DT)) - 60),
+                -1,
+                0,
+                0,
+                NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0),
+                1,
+                NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0)))
+             OS_90_DAYS,
+          DECODE (
+             SIGN (120 - TRUNC (SYSDATE - NVL (a.AR_EXT_DOC_DT, a.AR_VOU_DT))),
+             -1,
+             0,
+             0,
+             NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0),
+             1,
+             DECODE (
+                SIGN (TRUNC (SYSDATE - NVL (a.AR_EXT_DOC_DT, a.AR_VOU_DT)) - 90),
+                -1,
+                0,
+                0,
+                NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0),
+                1,
+                NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0)))
+             OS_120_DAYS,
+          DECODE (
+             SIGN (180 - TRUNC (SYSDATE - NVL (a.AR_EXT_DOC_DT, a.AR_VOU_DT))),
+             -1,
+             0,
+             0,
+             NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0),
+             1,
+             DECODE (
+                SIGN (TRUNC (SYSDATE - NVL (a.AR_EXT_DOC_DT, a.AR_VOU_DT)) - 120),
+                -1,
+                0,
+                0,
+                NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0),
+                1,
+                NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0)))
+             OS_180_DAYS,
+          DECODE (
+             SIGN (365 - TRUNC (SYSDATE - NVL (a.AR_EXT_DOC_DT, a.AR_VOU_DT))),
+             -1,
+             0,
+             0,
+             NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0),
+             1,
+             DECODE (
+                SIGN (TRUNC (SYSDATE - NVL (a.AR_EXT_DOC_DT, a.AR_VOU_DT)) - 180),
+                -1,
+                0,
+                0,
+                NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0),
+                1,
+                NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0)))
+             OS_1_YR
+ FROM
+ AR a, APP.ORG b,FIN$COA c
+WHERE
+ NVL (a.AR_AMT_SP, 0) - NVL (a.AR_AMT_ADJ, 0) > 0
+and
+A.AR_ORG_ID=B.ORG_ID
+and
+a.AR_COA_ID=C.COA_ID
+
+
+and
+A.AR_ORG_ID = nvl( $P{Org_ID},A.AR_ORG_ID)
+
+
+and a.AR_COA_ID = nvl($P{Coa_ID},a.AR_COA_ID)
+and a.AR_VOU_DT between to_date($P{FromDate},'YYYY-MM-DD') and to_date($P{ToDate},'YYYY-MM-DD')
+and a.AR_TXN_TYP_ADV='N')
+where
+AMT_OS=nvl($P{Amount},AMT_OS)
+and	AMT_OS between
+decode( nvl($P{Amount-X1},'0'), 0, decode(nvl($P{Amount-X2},'0'), 0, AMT_OS, nvl($P{Amount-X1},'0')),
+nvl($P{Amount-X1},'0'))
+ AND
+decode( nvl($P{Amount-X2},'0'), 0, decode(nvl($P{Amount-X1},'0'), 0, AMT_OS, nvl($P{Amount-X2},'0') ),
+nvl($P{Amount-X2},'0'))
+
+GROUP BY
+ORG_DESC,
+COA_NM
+order by
+ORG_DESC,COA_NM]]>
+	</queryString>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="COA_NM" class="java.lang.String"/>
+	<field name="AMT_SP" class="java.math.BigDecimal"/>
+	<field name="AMT_ADJ" class="java.math.BigDecimal"/>
+	<field name="AMT_OS" class="java.math.BigDecimal"/>
+	<field name="OS_30_DAYS" class="java.math.BigDecimal"/>
+	<field name="OS_60_DAYS" class="java.math.BigDecimal"/>
+	<field name="OS_90_DAYS" class="java.math.BigDecimal"/>
+	<field name="OS_120_DAYS" class="java.math.BigDecimal"/>
+	<field name="OS_180_DAYS" class="java.math.BigDecimal"/>
+	<field name="OS_1_YR" class="java.math.BigDecimal"/>
+	<variable name="ORG_DESC_1" class="java.lang.Integer" calculation="DistinctCount">
+		<variableExpression><![CDATA[$F{ORG_DESC}]]></variableExpression>
+	</variable>
+	<variable name="TotalAmount" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMT_OS}]]></variableExpression>
+	</variable>
+	<variable name="Total30Days" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{OS_30_DAYS}]]></variableExpression>
+	</variable>
+	<variable name="Total60Days" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{OS_60_DAYS}]]></variableExpression>
+	</variable>
+	<variable name="Total90Days" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{OS_90_DAYS}]]></variableExpression>
+	</variable>
+	<variable name="Total120Days" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{OS_120_DAYS}]]></variableExpression>
+	</variable>
+	<variable name="Total180Days" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{OS_180_DAYS}]]></variableExpression>
+	</variable>
+	<variable name="Total1year" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{OS_1_YR}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="97">
+			<subreport>
+				<reportElement x="111" y="68" width="50" height="15"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="448" y="67" width="33" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="96" y="67" width="15" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="481" y="67" width="67" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="46" y="67" width="50" height="15"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="3" y="68" width="43" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Period :]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="448" y="82" width="60" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of "]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement x="508" y="82" width="40" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="6" y="0" width="542" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{Org_ID} == ""? "All Organisation" : $F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="49" y="20" width="506" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{Org_ID} == ""?"DEBTOR AGEING REPORT SUMMARY (CONSOLIDATED)":"DEBTOR AGEING REPORT SUMMARY"]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement x="5" y="21" width="41" height="20"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"img_logo.gif"]]></imageExpression>
+			</image>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="21">
+			<staticText>
+				<reportElement x="5" y="3" width="156" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Customer Name]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="1" width="555" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="166" y="3" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Bal. As On]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="221" y="3" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[0-30 Days]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="276" y="3" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[30-60 Days]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="331" y="3" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[60-90 Days]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="386" y="3" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[90-120 Days]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="441" y="3" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[120-180 Days]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="496" y="3" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[>180 Days]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="19" width="555" height="1"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="17">
+			<textField isBlankWhenNull="true">
+				<reportElement x="6" y="2" width="155" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{COA_NM}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement x="166" y="2" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{AMT_OS}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="221" y="2" width="55" height="15" backcolor="#FFFFCC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OS_30_DAYS}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="276" y="2" width="55" height="15" backcolor="#FFFFCC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OS_60_DAYS}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="331" y="2" width="55" height="15" backcolor="#FF0000">
+					<printWhenExpression><![CDATA[$F{OS_90_DAYS}>=50000?Boolean.TRUE : Boolean.FALSE]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OS_90_DAYS}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00">
+				<reportElement mode="Opaque" x="331" y="2" width="55" height="15" backcolor="#FFFFCC">
+					<printWhenExpression><![CDATA[$F{OS_60_DAYS}<50000?Boolean.TRUE : Boolean.FALSE]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OS_90_DAYS}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="386" y="2" width="55" height="15" backcolor="#FF0000">
+					<printWhenExpression><![CDATA[$F{OS_120_DAYS}>=50000?Boolean.TRUE : Boolean.FALSE]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OS_120_DAYS}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="448" y="2" width="48" height="15" backcolor="#FF0000">
+					<printWhenExpression><![CDATA[$F{OS_180_DAYS}>=50000?Boolean.TRUE : Boolean.FALSE]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OS_180_DAYS}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="496" y="2" width="55" height="15" backcolor="#FF0015">
+					<printWhenExpression><![CDATA[$F{OS_1_YR}>=50000?Boolean.TRUE : Boolean.FALSE]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OS_1_YR}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00">
+				<reportElement mode="Opaque" x="386" y="2" width="56" height="15" backcolor="#FFFFCC">
+					<printWhenExpression><![CDATA[$F{OS_90_DAYS}<50000?Boolean.TRUE : Boolean.FALSE]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OS_120_DAYS}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00">
+				<reportElement mode="Opaque" x="443" y="2" width="53" height="15" backcolor="#FFFFCC">
+					<printWhenExpression><![CDATA[$F{OS_180_DAYS}<50000?Boolean.TRUE : Boolean.FALSE]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OS_180_DAYS}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00">
+				<reportElement mode="Opaque" x="496" y="2" width="55" height="15" backcolor="#FFFFCC">
+					<printWhenExpression><![CDATA[$F{OS_1_YR}<50000?Boolean.TRUE : Boolean.FALSE]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OS_1_YR}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="123">
+			<line>
+				<reportElement x="0" y="-1" width="555" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="5" y="4" width="156" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total :]]></text>
+			</staticText>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement x="166" y="4" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotalAmount}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement x="221" y="5" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Total30Days}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement x="276" y="4" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Total60Days}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement x="331" y="4" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Total90Days}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement x="386" y="4" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Total120Days}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement x="441" y="4" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Total180Days}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00" isBlankWhenNull="true">
+				<reportElement x="496" y="4" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Total1year}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="21" width="555" height="1"/>
+			</line>
+			<subreport>
+				<reportElement x="5" y="23" width="543" height="100"/>
+				<subreportParameter name="Coa_Id">
+					<subreportParameterExpression><![CDATA[$P{Coa_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Org_id">
+					<subreportParameterExpression><![CDATA[$P{Org_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="TotalPending"/>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/CustomerAgeing_subreport1.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</columnFooter>
+	<lastPageFooter>
+		<band height="20">
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true"/>
+				</textElement>
+				<text><![CDATA[--------------------Report Ends--------------------]]></text>
+			</staticText>
+		</band>
+	</lastPageFooter>
+</jasperReport>

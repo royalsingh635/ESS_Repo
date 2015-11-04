@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SO_Tax_SubReport" language="groovy" pageWidth="555" pageHeight="20" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="DocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="parameter1" class="java.lang.String"/>
+	<parameter name="ShipId" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT C.COA_NM,
+  NVL(SUM(B.TAX_AMT_SP),0)/NVL(SUM(A.ITM_QTY),1)*SUM(SHIPMNT_QTY) TAX_AMT_SP,
+  NVL(SUM(B.TAX_AMT_BS),0)/NVL(SUM(A.ITM_QTY),1)*SUM(SHIPMNT_QTY) TAX_AMT_BS,
+  SUM(A.ITM_QTY) SO_ITM_QTY,
+  SUM(SHIPMNT_QTY) SHIP_ITM_QTY
+FROM SLS$SO$ITM A,SLS$SO$TR$LINES B,FIN.FIN$COA C,
+  SLS$SHIPMNT$ITM D
+WHERE A.DOC_ID   =	B.DOC_ID
+AND A.CLD_ID     =	B.CLD_ID
+AND A.SLOC_ID    =	B.SLOC_ID
+AND A.ORG_ID     =	B.ORG_ID
+AND A.HO_ORG_ID  =	B.HO_ORG_ID
+AND A.ITM_ID     = 	B.ITM_ID
+AND A.CLD_ID     =	C.COA_CLD_ID
+AND A.SLOC_ID    =	C.COA_SLOC_ID
+AND A.HO_ORG_ID  =	C.COA_HO_ORG_ID
+AND B.TAX_COA_ID =	C.COA_ID
+AND B.CLD_ID     = 	D.CLD_ID
+AND B.SLOC_ID    = 	D.SLOC_ID
+AND B.HO_ORG_ID  = 	D.HO_ORG_ID
+AND B.ORG_ID     = 	D.ORG_ID
+AND B.DOC_ID     = 	D.SO_ID
+AND B.ITM_ID     = 	D.ITM_ID
+AND B.DOC_ID     = 	NVL($P{DocId},A.DOC_ID)
+and d.doc_id     = 	NVL($P{ShipId},d.doc_id)
+AND B.SR_NO     <>	1
+GROUP BY C.COA_NM]]>
+	</queryString>
+	<field name="COA_NM" class="java.lang.String"/>
+	<field name="TAX_AMT_SP" class="java.math.BigDecimal"/>
+	<field name="TAX_AMT_BS" class="java.math.BigDecimal"/>
+	<field name="SO_ITM_QTY" class="java.math.BigDecimal"/>
+	<field name="SHIP_ITM_QTY" class="java.math.BigDecimal"/>
+	<variable name="Tot_Tax_Bs" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{TAX_AMT_BS}]]></variableExpression>
+		<initialValueExpression><![CDATA[0.00]]></initialValueExpression>
+	</variable>
+	<variable name="Tot_Tax_SP" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{TAX_AMT_SP}]]></variableExpression>
+		<initialValueExpression><![CDATA[0.00]]></initialValueExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="20"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement x="0" y="0" width="418" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{COA_NM}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="430" y="0" width="116" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TAX_AMT_SP}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

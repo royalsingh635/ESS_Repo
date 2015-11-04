@@ -1,0 +1,737 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Paye_Return" language="groovy" pageWidth="3890" pageHeight="842" columnWidth="3850" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="939"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT P.CLD_ID, P.SLOC_ID, P.HO_ORG_ID, P.ORG_ID, P.DOC_ID , P.EMP_NM,p.emp_pan_no,B.PROC_FRM_DT, B.PROC_TO_DT,
+             B.BASIC ,
+             B.HRA ,
+             B.CONVEYANCE,
+             B.TELEPHONE_DED,
+             B.ENTERTENTMENT_ALW,
+             B.OTHER_ALW,
+             B.VDA,
+             B.LTA,
+             B.INCENTIVE,
+             B.SPECIAL_ALW,
+             B.MEDICAL_RBM,
+             B.UNIFORM_ALW,
+             B.ADVANCE_DED,
+             B.OTHER_DED,
+             P.EMP_NATION,
+NVL(
+  (SELECT s.PARAM_DESC
+  FROM hcm$setup s
+  WHERE s.PARAM_ID = $P{crtValue}
+  AND s.PARAM_TYPE = 1
+  AND s.CLD_ID     = $P{cldId}
+  AND s.SLOC_ID    = $P{slocId}
+  AND s.HO_ORG_ID  = $P{hoOrgId}
+  ), '') groupc,
+             CASE NVL(P.EMP_NATION,3) WHEN 3 THEN 'EXPAT'
+                                                           ELSE   (SELECT CASE NVL(COUNT(O.ORG_COUNTRY_ID),3) WHEN 3 THEN 'EXPAT' ELSE 'RESIDENT' END CRTY
+                                                                                FROM APP.ORG O , APP.APP$CNTRY C
+                                                                                WHERE O.ORG_CLD_ID =  C.CNTRY_CLD_ID
+                                                                                AND O.ORG_CREATE_REF_SLOC_ID = CNTRY_SLOC_ID
+                                                                                AND O.ORG_COUNTRY_ID = CNTRY_ID
+                                                                                AND  O.ORG_ID = '01'
+                                                                                AND O.ORG_COUNTRY_ID = P.EMP_NATION)
+                                                           END RESIDENT_STUS
+FROM
+ORG$HCM$EMP$PRF P,
+(SELECT A.CLD_ID, A.SLOC_ID, A.HO_ORG_ID, A.ORG_ID, A.DOC_ID, A.EMP_DOC_ID, A.PROC_FRM_DT, A.PROC_TO_DT,
+             A.BASIC ,
+             NVL(B.HRA,0) HRA ,
+             NVL(C.CONVEYANCE,0) CONVEYANCE,
+             NVL(D.TELEPHONE_DED,0) TELEPHONE_DED,
+             NVL(ENTERTENTMENT_ALW,0) ENTERTENTMENT_ALW,
+             NVL(OTHER_ALW,0) OTHER_ALW,
+             NVL(VDA,0) VDA,
+             NVL(LTA,0) LTA,
+             NVL(INCENTIVE,0) INCENTIVE,
+             NVL(SPECIAL_ALW,0) SPECIAL_ALW,
+             NVL(MEDICAL_RBM,0) MEDICAL_RBM,
+             NVL(UNIFORM_ALW,0) UNIFORM_ALW,
+             NVL(ADVANCE_DED,0) ADVANCE_DED,
+             NVL(OTHER_DED,0) OTHER_DED
+FROM
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT BASIC
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000012'
+   AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )A,
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT HRA
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000013'
+   AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )B,
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT CONVEYANCE
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000014'
+  AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )C,
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT TELEPHONE_DED
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000018'
+    AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )D,
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT,  L.SAL_AMT ENTERTENTMENT_ALW
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000034'
+    AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )F,
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT OTHER_ALW
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000035'
+  AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )G,
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT VDA
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000037'
+   AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )H,
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT LTA
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000038'
+   AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )I,
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT INCENTIVE
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000039'
+   AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )J,
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT SPECIAL_ALW
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000041'
+   AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )K,
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT MEDICAL_RBM
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000042'
+   AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )L,
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT UNIFORM_ALW
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000043'
+   AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )M,
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT ADVANCE_DED
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000065'
+   AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )N,
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    (SELECT L.CLD_ID, L.SLOC_ID, L.HO_ORG_ID, L.ORG_ID, L.DOC_ID, L.EMP_DOC_ID, L.PROC_FRM_DT, L.PROC_TO_DT, L.SAL_AMT OTHER_DED
+    FROM HCM$SAL$PROC$SAL L
+    WHERE L.SAL_ID = 'PAR0000066'
+   AND L.CLD_ID = $P{cldId}
+    AND L.SLOC_ID = $P{slocId}
+    AND L.HO_ORG_ID = $P{hoOrgId}
+    AND L.ORG_ID = $P{orgId}
+    AND L.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND L.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    )O
+WHERE
+            A.CLD_ID = B.CLD_ID(+)
+    AND A.SLOC_ID = B.SLOC_ID(+)
+    AND A.HO_ORG_ID = B.HO_ORG_ID(+)
+    AND A.ORG_ID = B.ORG_ID(+)
+    AND A.DOC_ID = B.DOC_ID(+)
+    AND A.EMP_DOC_ID = B.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = B.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = B.PROC_TO_DT(+)
+    --****************************************************************
+    AND A.CLD_ID = C.CLD_ID(+)
+    AND A.SLOC_ID = C.SLOC_ID(+)
+    AND A.HO_ORG_ID = C.HO_ORG_ID(+)
+    AND A.ORG_ID = C.ORG_ID(+)
+    AND A.DOC_ID = C.DOC_ID(+)
+    AND A.EMP_DOC_ID = C.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = C.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = C.PROC_TO_DT(+)
+    --***************************************************************
+    AND A.CLD_ID = D.CLD_ID(+)
+    AND A.SLOC_ID = D.SLOC_ID(+)
+    AND A.HO_ORG_ID = D.HO_ORG_ID(+)
+    AND A.ORG_ID = D.ORG_ID(+)
+    AND A.DOC_ID = D.DOC_ID(+)
+    AND A.EMP_DOC_ID = D.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = D.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = D.PROC_TO_DT(+)
+    --***************************************************************
+    AND A.CLD_ID = F.CLD_ID(+)
+    AND A.SLOC_ID = F.SLOC_ID(+)
+    AND A.HO_ORG_ID = F.HO_ORG_ID(+)
+    AND A.ORG_ID = F.ORG_ID(+)
+    AND A.DOC_ID = F.DOC_ID(+)
+    AND A.EMP_DOC_ID = F.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = F.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = F.PROC_TO_DT(+)
+    --****************************************************************
+    AND A.CLD_ID = G.CLD_ID(+)
+    AND A.SLOC_ID = G.SLOC_ID(+)
+    AND A.HO_ORG_ID = G.HO_ORG_ID(+)
+    AND A.ORG_ID = G.ORG_ID(+)
+    AND A.DOC_ID = G.DOC_ID(+)
+    AND A.EMP_DOC_ID = G.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = G.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = G.PROC_TO_DT(+)
+    --***************************************************************
+    AND A.CLD_ID = H.CLD_ID(+)
+    AND A.SLOC_ID = H.SLOC_ID(+)
+    AND A.HO_ORG_ID = H.HO_ORG_ID(+)
+    AND A.ORG_ID = H.ORG_ID(+)
+    AND A.DOC_ID = H.DOC_ID(+)
+    AND A.EMP_DOC_ID = H.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = H.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = H.PROC_TO_DT(+)
+    --***************************************************************
+    AND A.CLD_ID = I.CLD_ID(+)
+    AND A.SLOC_ID = I.SLOC_ID(+)
+    AND A.HO_ORG_ID = I.HO_ORG_ID(+)
+    AND A.ORG_ID = I.ORG_ID(+)
+    AND A.DOC_ID = I.DOC_ID(+)
+    AND A.EMP_DOC_ID = I.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = I.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = I.PROC_TO_DT(+)
+    --***************************************************************
+    AND A.CLD_ID = J.CLD_ID(+)
+    AND A.SLOC_ID = J.SLOC_ID(+)
+    AND A.HO_ORG_ID = J.HO_ORG_ID(+)
+    AND A.ORG_ID = J.ORG_ID(+)
+    AND A.DOC_ID = J.DOC_ID(+)
+    AND A.EMP_DOC_ID = J.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = J.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = J.PROC_TO_DT(+)
+    --***************************************************************
+    AND A.CLD_ID = K.CLD_ID(+)
+    AND A.SLOC_ID = K.SLOC_ID(+)
+    AND A.HO_ORG_ID = K.HO_ORG_ID(+)
+    AND A.ORG_ID = K.ORG_ID(+)
+    AND A.DOC_ID = K.DOC_ID(+)
+    AND A.EMP_DOC_ID = K.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = K.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = K.PROC_TO_DT(+)
+    --***************************************************************
+    AND A.CLD_ID = L.CLD_ID(+)
+    AND A.SLOC_ID = L.SLOC_ID(+)
+    AND A.HO_ORG_ID = L.HO_ORG_ID(+)
+    AND A.ORG_ID = L.ORG_ID(+)
+    AND A.DOC_ID = L.DOC_ID(+)
+    AND A.EMP_DOC_ID = L.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = L.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = L.PROC_TO_DT(+)
+    --***************************************************************
+    AND A.CLD_ID = M.CLD_ID(+)
+    AND A.SLOC_ID = M.SLOC_ID(+)
+    AND A.HO_ORG_ID = M.HO_ORG_ID(+)
+    AND A.ORG_ID = M.ORG_ID(+)
+    AND A.DOC_ID = M.DOC_ID(+)
+    AND A.EMP_DOC_ID = M.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = M.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = M.PROC_TO_DT(+)
+    --***************************************************************
+    AND A.CLD_ID = N.CLD_ID(+)
+    AND A.SLOC_ID = N.SLOC_ID(+)
+    AND A.HO_ORG_ID = N.HO_ORG_ID(+)
+    AND A.ORG_ID = N.ORG_ID(+)
+    AND A.DOC_ID = N.DOC_ID(+)
+    AND A.EMP_DOC_ID = N.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = N.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = N.PROC_TO_DT(+)
+    --***************************************************************
+    AND A.CLD_ID = O.CLD_ID(+)
+    AND A.SLOC_ID = O.SLOC_ID(+)
+    AND A.HO_ORG_ID = O.HO_ORG_ID(+)
+    AND A.ORG_ID = O.ORG_ID(+)
+    AND A.DOC_ID = O.DOC_ID(+)
+    AND A.EMP_DOC_ID = O.EMP_DOC_ID(+)
+    AND A.PROC_FRM_DT = O.PROC_FRM_DT(+)
+    AND A.PROC_TO_DT = O.PROC_TO_DT(+) )B
+WHERE
+    P.CLD_ID = B.CLD_ID
+    AND P.SLOC_ID = B.SLOC_ID
+    AND P.HO_ORG_ID =  B.HO_ORG_ID
+    AND P.ORG_ID = B.ORG_ID
+    AND P.DOC_ID = B.EMP_DOC_ID
+   AND P.CLD_ID = $P{cldId}
+   AND P.SLOC_ID = $P{slocId}
+   AND P.HO_ORG_ID = $P{hoOrgId}
+  AND P.ORG_ID = $P{orgId}
+  AND (P.EMP_DEPT_ID = $P{crtValue} OR P.EMP_LOC_ID =  $P{crtValue}
+  OR P.EMP_GRP_ID = $P{crtValue} OR P.DOC_ID =$P{crtValue})
+  AND P.DOC_ID = NVL($P{empDocId}, P.DOC_ID)
+      AND B.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND B.PROC_TO_DT=   to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')]]>
+	</queryString>
+	<field name="CLD_ID" class="java.lang.String"/>
+	<field name="SLOC_ID" class="java.math.BigDecimal"/>
+	<field name="HO_ORG_ID" class="java.lang.String"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="DOC_ID" class="java.lang.String"/>
+	<field name="EMP_NM" class="java.lang.String"/>
+	<field name="EMP_PAN_NO" class="java.lang.String"/>
+	<field name="PROC_FRM_DT" class="java.sql.Timestamp"/>
+	<field name="PROC_TO_DT" class="java.sql.Timestamp"/>
+	<field name="BASIC" class="java.math.BigDecimal"/>
+	<field name="HRA" class="java.math.BigDecimal"/>
+	<field name="CONVEYANCE" class="java.math.BigDecimal"/>
+	<field name="TELEPHONE_DED" class="java.math.BigDecimal"/>
+	<field name="ENTERTENTMENT_ALW" class="java.math.BigDecimal"/>
+	<field name="OTHER_ALW" class="java.math.BigDecimal"/>
+	<field name="VDA" class="java.math.BigDecimal"/>
+	<field name="LTA" class="java.math.BigDecimal"/>
+	<field name="INCENTIVE" class="java.math.BigDecimal"/>
+	<field name="SPECIAL_ALW" class="java.math.BigDecimal"/>
+	<field name="MEDICAL_RBM" class="java.math.BigDecimal"/>
+	<field name="UNIFORM_ALW" class="java.math.BigDecimal"/>
+	<field name="ADVANCE_DED" class="java.math.BigDecimal"/>
+	<field name="OTHER_DED" class="java.math.BigDecimal"/>
+	<field name="EMP_NATION" class="java.math.BigDecimal"/>
+	<field name="GROUPC" class="java.lang.String"/>
+	<field name="RESIDENT_STUS" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="30" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="85" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PIN of Employee]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="85" y="0" width="115" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Name of the Employee]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="199" y="0" width="70" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Residential Status]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="269" y="0" width="70" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Type of Employee]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="542" y="0" width="40" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Leave Pay]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="339" y="0" width="48" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Basic Salary]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="387" y="0" width="75" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Housing Allowance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="462" y="0" width="80" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Transport Allowance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="820" y="0" width="66" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Other Allowance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="582" y="0" width="80" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Over time Allowance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="662" y="0" width="56" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Director's Fee]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="886" y="0" width="91" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Cash Pay Kshs(A)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1141" y="0" width="110" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Other Non Cash Benefits (C)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1251" y="0" width="115" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Non Cash Pay (D)=(B+C) (C if greater than 3000)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="718" y="0" width="102" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Lump Sum Payment if Any]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="976" y="0" width="165" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Value of Car Benefit ("Value of Car Benefit" from D_Computation_of_Car_Benefit)(B)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1719" y="0" width="110" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Computed Rent of House (F)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1966" y="0" width="139" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Net Value of Housing (Ksh)(H)=F-G)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1613" y="0" width="106" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Rent of House/Market Value]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1829" y="0" width="137" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Rent Recovered From Employee (G)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1365" y="0" width="180" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Global Income(Incase of none full time service Director (Ksh) (E)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="2359" y="0" width="89" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Actual Contribution (K)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="2527" y="0" width="217" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Mortgage Intrest (Max150,000 or 12,500 Ksh a month) (M)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="3039" y="0" width="104" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Taxable Pay (Ksh) (P)=(I-O)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="2743" y="0" width="164" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Deposit On Home Ownership Savings Plan (Max 48,000 Ksh or 4000 Ksh a Month) (N)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="2907" y="0" width="132" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Amount of Benefit (O)=(Lower of J,K,L+M or N which ever is higher)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="2249" y="0" width="110" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[30%of Cash Pay (J)=(A)*30%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="2448" y="0" width="79" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Permissible Limit (L)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="3276" y="0" width="127" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Monthly Personal Relief (Ksh) (R)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1544" y="0" width="70" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Type of Housing]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="3402" y="0" width="224" height="30"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Amount Insurance Relief (Total of "Amount of Insurance Relief"fromE_Computation_of_insurance_Relief) (Ksh) (S)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="3625" y="0" width="109" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PAYE Tax (Ksh) (T)=(Q-R-S)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="3734" y="0" width="116" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Self Assessed PAYE Tax(Ksh)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="3142" y="0" width="134" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Tax Payable (Ksh) (Q)=P*Slab Rate ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="2104" y="0" width="145" height="30"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Gross Pay (Kshs) (I)=A+D+E+H))]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="85" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_PAN_NO}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="85" y="0" width="115" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_NM}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="199" y="0" width="70" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{RESIDENT_STUS}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="269" y="0" width="70" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{GROUPC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="339" y="0" width="48" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{BASIC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="820" y="0" width="66" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OTHER_ALW}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="387" y="0" width="75" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TELEPHONE_DED}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="582" y="0" width="80" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{ENTERTENTMENT_ALW}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="462" y="0" width="80" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{ADVANCE_DED}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="542" y="0" width="40" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{UNIFORM_ALW}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="662" y="0" width="56" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{HRA}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="718" y="0" width="102" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{LTA}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

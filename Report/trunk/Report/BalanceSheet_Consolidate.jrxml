@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="BalanceSheet_Consolidate" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryWithPageHeaderAndFooter="true">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Ho_Org_Id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PostFlag" class="java.lang.String"/>
+	<parameter name="Cld_Id" class="java.lang.String"/>
+	<parameter name="Cog_Id" class="java.lang.String"/>
+	<parameter name="AsOnDate" class="java.lang.String"/>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="GroupAccount" class="java.lang.String"/>
+	<parameter name="Include_Grp" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+a.org_id,
+a.org_desc,
+a.ORG_CURR_ID_BS,
+b.GLBL_CURR_NOTATION_ALIAS,
+CASE WHEN
+  nvl(c.PROFIT_LOSS_VALUE,0) >= 0 then 'P' else 'L'
+end PROFIT_LOSS,
+c.PROFIT_LOSS_VALUE,
+d.op_bal_diff,
+CASE WHEN
+  nvl(d.op_bal_diff,0) >= 0 then 'L' else 'A'
+end op_bal_diff_flag
+from app.org a,
+	app.app$glbl$curr b,
+    (select FN_NET_CALC_CONS($P{Cld_Id},$P{Ho_Org_Id},to_date(nvl($P{AsOnDate},to_date(sysdate,'YYYY-MM-DD')),'YYYY-MM-DD'),$P{PostFlag}) PROFIT_LOSS_VALUE
+    from dual) c,
+    (select fn_get_op_bal_diff_fr_dt_cons($P{Cld_Id},$P{Ho_Org_Id},nvl(to_date($P{AsOnDate},'YYYY-MM-DD'),to_date(sysdate,'YYYY-MM-DD'))) op_bal_diff
+    from dual) d
+where a.org_id = $P{Ho_Org_Id}
+and a.ORG_CURR_ID_BS=b.GLBL_CURR_ID
+order by 2]]>
+	</queryString>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="ORG_CURR_ID_BS" class="java.math.BigDecimal"/>
+	<field name="GLBL_CURR_NOTATION_ALIAS" class="java.lang.String"/>
+	<field name="PROFIT_LOSS" class="java.lang.String"/>
+	<field name="PROFIT_LOSS_VALUE" class="java.math.BigDecimal"/>
+	<field name="OP_BAL_DIFF" class="java.math.BigDecimal"/>
+	<field name="OP_BAL_DIFF_FLAG" class="java.lang.String"/>
+	<variable name="TotAmtAssert" class="java.math.BigDecimal"/>
+	<variable name="TotAmtLiability" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="70" splitType="Stretch">
+			<textField>
+				<reportElement x="233" y="16" width="320" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Balance Sheet"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="430" y="35" width="75" height="14"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[As On Date:]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="510" y="36" width="38" height="14"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{AsOnDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<image>
+				<reportElement x="1" y="1" width="220" height="45"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<line>
+				<reportElement x="0" y="64" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="68" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineColor="#666666"/>
+				</graphicElement>
+			</line>
+			<textField isBlankWhenNull="true">
+				<reportElement x="233" y="1" width="320" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["All Organizations"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="404" y="49" width="101" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Voucher Status :]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="513" y="49" width="43" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[( $P{PostFlag}!= "P" ? "All" : "Posted" )]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<subreport>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="278" height="15"/>
+				<subreportParameter name="Include_Grp">
+					<subreportParameterExpression><![CDATA[$P{Include_Grp}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="AsOnDate">
+					<subreportParameterExpression><![CDATA[$P{AsOnDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="GroupAccount">
+					<subreportParameterExpression><![CDATA[$P{GroupAccount}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="CLD_ID">
+					<subreportParameterExpression><![CDATA[$P{Cld_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Curr">
+					<subreportParameterExpression><![CDATA[$F{GLBL_CURR_NOTATION_ALIAS}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="COGID">
+					<subreportParameterExpression><![CDATA[$P{Cog_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Ho_Org_ID">
+					<subreportParameterExpression><![CDATA[$P{Ho_Org_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Org_ID">
+					<subreportParameterExpression><![CDATA[$F{ORG_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PostFlag">
+					<subreportParameterExpression><![CDATA[$P{PostFlag}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="su_cl_bal_rep" toVariable="TotAmtLiability" calculation="Sum"/>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/BalanceSheetLiability_Consolidate.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement stretchType="RelativeToTallestObject" x="278" y="0" width="278" height="15"/>
+				<subreportParameter name="Include_Grp">
+					<subreportParameterExpression><![CDATA[$P{Include_Grp}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="AsOnDate">
+					<subreportParameterExpression><![CDATA[$P{AsOnDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="GroupAccount">
+					<subreportParameterExpression><![CDATA[$P{GroupAccount}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="CLD_ID">
+					<subreportParameterExpression><![CDATA[$P{Cld_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Curr">
+					<subreportParameterExpression><![CDATA[$F{GLBL_CURR_NOTATION_ALIAS}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="COGID">
+					<subreportParameterExpression><![CDATA[$P{Cog_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Ho_Org_ID">
+					<subreportParameterExpression><![CDATA[$P{Ho_Org_Id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Org_ID">
+					<subreportParameterExpression><![CDATA[$F{ORG_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PostFlag">
+					<subreportParameterExpression><![CDATA[$P{PostFlag}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="SumCl_bl_rep" toVariable="TotAmtAssert" calculation="Sum"/>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/BalanceSheetAsset_Consolidate.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="25">
+			<line>
+				<reportElement x="0" y="0" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="4" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineColor="#666666"/>
+				</graphicElement>
+			</line>
+			<textField pattern="dd-MMM-yyyy HH.mm.ss" isBlankWhenNull="true">
+				<reportElement x="1" y="5" width="82" height="14"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="453" y="5" width="87" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="537" y="5" width="17" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="38">
+			<staticText>
+				<reportElement x="0" y="11" width="555" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[-------End Of Report-------
+Generated By ebizframe10]]></text>
+			</staticText>
+			<textField pattern="dd-MMM-yyyy HH.mm.ss" isBlankWhenNull="true">
+				<reportElement x="3" y="11" width="82" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="455" y="11" width="86" height="20"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="540" y="11" width="14" height="20"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="4" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="8" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineColor="#666666"/>
+				</graphicElement>
+			</line>
+		</band>
+	</lastPageFooter>
+	<summary>
+		<band height="49">
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="186" y="25" width="76" height="12" isPrintInFirstWholeBand="true" forecolor="#006600">
+					<printWhenExpression><![CDATA[$F{PROFIT_LOSS}.equalsIgnoreCase( "P" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PROFIT_LOSS_VALUE}.abs()]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="473" y="25" width="64" height="12" forecolor="#CC0000">
+					<printWhenExpression><![CDATA[$F{PROFIT_LOSS}.equalsIgnoreCase( "L" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PROFIT_LOSS_VALUE}.abs()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="25" width="186" height="12" forecolor="#006600">
+					<printWhenExpression><![CDATA[$F{PROFIT_LOSS}.equalsIgnoreCase( "P" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Net Profit is :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="276" y="25" width="186" height="12" forecolor="#CC0000">
+					<printWhenExpression><![CDATA[$F{PROFIT_LOSS}.equalsIgnoreCase( "L" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Net Loss is :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="276" y="0" width="190" height="13"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Assets Grand Total :]]></text>
+			</staticText>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="473" y="0" width="64" height="13"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotAmtAssert}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="186" height="13"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Liability Grand Total :]]></text>
+			</staticText>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="186" y="0" width="76" height="13"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotAmtLiability}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="25" width="555" height="12"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="13"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="37" width="555" height="12"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="37" width="186" height="12"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Net Amount :]]></text>
+			</staticText>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="473" y="37" width="64" height="12" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[($F{PROFIT_LOSS}.equalsIgnoreCase( "L" )
+    ?($F{OP_BAL_DIFF_FLAG}.equalsIgnoreCase("A")
+        ? $V{TotAmtAssert}.add($F{PROFIT_LOSS_VALUE}.abs()).add($F{OP_BAL_DIFF}.abs())
+        : $V{TotAmtAssert}.add($F{PROFIT_LOSS_VALUE}.abs())
+      )
+    : ($F{OP_BAL_DIFF_FLAG}.equalsIgnoreCase("A") ?
+        $V{TotAmtAssert}.add( $F{OP_BAL_DIFF}.abs()):
+        $V{TotAmtAssert}
+        )
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="186" y="37" width="76" height="12"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[($F{PROFIT_LOSS}.equalsIgnoreCase( "P" )
+    ?($F{OP_BAL_DIFF_FLAG}.equalsIgnoreCase("L")
+        ? $V{TotAmtLiability}.add($F{PROFIT_LOSS_VALUE}.abs()).add($F{OP_BAL_DIFF}.abs())
+        : $V{TotAmtLiability}.add($F{PROFIT_LOSS_VALUE}.abs())
+      )
+    : ($F{OP_BAL_DIFF_FLAG}.equalsIgnoreCase("L") ?
+        $V{TotAmtLiability}.add( $F{OP_BAL_DIFF}.abs()):
+        $V{TotAmtLiability}
+        )
+)]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="13" width="186" height="12" forecolor="#663300"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Difference in Opening Balance is :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="13" width="555" height="12"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="186" y="13" width="76" height="12" forecolor="#663300">
+					<printWhenExpression><![CDATA[$F{PROFIT_LOSS}.equalsIgnoreCase( "L" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OP_BAL_DIFF}.abs()]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="473" y="13" width="64" height="12" forecolor="#663300">
+					<printWhenExpression><![CDATA[$F{PROFIT_LOSS}.equalsIgnoreCase( "P" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{OP_BAL_DIFF}.abs()]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

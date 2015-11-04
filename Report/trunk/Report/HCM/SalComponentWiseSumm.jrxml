@@ -1,0 +1,2211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Salary_Register" language="groovy" pageWidth="2040" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="2000" leftMargin="20" rightMargin="20" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ReportType" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT DISTINCT --A.CLD_ID,A.HO_ORG_ID,A.ORG_ID,A.DOC_ID,A.SAL_ID,
+  --(A.SEQ_ORD || ' ' || A.SAL_DESC ) SAL_DES,
+  NVL(DECODE((A.SEQ_ORD
+  || ' '
+  || A.SAL_DESC ),'BS','1BS'),(A.SEQ_ORD
+  || ' '
+  || A.SAL_DESC )) SAL_DESC ,
+  SUM(NVL(A.SAL_AMT,0))SAL_AMT,
+  NVL(
+  (SELECT s.param_desc
+  FROM hcm$setup s
+  WHERE param_id =$P{crtValue}
+  AND param_type =3
+  AND s.cld_id   =$P{cldId}
+  AND s.sloc_id  =$P{slocId}
+  AND s.ho_org_id=$P{hoOrgId}
+  ),'') locationc,
+  NVL(
+  (SELECT s.param_desc
+  FROM hcm$setup s
+  WHERE param_id =$P{crtValue}
+  AND param_type =1
+  AND s.cld_id   =$P{cldId}
+  AND s.sloc_id  =$P{slocId}
+  AND s.ho_org_id=$P{hoOrgId}
+  ),'') groupc,
+  NVL(
+  (SELECT g.dept_nm
+  FROM app.app$dept g
+  WHERE dept_id  =$P{crtValue}
+  AND g.cld_id   =$P{cldId}
+  AND g.sloc_id  =$P{slocId}
+  AND g.ho_org_id=$P{hoOrgId}
+  ),'') Dept,
+  A.EMP_ID,
+  a.seq_ord,
+  A.EMP_NM,
+  B.ORG_DESC,
+  DECODE(A.SAL_STATUS,'P','Pending','A','Approved') SAL_STATUS,
+  PAID_DAYS
+FROM
+  (SELECT PRF.CLD_ID,
+    PRF.SLOC_ID,
+    PRF.HO_ORG_ID,
+    PRF.ORG_ID,
+    PRF.DOC_ID,
+    SL.SAL_ID,
+    C.SAL_STATUS,
+    (((SL.PROC_TO_DT-SL.PROC_FRM_DT)+1)-
+    (SELECT SUM(LV)
+    FROM
+      (SELECT COUNT(*) LV
+      FROM HCM$TIME$MOVE$EDIT$DTL X
+      WHERE X.CLD_ID  = PRF.CLD_ID
+      AND X.SLOC_ID   = PRF.SLOC_ID
+      AND X.HO_ORG_ID = PRF.HO_ORG_ID
+      AND X.ORG_ID    = PRF.ORG_ID
+      AND X.ATTEN_DT  > = SL.PROC_FRM_DT
+      AND X.ATTEN_DT <=SL.PROC_TO_DT
+      AND X.EMP_DOC_ID=PRF.doc_id
+      AND X.DED_CH    ='F'
+      UNION ALL
+      SELECT COUNT(*)/2 LV
+      FROM HCM$TIME$MOVE$EDIT$DTL Y
+      WHERE Y.CLD_ID  = PRF.CLD_ID
+      AND Y.SLOC_ID   = PRF.SLOC_ID
+      AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+      AND Y.ORG_ID    = PRF.ORG_ID
+      AND Y.ATTEN_DT  > = SL.PROC_FRM_DT
+      AND Y.ATTEN_DT <=SL.PROC_TO_DT
+      AND Y.EMP_DOC_ID=PRF.doc_id
+      AND DED_CH      ='H'
+      )
+    ) ) PAID_DAYS,
+    (SELECT ST.SAL_NOTATION
+    FROM ORG$HCM$SALARY ST
+    WHERE PRF.CLD_ID  = ST.CLD_ID
+    AND PRF.SLOC_ID   = ST.SLOC_ID
+    AND PRF.HO_ORG_ID = ST.HO_ORG_ID
+    AND SL.SAL_ID     = ST.SAL_ID
+    AND rownum        =1
+    ) SAL_DESC,
+    NVL(SL.SAL_AMT,0) SAL_AMT,
+    SL.PROC_FRM_DT,
+    SL.PROC_TO_DT,
+    PRF.EMP_ID,
+    PRF.EMP_NM,
+    0 SEQ_ORD
+  FROM ORG$HCM$EMP$PRF PRF,
+    HCM$SAL$PROC$SAL SL,
+    HCM$SAL$PROC$TXN C
+  WHERE SL.CLD_ID      = C.CLD_ID(+)
+  AND SL.SLOC_ID       = C.SLOC_ID(+)
+  AND SL.ORG_ID        = C.ORG_ID(+)
+  AND SL.HO_ORG_ID     = C.HO_ORG_ID(+)
+  AND SL.DOC_ID        = C.DOC_ID(+)
+  AND PRF.CLD_ID       =SL.CLD_ID
+  AND PRF.SLOC_ID      =SL.SLOC_ID
+  AND PRF.HO_ORG_ID    =SL.HO_ORG_ID
+  AND PRF.ORG_ID       =SL.ORG_ID
+  AND PRF.DOC_ID       =SL.EMP_DOC_ID
+  AND SL.SAL_BEHAV     =11
+  AND SL.SAL_ID        ='PAR0000017'
+  AND SL.PROC_FRM_DT   =to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND SL.PROC_TO_DT    = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PRF.CLD_ID       = $P{cldId}
+  AND PRF.SLOC_ID      = $P{slocId}
+  AND PRF.HO_ORG_ID    = $P{hoOrgId}
+  AND PRF.ORG_ID       = $P{orgId}
+  AND (PRF.EMP_DEPT_ID = $P{crtValue}
+  OR PRF.EMP_LOC_ID    = $P{crtValue}
+  OR PRF.EMP_GRP_ID    = $P{crtValue}
+  OR PRF.DOC_ID        = $P{crtValue})
+  AND PRF.DOC_ID       = NVL($P{empDocId}, PRF.DOC_ID)
+  UNION
+  SELECT PRF.CLD_ID,
+    PRF.SLOC_ID,
+    PRF.HO_ORG_ID,
+    PRF.ORG_ID,
+    PRF.DOC_ID,
+    SL.SAL_ID,
+    C.SAL_STATUS,
+    (((SL.PROC_TO_DT-SL.PROC_FRM_DT)+1)-
+    (SELECT SUM(LV)
+    FROM
+      (SELECT COUNT(*) LV
+      FROM HCM$TIME$MOVE$EDIT$DTL X
+      WHERE X.CLD_ID  = PRF.CLD_ID
+      AND X.SLOC_ID   = PRF.SLOC_ID
+      AND X.HO_ORG_ID = PRF.HO_ORG_ID
+      AND X.ORG_ID    = PRF.ORG_ID
+      AND X.ATTEN_DT  > = SL.PROC_FRM_DT
+      AND X.ATTEN_DT <=SL.PROC_TO_DT
+      AND X.EMP_DOC_ID=PRF.doc_id
+      AND X.DED_CH    ='F'
+      UNION ALL
+      SELECT COUNT(*)/2 LV
+      FROM HCM$TIME$MOVE$EDIT$DTL Y
+      WHERE Y.CLD_ID  = PRF.CLD_ID
+      AND Y.SLOC_ID   = PRF.SLOC_ID
+      AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+      AND Y.ORG_ID    = PRF.ORG_ID
+      AND Y.ATTEN_DT  > = SL.PROC_FRM_DT
+      AND Y.ATTEN_DT <=SL.PROC_TO_DT
+      AND Y.EMP_DOC_ID=PRF.doc_id
+      AND DED_CH      ='H'
+      )
+    ) ) PAID_DAYS,
+    (SELECT ST.SAL_NOTATION
+    FROM ORG$HCM$SALARY ST
+    WHERE PRF.CLD_ID  = ST.CLD_ID
+    AND PRF.SLOC_ID   = ST.SLOC_ID
+    AND PRF.HO_ORG_ID = ST.HO_ORG_ID
+    AND SL.SAL_ID     = ST.SAL_ID
+    AND rownum        =1
+    ) SAL_DESC,
+    NVL(SL.SAL_AMT,0) SAL_AMT,
+    SL.PROC_FRM_DT,
+    SL.PROC_TO_DT,
+    PRF.EMP_ID,
+    PRF.EMP_NM,
+    1 SEQ_ORD
+  FROM ORG$HCM$EMP$PRF PRF,
+    HCM$SAL$PROC$SAL SL,
+    HCM$SAL$PROC$TXN C
+  WHERE SL.CLD_ID      = C.CLD_ID(+)
+  AND SL.SLOC_ID       = C.SLOC_ID(+)
+  AND SL.ORG_ID        = C.ORG_ID(+)
+  AND SL.HO_ORG_ID     = C.HO_ORG_ID(+)
+  AND SL.DOC_ID        = C.DOC_ID(+)
+  AND PRF.CLD_ID       =SL.CLD_ID
+  AND PRF.SLOC_ID      =SL.SLOC_ID
+  AND PRF.HO_ORG_ID    =SL.HO_ORG_ID
+  AND PRF.ORG_ID       =SL.ORG_ID
+  AND PRF.DOC_ID       =SL.EMP_DOC_ID
+  AND SL.SAL_BEHAV     =11
+  AND SL.SAL_ID!       ='PAR0000017'
+  AND SL.PROC_FRM_DT   =to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND SL.PROC_TO_DT    = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PRF.CLD_ID       = $P{cldId}
+  AND PRF.SLOC_ID      = $P{slocId}
+  AND PRF.HO_ORG_ID    = $P{hoOrgId}
+  AND PRF.ORG_ID       = $P{orgId}
+  AND (PRF.EMP_DEPT_ID = $P{crtValue}
+  OR PRF.EMP_LOC_ID    = $P{crtValue}
+  OR PRF.EMP_GRP_ID    = $P{crtValue}
+  OR PRF.DOC_ID        = $P{crtValue})
+  AND PRF.DOC_ID       = NVL($P{empDocId}, PRF.DOC_ID)
+  UNION
+  SELECT PRF.CLD_ID,
+    PRF.SLOC_ID,
+    PRF.HO_ORG_ID,
+    PRF.ORG_ID,
+    PRF.DOC_ID,
+    SL.SAL_ID,
+    C.SAL_STATUS,
+    (((SL.PROC_TO_DT-SL.PROC_FRM_DT)+1)-
+    (SELECT SUM(LV)
+    FROM
+      (SELECT COUNT(*) LV
+      FROM HCM$TIME$MOVE$EDIT$DTL X
+      WHERE X.CLD_ID  = PRF.CLD_ID
+      AND X.SLOC_ID   = PRF.SLOC_ID
+      AND X.HO_ORG_ID = PRF.HO_ORG_ID
+      AND X.ORG_ID    = PRF.ORG_ID
+      AND X.ATTEN_DT  > = SL.PROC_FRM_DT
+      AND X.ATTEN_DT <=SL.PROC_TO_DT
+      AND X.EMP_DOC_ID=PRF.doc_id
+      AND X.DED_CH    ='F'
+      UNION ALL
+      SELECT COUNT(*)/2 LV
+      FROM HCM$TIME$MOVE$EDIT$DTL Y
+      WHERE Y.CLD_ID  = PRF.CLD_ID
+      AND Y.SLOC_ID   = PRF.SLOC_ID
+      AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+      AND Y.ORG_ID    = PRF.ORG_ID
+      AND Y.ATTEN_DT  > = SL.PROC_FRM_DT
+      AND Y.ATTEN_DT <=SL.PROC_TO_DT
+      AND Y.EMP_DOC_ID=PRF.doc_id
+      AND DED_CH      ='H'
+      )
+    ) ) PAID_DAYS,
+    (SELECT ST.param_desc
+    FROM hcm$setup ST
+    WHERE PRF.CLD_ID  = ST.CLD_ID
+    AND PRF.SLOC_ID   = ST.SLOC_ID
+    AND PRF.HO_ORG_ID = ST.HO_ORG_ID
+    AND SL.SAL_ID     = ST.PARAM_ID
+
+    AND rownum        =1
+
+    ) SAL_DESC,
+    NVL(SL.SAL_AMT,0) SAL_AMT,
+    SL.PROC_FRM_DT,
+    SL.PROC_TO_DT,
+    PRF.EMP_ID,
+    PRF.EMP_NM,
+    2 SEQ_ORD
+  FROM ORG$HCM$EMP$PRF PRF,
+    HCM$SAL$PROC$SAL SL,
+    HCM$SAL$PROC$TXN C
+  WHERE SL.CLD_ID      = C.CLD_ID(+)
+  AND SL.SLOC_ID       = C.SLOC_ID(+)
+  AND SL.ORG_ID        = C.ORG_ID(+)
+  AND SL.HO_ORG_ID     = C.HO_ORG_ID(+)
+  AND SL.DOC_ID        = C.DOC_ID(+)
+  AND PRF.CLD_ID       =SL.CLD_ID
+  AND PRF.SLOC_ID      =SL.SLOC_ID
+  AND PRF.HO_ORG_ID    =SL.HO_ORG_ID
+  AND PRF.ORG_ID       =SL.ORG_ID
+  AND PRF.DOC_ID       =SL.EMP_DOC_ID
+  AND SL.SAL_BEHAV     =12
+  AND SL.PROC_FRM_DT   =to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND SL.PROC_TO_DT    = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PRF.CLD_ID       = $P{cldId}
+  AND PRF.SLOC_ID      = $P{slocId}
+  AND PRF.HO_ORG_ID    = $P{hoOrgId}
+  AND PRF.ORG_ID       = $P{orgId}
+  AND (PRF.EMP_DEPT_ID = $P{crtValue}
+  OR PRF.EMP_LOC_ID    = $P{crtValue}
+  OR PRF.EMP_GRP_ID    = $P{crtValue}
+  OR PRF.DOC_ID        = $P{crtValue})
+  AND PRF.DOC_ID       = NVL($P{empDocId}, PRF.DOC_ID)
+
+  UNION
+  SELECT PRF.CLD_ID,
+    PRF.SLOC_ID,
+    PRF.HO_ORG_ID,
+    PRF.ORG_ID,
+    PRF.DOC_ID,
+    SL.SAL_ID,
+    C.SAL_STATUS,
+    (((SL.PROC_TO_DT-SL.PROC_FRM_DT)+1)-
+    (SELECT SUM(LV)
+    FROM
+      (SELECT COUNT(*) LV
+      FROM HCM$TIME$MOVE$EDIT$DTL X
+      WHERE X.CLD_ID  = PRF.CLD_ID
+      AND X.SLOC_ID   = PRF.SLOC_ID
+      AND X.HO_ORG_ID = PRF.HO_ORG_ID
+      AND X.ORG_ID    = PRF.ORG_ID
+      AND X.ATTEN_DT  > = SL.PROC_FRM_DT
+      AND X.ATTEN_DT <=SL.PROC_TO_DT
+      AND X.EMP_DOC_ID=PRF.doc_id
+      AND X.DED_CH    ='F'
+      UNION ALL
+      SELECT COUNT(*)/2 LV
+      FROM HCM$TIME$MOVE$EDIT$DTL Y
+      WHERE Y.CLD_ID  = PRF.CLD_ID
+      AND Y.SLOC_ID   = PRF.SLOC_ID
+      AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+      AND Y.ORG_ID    = PRF.ORG_ID
+      AND Y.ATTEN_DT  > = SL.PROC_FRM_DT
+      AND Y.ATTEN_DT <=SL.PROC_TO_DT
+      AND Y.EMP_DOC_ID=PRF.doc_id
+      AND DED_CH      ='H'
+      )
+    ) ) PAID_DAYS,
+    (SELECT ST.SAL_NOTATION
+    FROM ORG$HCM$SALARY ST
+    WHERE PRF.CLD_ID  = ST.CLD_ID
+    AND PRF.SLOC_ID   = ST.SLOC_ID
+    AND PRF.HO_ORG_ID = ST.HO_ORG_ID
+    AND SL.SAL_ID     = ST.SAL_ID
+    AND rownum        =1
+    ) SAL_DESC,
+    NVL(SL.SAL_AMT,0) SAL_AMT,
+    SL.PROC_FRM_DT,
+    SL.PROC_TO_DT,
+    PRF.EMP_ID,
+    PRF.EMP_NM,
+    3 SEQ_ORD
+  FROM ORG$HCM$EMP$PRF PRF,
+    HCM$SAL$PROC$SAL SL,
+    HCM$SAL$PROC$TXN C
+  WHERE SL.CLD_ID      = C.CLD_ID(+)
+  AND SL.SLOC_ID       = C.SLOC_ID(+)
+  AND SL.ORG_ID        = C.ORG_ID(+)
+  AND SL.HO_ORG_ID     = C.HO_ORG_ID(+)
+  AND SL.DOC_ID        = C.DOC_ID(+)
+  AND PRF.CLD_ID       =SL.CLD_ID
+  AND PRF.SLOC_ID      =SL.SLOC_ID
+  AND PRF.HO_ORG_ID    =SL.HO_ORG_ID
+  AND PRF.ORG_ID       =SL.ORG_ID
+  AND PRF.DOC_ID       =SL.EMP_DOC_ID
+  AND SL.SAL_BEHAV     =13
+  AND SL.PROC_FRM_DT   =to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND SL.PROC_TO_DT    = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PRF.CLD_ID       = $P{cldId}
+  AND PRF.SLOC_ID      = $P{slocId}
+  AND PRF.HO_ORG_ID    = $P{hoOrgId}
+  AND PRF.ORG_ID       = $P{orgId}
+  AND (PRF.EMP_DEPT_ID = $P{crtValue}
+  OR PRF.EMP_LOC_ID    = $P{crtValue}
+  OR PRF.EMP_GRP_ID    = $P{crtValue}
+  OR PRF.DOC_ID        = $P{crtValue})
+  AND PRF.DOC_ID       = NVL($P{empDocId}, PRF.DOC_ID)
+  UNION
+  SELECT PRF.CLD_ID,
+    PRF.SLOC_ID,
+    PRF.HO_ORG_ID,
+    PRF.ORG_ID,
+    PRF.DOC_ID,
+    SL.SAL_ID,
+    C.SAL_STATUS,
+    (((SL.PROC_TO_DT-SL.PROC_FRM_DT)+1)-
+    (SELECT SUM(LV)
+    FROM
+      (SELECT COUNT(*) LV
+      FROM HCM$TIME$MOVE$EDIT$DTL X
+      WHERE X.CLD_ID  = PRF.CLD_ID
+      AND X.SLOC_ID   = PRF.SLOC_ID
+      AND X.HO_ORG_ID = PRF.HO_ORG_ID
+      AND X.ORG_ID    = PRF.ORG_ID
+      AND X.ATTEN_DT  > = SL.PROC_FRM_DT
+      AND X.ATTEN_DT <=SL.PROC_TO_DT
+      AND X.EMP_DOC_ID=PRF.doc_id
+      AND X.DED_CH    ='F'
+      UNION ALL
+      SELECT COUNT(*)/2 LV
+      FROM HCM$TIME$MOVE$EDIT$DTL Y
+      WHERE Y.CLD_ID  = PRF.CLD_ID
+      AND Y.SLOC_ID   = PRF.SLOC_ID
+      AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+      AND Y.ORG_ID    = PRF.ORG_ID
+      AND Y.ATTEN_DT  > = SL.PROC_FRM_DT
+      AND Y.ATTEN_DT <=SL.PROC_TO_DT
+      AND Y.EMP_DOC_ID=PRF.doc_id
+      AND DED_CH      ='H'
+      )
+    ) ) PAID_DAYS,
+    (SELECT ST.SAL_NOTATION
+    FROM ORG$HCM$SALARY ST
+    WHERE PRF.CLD_ID  = ST.CLD_ID
+    AND PRF.SLOC_ID   = ST.SLOC_ID
+    AND PRF.HO_ORG_ID = ST.HO_ORG_ID
+    AND SL.SAL_ID     = ST.SAL_ID
+    AND rownum        =1
+    ) SAL_DESC,
+    NVL(SL.SAL_AMT,0) SAL_AMT,
+    SL.PROC_FRM_DT,
+    SL.PROC_TO_DT,
+    PRF.EMP_ID,
+    PRF.EMP_NM,
+    5 SEQ_ORD
+  FROM ORG$HCM$EMP$PRF PRF,
+    HCM$SAL$PROC$SAL SL,
+    HCM$SAL$PROC$TXN C
+  WHERE SL.CLD_ID      = C.CLD_ID(+)
+  AND SL.SLOC_ID       = C.SLOC_ID(+)
+  AND SL.ORG_ID        = C.ORG_ID(+)
+  AND SL.HO_ORG_ID     = C.HO_ORG_ID(+)
+  AND SL.DOC_ID        = C.DOC_ID(+)
+  AND PRF.CLD_ID       =SL.CLD_ID
+  AND PRF.SLOC_ID      =SL.SLOC_ID
+  AND PRF.HO_ORG_ID    =SL.HO_ORG_ID
+  AND PRF.ORG_ID       =SL.ORG_ID
+  AND PRF.DOC_ID       =SL.EMP_DOC_ID
+  AND SL.SAL_BEHAV     =10
+  AND SL.PROC_FRM_DT   =to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND SL.PROC_TO_DT    = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PRF.CLD_ID       = $P{cldId}
+  AND PRF.SLOC_ID      = $P{slocId}
+  AND PRF.HO_ORG_ID    = $P{hoOrgId}
+  AND PRF.ORG_ID       = $P{orgId}
+  AND (PRF.EMP_DEPT_ID = $P{crtValue}
+  OR PRF.EMP_LOC_ID    = $P{crtValue}
+  OR PRF.EMP_GRP_ID    = $P{crtValue}
+  OR PRF.DOC_ID        = $P{crtValue})
+  AND PRF.DOC_ID       = NVL($P{empDocId}, PRF.DOC_ID)
+  UNION
+    (SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DED_DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+      (SELECT DED_DESC
+      FROM HCM$DED D
+      WHERE D.DOC_ID  =PF.DED_DOC_ID
+      AND PF.CLD_ID   =D.CLD_ID
+      AND PF.SLOC_ID  =D.SLOC_ID
+      AND PF.HO_ORG_ID=D.HO_ORG_ID
+      AND PF.ORG_ID   =D.ORG_ID
+      AND rownum      =1
+      ) SAL_DESC,
+      NVL(PF.EMP_DED_AMT,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM,
+      6 SEQ_ORD
+    FROM HCM$MON$PF$DED PF,
+      HCM$SAL$PROC$TXN C,
+      ORG$HCM$EMP$PRF PRF
+    WHERE PF.CLD_ID    = C.CLD_ID(+)
+    AND PF.SLOC_ID     = C.SLOC_ID(+)
+    AND PF.ORG_ID      = C.ORG_ID(+)
+    AND PF.HO_ORG_ID   = C.HO_ORG_ID(+)
+    AND PF.DOC_ID      = C.DOC_ID(+)
+    AND PF.CLD_ID      =PRF.CLD_ID
+    AND PF.SLOC_ID     =PRF.SLOC_ID
+    AND PF.ORG_ID      =PRF.ORG_ID
+    AND PF.HO_ORG_ID   =PRF.HO_ORG_ID
+    AND PF.EMP_CODE    =PRF.EMP_CODE
+    AND PF.EMP_DOC_ID  =PRF.DOC_ID
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+    )
+  --PF
+  UNION
+    (SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DED_DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+      (SELECT DED_DESC
+      FROM HCM$DED D
+      WHERE D.DOC_ID  =PF.DED_DOC_ID
+      AND PF.CLD_ID   =D.CLD_ID
+      AND PF.SLOC_ID  =D.SLOC_ID
+      AND PF.HO_ORG_ID=D.HO_ORG_ID
+      AND PF.ORG_ID   =D.ORG_ID
+      AND rownum      =1
+      ) SAL_DESC,
+      NVL(PF.EMP_DED_AMT,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      9 SEQ_ORD
+    FROM HCM$MON$LOAN$DED PF,
+      HCM$SAL$PROC$TXN C,
+      ORG$HCM$EMP$PRF PRF
+    WHERE PF.CLD_ID    = C.CLD_ID(+)
+    AND PF.SLOC_ID     = C.SLOC_ID(+)
+    AND PF.ORG_ID      = C.ORG_ID(+)
+    AND PF.HO_ORG_ID   = C.HO_ORG_ID(+)
+    AND PF.DOC_ID      = C.DOC_ID(+)
+    AND PF.CLD_ID      =PRF.CLD_ID
+    AND PF.SLOC_ID     =PRF.SLOC_ID
+    AND PF.ORG_ID      =PRF.ORG_ID
+    AND PF.HO_ORG_ID   =PRF.HO_ORG_ID
+    AND PF.EMP_CODE    =PRF.EMP_CODE
+    AND PF.EMP_DOC_ID  =PRF.DOC_ID
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+    )
+  --LOAN
+  UNION
+    (SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DED_DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+      (SELECT DED_DESC
+      FROM HCM$DED D
+      WHERE D.DOC_ID  =PF.DED_DOC_ID
+      AND PF.CLD_ID   =D.CLD_ID
+      AND PF.SLOC_ID  =D.SLOC_ID
+      AND PF.HO_ORG_ID=D.HO_ORG_ID
+      AND PF.ORG_ID   =D.ORG_ID
+      AND rownum      =1
+      ) SAL_DESC,
+      NVL(PF.EMP_DED_AMT,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      7 SEQ_ORD
+    FROM HCM$MON$TAX$DED PF,
+      HCM$SAL$PROC$TXN C,
+      ORG$HCM$EMP$PRF PRF
+    WHERE PF.CLD_ID    = C.CLD_ID(+)
+    AND PF.SLOC_ID     = C.SLOC_ID(+)
+    AND PF.ORG_ID      = C.ORG_ID(+)
+    AND PF.HO_ORG_ID   = C.HO_ORG_ID(+)
+    AND PF.DOC_ID      = C.DOC_ID(+)
+    AND PF.CLD_ID      =PRF.CLD_ID
+    AND PF.SLOC_ID     =PRF.SLOC_ID
+    AND PF.ORG_ID      =PRF.ORG_ID
+    AND PF.HO_ORG_ID   =PRF.HO_ORG_ID
+    AND PF.EMP_CODE    =PRF.EMP_CODE
+    AND PF.EMP_DOC_ID  =PRF.DOC_ID
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+    )
+  --TAX
+  UNION
+    (SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DED_DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+      (SELECT DED_DESC
+      FROM HCM$DED D
+      WHERE D.DOC_ID  =PF.DED_DOC_ID
+      AND PF.CLD_ID   =D.CLD_ID
+      AND PF.SLOC_ID  =D.SLOC_ID
+      AND PF.HO_ORG_ID=D.HO_ORG_ID
+      AND PF.ORG_ID   =D.ORG_ID
+      AND rownum      =1
+      ) SAL_DESC,
+      NVL(PF.EMP_DED_AMT,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      8 SEQ_ORD
+    FROM HCM$MON$ESI$DED PF,
+      HCM$SAL$PROC$TXN C,
+      ORG$HCM$EMP$PRF PRF
+    WHERE PF.CLD_ID    = C.CLD_ID(+)
+    AND PF.SLOC_ID     = C.SLOC_ID(+)
+    AND PF.ORG_ID      = C.ORG_ID(+)
+    AND PF.HO_ORG_ID   = C.HO_ORG_ID(+)
+    AND PF.DOC_ID      = C.DOC_ID(+)
+    AND PF.CLD_ID      =PRF.CLD_ID
+    AND PF.SLOC_ID     =PRF.SLOC_ID
+    AND PF.ORG_ID      =PRF.ORG_ID
+    AND PF.HO_ORG_ID   =PRF.HO_ORG_ID
+    AND PF.EMP_CODE    =PRF.EMP_CODE
+    AND PF.EMP_DOC_ID  =PRF.DOC_ID
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+    )
+  --ESI
+  UNION
+    (SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+      ('TOTAL GROSS') SAL_DESC,
+      NVL(PF.TOT_GROSS,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      4 SEQ_ORD
+    FROM HCM$SAL$PROC PF,
+      HCM$SAL$PROC$TXN C,
+      ORG$HCM$EMP$PRF PRF
+    WHERE PF.CLD_ID  = C.CLD_ID(+)
+    AND PF.SLOC_ID   = C.SLOC_ID(+)
+    AND PF.ORG_ID    = C.ORG_ID(+)
+    AND PF.HO_ORG_ID = C.HO_ORG_ID(+)
+    AND PF.DOC_ID    = C.DOC_ID(+)
+    AND PF.CLD_ID    =PRF.CLD_ID
+    AND PF.SLOC_ID   =PRF.SLOC_ID
+    AND PF.ORG_ID    =PRF.ORG_ID
+    AND PF.HO_ORG_ID =PRF.HO_ORG_ID
+      --AND PF.EMP_CODE=PRF.EMP_CODE
+    AND PF.EMP_DOC_ID  =PRF.DOC_ID
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+    )
+  --TTL_GRS
+  UNION
+    (SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DED_DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+      (SELECT DED_DESC
+      FROM HCM$DED D
+      WHERE D.DOC_ID  =PF.DED_DOC_ID
+      AND PF.CLD_ID   =D.CLD_ID
+      AND PF.SLOC_ID  =D.SLOC_ID
+      AND PF.HO_ORG_ID=D.HO_ORG_ID
+      AND PF.ORG_ID   =D.ORG_ID
+      AND rownum      =1
+      ) SAL_DESC,
+      NVL(PF.EMP_DED_AMT,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      10 SEQ_ORD
+    FROM HCM$MON$PROFSNL$DED PF,
+      HCM$SAL$PROC$TXN C,
+      ORG$HCM$EMP$PRF PRF
+    WHERE PF.CLD_ID    = C.CLD_ID(+)
+    AND PF.SLOC_ID     = C.SLOC_ID(+)
+    AND PF.ORG_ID      = C.ORG_ID(+)
+    AND PF.HO_ORG_ID   = C.HO_ORG_ID(+)
+    AND PF.DOC_ID      = C.DOC_ID(+)
+    AND PF.CLD_ID      =PRF.CLD_ID
+    AND PF.SLOC_ID     =PRF.SLOC_ID
+    AND PF.ORG_ID      =PRF.ORG_ID
+    AND PF.HO_ORG_ID   =PRF.HO_ORG_ID
+    AND PF.EMP_CODE    =PRF.EMP_CODE
+    AND PF.EMP_DOC_ID  =PRF.DOC_ID
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+    )
+  UNION
+    (SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+      ('TOTAL DEDUCTION') SAL_DESC,
+      NVL(PF.TOTAL_DED,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      11 SEQ_ORD
+    FROM HCM$SAL$PROC PF,
+      HCM$SAL$PROC$TXN C,
+      ORG$HCM$EMP$PRF PRF
+    WHERE PF.CLD_ID  = C.CLD_ID(+)
+    AND PF.SLOC_ID   = C.SLOC_ID(+)
+    AND PF.ORG_ID    = C.ORG_ID(+)
+    AND PF.HO_ORG_ID = C.HO_ORG_ID(+)
+    AND PF.DOC_ID    = C.DOC_ID(+)
+    AND PF.CLD_ID    =PRF.CLD_ID
+    AND PF.SLOC_ID   =PRF.SLOC_ID
+    AND PF.ORG_ID    =PRF.ORG_ID
+    AND PF.HO_ORG_ID =PRF.HO_ORG_ID
+      --AND PF.EMP_CODE=PRF.EMP_CODE
+    AND PF.EMP_DOC_ID  =PRF.DOC_ID
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+    )
+  --TTL_DED
+  UNION
+    (SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+      ('GRATUITY') SAL_DESC,
+      NVL(PF.AMOUNT,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      4.5 SEQ_ORD
+    FROM HCM$MON$GRT$ALW PF,
+      ORG$HCM$EMP$PRF PRF,
+      HCM$SAL$PROC$TXN C
+    WHERE PF.CLD_ID  = C.CLD_ID(+)
+    AND PF.SLOC_ID   = C.SLOC_ID(+)
+    AND PF.ORG_ID    = C.ORG_ID(+)
+    AND PF.HO_ORG_ID = C.HO_ORG_ID(+)
+    AND PF.DOC_ID    = C.DOC_ID(+)
+    AND PF.CLD_ID    =PRF.CLD_ID
+    AND PF.SLOC_ID   =PRF.SLOC_ID
+    AND PF.ORG_ID    =PRF.ORG_ID
+    AND PF.HO_ORG_ID =PRF.HO_ORG_ID
+      --AND PF.EMP_CODE=PRF.EMP_CODE
+    AND PF.EMP_DOC_ID  =PRF.DOC_ID
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+    )
+  --Gratuity
+  UNION
+    (SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+      ('BONUS') SAL_DESC,
+      NVL(PF.AMOUNT,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      11.6 SEQ_ORD
+    FROM HCM$MON$BONUS PF,
+      ORG$HCM$EMP$PRF PRF,
+      HCM$SAL$PROC$TXN C
+    WHERE PF.CLD_ID  = C.CLD_ID(+)
+    AND PF.SLOC_ID   = C.SLOC_ID(+)
+    AND PF.ORG_ID    = C.ORG_ID(+)
+    AND PF.HO_ORG_ID = C.HO_ORG_ID(+)
+    AND PF.DOC_ID    = C.DOC_ID(+)
+    AND PF.CLD_ID    =PRF.CLD_ID
+    AND PF.SLOC_ID   =PRF.SLOC_ID
+    AND PF.ORG_ID    =PRF.ORG_ID
+    AND PF.HO_ORG_ID =PRF.HO_ORG_ID
+      --AND PF.EMP_CODE=PRF.EMP_CODE
+    AND PF.EMP_DOC_ID  =PRF.DOC_ID
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+    )
+  --BONUS
+  UNION
+    (SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+      ('LWF') SAL_DESC,
+      NVL(PF.EMP_AMT,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      11.9 SEQ_ORD
+    FROM HCM$MON$LWF PF,
+      ORG$HCM$EMP$PRF PRF,
+      HCM$SAL$PROC$TXN C
+    WHERE PF.CLD_ID  = C.CLD_ID(+)
+    AND PF.SLOC_ID   = C.SLOC_ID(+)
+    AND PF.ORG_ID    = C.ORG_ID(+)
+    AND PF.HO_ORG_ID = C.HO_ORG_ID(+)
+    AND PF.DOC_ID    = C.DOC_ID(+)
+    AND PF.CLD_ID    =PRF.CLD_ID
+    AND PF.SLOC_ID   =PRF.SLOC_ID
+    AND PF.ORG_ID    =PRF.ORG_ID
+    AND PF.HO_ORG_ID =PRF.HO_ORG_ID
+      --AND PF.EMP_CODE=PRF.EMP_CODE
+    AND PF.EMP_DOC_ID  =PRF.DOC_ID
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+    )
+     union
+
+
+    (SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+        f.ded_DESC sal_desc,
+      NVL(PF.EMP_DED_AMT,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      10.1 SEQ_ORD
+    FROM HCM$MON$NHIF$DED PF,
+      ORG$HCM$EMP$PRF PRF,
+      HCM$SAL$PROC$TXN C,
+       HCM$EMP$DED E ,
+        HCM$DED F
+
+    WHERE PF.CLD_ID  = C.CLD_ID(+)
+    AND PF.SLOC_ID   = C.SLOC_ID(+)
+    AND PF.ORG_ID    = C.ORG_ID(+)
+    AND PF.HO_ORG_ID = C.HO_ORG_ID(+)
+    AND PF.DOC_ID    = C.DOC_ID(+)
+    AND PF.CLD_ID    =PRF.CLD_ID
+    AND PF.SLOC_ID   =PRF.SLOC_ID
+    AND PF.ORG_ID    =PRF.ORG_ID
+    AND PF.HO_ORG_ID =PRF.HO_ORG_ID
+      --AND PF.EMP_CODE=PRF.EMP_CODE
+    AND PF.EMP_DOC_ID    = PRF.DOC_ID
+    AND E.ORG_ID         = PRF.ORG_ID
+    AND E.HO_ORG_ID      = PRF.HO_ORG_ID
+    AND E.CLD_ID         = PRF.CLD_ID
+    AND E.SLOC_ID        = PRF.SLOC_ID
+    AND E.EMP_DOC_ID     =PRF.DOC_ID
+    AND E.cld_id       = PF.cld_id
+
+AND E.sloc_id      = PF.sloc_id
+AND E.ho_org_id    = PF.ho_org_id
+AND E.ORG_ID       = PF.ORG_ID
+AND E.EMP_DOC_ID   = PF.EMP_DOC_ID
+AND E.DED_DOC_ID   = PF.DED_DOC_ID
+
+AND E.ORG_ID       = F.ORG_ID
+AND E.HO_ORG_ID    = F.HO_ORG_ID
+AND E.CLD_ID       = F.CLD_ID
+AND E.ORG_ID       = F.ORG_ID
+AND E.DED_DOC_ID   = F.DOC_ID
+AND f.DED_TYPE     = 88
+
+
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+    )
+
+    --NHIF END
+
+    UNION
+
+
+
+   ( SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+        f.ded_DESC sal_desc,
+      NVL(PF.EMP_DED_AMT,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      10.2 SEQ_ORD
+    FROM HCM$MON$NSSF$DED PF,
+      ORG$HCM$EMP$PRF PRF,
+      HCM$SAL$PROC$TXN C,
+       HCM$EMP$DED E ,
+        HCM$DED F
+
+    WHERE PF.CLD_ID  = C.CLD_ID(+)
+    AND PF.SLOC_ID   = C.SLOC_ID(+)
+    AND PF.ORG_ID    = C.ORG_ID(+)
+    AND PF.HO_ORG_ID = C.HO_ORG_ID(+)
+    AND PF.DOC_ID    = C.DOC_ID(+)
+    AND PF.CLD_ID    =PRF.CLD_ID
+    AND PF.SLOC_ID   =PRF.SLOC_ID
+    AND PF.ORG_ID    =PRF.ORG_ID
+    AND PF.HO_ORG_ID =PRF.HO_ORG_ID
+      --AND PF.EMP_CODE=PRF.EMP_CODE
+    AND PF.EMP_DOC_ID    = PRF.DOC_ID
+    AND E.ORG_ID         = PRF.ORG_ID
+    AND E.HO_ORG_ID      = PRF.HO_ORG_ID
+    AND E.CLD_ID         = PRF.CLD_ID
+    AND E.SLOC_ID        = PRF.SLOC_ID
+    AND E.EMP_DOC_ID     =PRF.DOC_ID
+    AND E.cld_id       = PF.cld_id
+
+AND E.sloc_id      = PF.sloc_id
+AND E.ho_org_id    = PF.ho_org_id
+AND E.ORG_ID       = PF.ORG_ID
+AND E.EMP_DOC_ID   = PF.EMP_DOC_ID
+AND E.DED_DOC_ID   = PF.DED_DOC_ID
+
+AND E.ORG_ID       = F.ORG_ID
+AND E.HO_ORG_ID    = F.HO_ORG_ID
+AND E.CLD_ID       = F.CLD_ID
+AND E.ORG_ID       = F.ORG_ID
+AND E.DED_DOC_ID   = F.DOC_ID
+  AND f.DED_TYPE     = 89
+
+
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+
+)
+
+   -- NSSF END
+    UNION
+
+
+   ( SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+        f.ded_DESC sal_desc,
+      NVL(PF.EMP_DED_AMT,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      10.3 SEQ_ORD
+    FROM HCM$MON$SUPER$DED PF,
+      ORG$HCM$EMP$PRF PRF,
+      HCM$SAL$PROC$TXN C,
+       HCM$EMP$DED E ,
+        HCM$DED F
+
+    WHERE PF.CLD_ID  = C.CLD_ID(+)
+    AND PF.SLOC_ID   = C.SLOC_ID(+)
+    AND PF.ORG_ID    = C.ORG_ID(+)
+    AND PF.HO_ORG_ID = C.HO_ORG_ID(+)
+    AND PF.DOC_ID    = C.DOC_ID(+)
+    AND PF.CLD_ID    =PRF.CLD_ID
+    AND PF.SLOC_ID   =PRF.SLOC_ID
+    AND PF.ORG_ID    =PRF.ORG_ID
+    AND PF.HO_ORG_ID =PRF.HO_ORG_ID
+      --AND PF.EMP_CODE=PRF.EMP_CODE
+    AND PF.EMP_DOC_ID    = PRF.DOC_ID
+    AND E.ORG_ID         = PRF.ORG_ID
+    AND E.HO_ORG_ID      = PRF.HO_ORG_ID
+    AND E.CLD_ID         = PRF.CLD_ID
+    AND E.SLOC_ID        = PRF.SLOC_ID
+    AND E.EMP_DOC_ID     =PRF.DOC_ID
+    AND E.cld_id       = PF.cld_id
+
+AND E.sloc_id      = PF.sloc_id
+AND E.ho_org_id    = PF.ho_org_id
+AND E.ORG_ID       = PF.ORG_ID
+AND E.EMP_DOC_ID   = PF.EMP_DOC_ID
+AND E.DED_DOC_ID   = PF.DED_DOC_ID
+
+AND E.ORG_ID       = F.ORG_ID
+AND E.HO_ORG_ID    = F.HO_ORG_ID
+AND E.CLD_ID       = F.CLD_ID
+AND E.ORG_ID       = F.ORG_ID
+AND E.DED_DOC_ID   = F.DOC_ID
+  AND f.DED_TYPE     = 94
+
+
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+
+      )
+
+  --SUPERANNUATION END
+
+
+  UNION
+    (SELECT PF.CLD_ID,
+      PF.SLOC_ID,
+      PF.HO_ORG_ID,
+      PF.ORG_ID,
+      PF.EMP_DOC_ID,
+      PF.DOC_ID SAL_ID,
+      C.SAL_STATUS,
+      (((PF.PROC_TO_DT-PF.PROC_FRM_DT)+1)-
+      (SELECT SUM(LV)
+      FROM
+        (SELECT COUNT(*) LV
+        FROM HCM$TIME$MOVE$EDIT$DTL X
+        WHERE X.CLD_ID  = PRF.CLD_ID
+        AND X.SLOC_ID   = PRF.SLOC_ID
+        AND X.HO_ORG_ID = PRF.HO_ORG_ID
+        AND X.ORG_ID    = PRF.ORG_ID
+        AND X.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND X.ATTEN_DT <=PF.PROC_TO_DT
+        AND X.EMP_DOC_ID=PRF.doc_id
+        AND X.DED_CH    ='F'
+
+
+        UNION ALL
+        SELECT COUNT(*)/2 LV
+        FROM HCM$TIME$MOVE$EDIT$DTL Y
+        WHERE Y.CLD_ID  = PRF.CLD_ID
+        AND Y.SLOC_ID   = PRF.SLOC_ID
+        AND Y.HO_ORG_ID = PRF.HO_ORG_ID
+        AND Y.ORG_ID    = PRF.ORG_ID
+        AND Y.ATTEN_DT  > = PF.PROC_FRM_DT
+        AND Y.ATTEN_DT <=PF.PROC_TO_DT
+        AND Y.EMP_DOC_ID=PRF.doc_id
+        AND DED_CH      ='H'
+        )
+      ) ) PAID_DAYS,
+      ('NET PAY') SAL_DESC,
+      NVL(PF.TOT_SAL_AMT,0) SAL_AMT,
+      PF.PROC_FRM_DT PROC_FRM_DT,
+      PF.PROC_TO_DT PROC_TO_DT,
+      (SELECT EMP_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_ID,
+      (SELECT EMP_NM
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE PRF.CLD_ID  = PF.CLD_ID
+      AND PRF.SLOC_ID   = PF.SLOC_ID
+      AND PRF.DOC_ID    = PF.EMP_DOC_ID
+      AND PRF.ORG_ID    = PF.ORG_ID
+      AND PRF.HO_ORG_ID = PF.HO_ORG_ID
+      ) EMP_NM ,
+      13 SEQ_ORD
+    FROM HCM$SAL$PROC PF,
+      HCM$SAL$PROC$TXN C,
+      ORG$HCM$EMP$PRF PRF
+    WHERE PF.CLD_ID  = C.CLD_ID(+)
+    AND PF.SLOC_ID   = C.SLOC_ID(+)
+    AND PF.ORG_ID    = C.ORG_ID(+)
+    AND PF.HO_ORG_ID = C.HO_ORG_ID(+)
+    AND PF.DOC_ID    = C.DOC_ID(+)
+    AND PF.CLD_ID    =PRF.CLD_ID
+    AND PF.SLOC_ID   =PRF.SLOC_ID
+    AND PF.ORG_ID    =PRF.ORG_ID
+    AND PF.HO_ORG_ID =PRF.HO_ORG_ID
+      --AND PF.EMP_CODE=PRF.EMP_CODE
+    AND PF.EMP_DOC_ID  =PRF.DOC_ID
+    AND PF.CLD_ID      = $P{cldId}
+    AND PF.SLOC_ID     =$P{slocId}
+    AND PF.HO_ORG_ID   =$P{hoOrgId}
+    AND PF.ORG_ID      =$P{orgId}
+    AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID IN
+      (SELECT PRF.DOC_ID
+      FROM ORG$HCM$EMP$PRF PRF
+      WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+      OR PRF.EMP_LOC_ID      = $P{crtValue}
+      OR PRF.EMP_GRP_ID      = $P{crtValue}
+      OR PRF.DOC_ID          = $P{crtValue})
+      AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+      )
+    )
+  ) A,
+  APP.ORG B
+WHERE A.CLD_ID = B.ORG_CLD_ID(+)
+AND A.ORG_ID   = B.ORG_ID(+)
+GROUP BY A.SEQ_ORD,
+  A.SAL_DESC,
+  A.EMP_ID,
+  A.EMP_NM,
+  B.ORG_DESC,
+  A.SAL_STATUS,
+  PAID_DAYS]]>
+	</queryString>
+	<field name="SAL_DESC" class="java.lang.String"/>
+	<field name="SAL_AMT" class="java.math.BigDecimal"/>
+	<field name="LOCATIONC" class="java.lang.String"/>
+	<field name="GROUPC" class="java.lang.String"/>
+	<field name="DEPT" class="java.lang.String"/>
+	<field name="EMP_ID" class="java.lang.String"/>
+	<field name="SEQ_ORD" class="java.math.BigDecimal"/>
+	<field name="EMP_NM" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="SAL_STATUS" class="java.lang.String"/>
+	<field name="PAID_DAYS" class="java.math.BigDecimal"/>
+	<group name="CrossTab">
+		<groupExpression><![CDATA[$P{orgId}]]></groupExpression>
+		<groupFooter>
+			<band height="81">
+				<crosstab>
+					<reportElement x="0" y="0" width="2000" height="81"/>
+					<crosstabHeaderCell>
+						<cellContents>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="60" height="30" backcolor="#BFE1FF"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="9"/>
+								</textElement>
+								<text><![CDATA[Employee Id]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="60" y="0" width="100" height="30" backcolor="#BFE1FF"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="9"/>
+								</textElement>
+								<text><![CDATA[Employee Name]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="160" y="0" width="100" height="30" backcolor="#BFE1FF"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="9"/>
+								</textElement>
+								<text><![CDATA[Status]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="260" y="0" width="100" height="30" backcolor="#BFE1FF"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="9"/>
+								</textElement>
+								<text><![CDATA[Total No. of Paid Days]]></text>
+							</staticText>
+						</cellContents>
+					</crosstabHeaderCell>
+					<rowGroup name="EMP_ID" width="60" totalPosition="End">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{EMP_ID}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents backcolor="#F0F8FF" mode="Opaque">
+								<box>
+									<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								</box>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="60" height="25"/>
+									<box>
+										<topPen lineWidth="0.5"/>
+										<leftPen lineWidth="0.5"/>
+										<bottomPen lineWidth="0.5"/>
+										<rightPen lineWidth="0.5"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="9"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{EMP_ID}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents backcolor="#BFE1FF" mode="Opaque">
+								<box>
+									<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								</box>
+								<staticText>
+									<reportElement x="0" y="0" width="360" height="25"/>
+									<box>
+										<topPen lineWidth="0.5"/>
+										<leftPen lineWidth="0.5"/>
+										<bottomPen lineWidth="0.5"/>
+										<rightPen lineWidth="0.5"/>
+									</box>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="Arial" size="9"/>
+									</textElement>
+									<text><![CDATA[Total   ]]></text>
+								</staticText>
+							</cellContents>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="EMP_NM" width="100">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{EMP_NM}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="100" height="25" backcolor="#F0F8FF"/>
+									<box>
+										<topPen lineWidth="0.5"/>
+										<leftPen lineWidth="0.5"/>
+										<bottomPen lineWidth="0.5"/>
+										<rightPen lineWidth="0.5"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="9"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{EMP_NM}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Status" width="100">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{SAL_STATUS}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="100" height="25"/>
+									<box>
+										<topPen lineWidth="0.5"/>
+										<leftPen lineWidth="0.5"/>
+										<bottomPen lineWidth="0.5"/>
+										<rightPen lineWidth="0.5"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="9"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{Status}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="PaidDays" width="100">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{PAID_DAYS}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="100" height="25"/>
+									<box>
+										<topPen lineWidth="0.5"/>
+										<leftPen lineWidth="0.5"/>
+										<bottomPen lineWidth="0.5"/>
+										<rightPen lineWidth="0.5"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="9"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{PaidDays}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<columnGroup name="SAL_DESC" height="30" totalPosition="End">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{SAL_DESC}]]></bucketExpression>
+							<orderByExpression class="java.lang.Comparable"><![CDATA[$V{Sort}]]></orderByExpression>
+						</bucket>
+						<crosstabColumnHeader>
+							<cellContents backcolor="#F0F8FF" mode="Opaque">
+								<box>
+									<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								</box>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="70" height="30" backcolor="#BFE1FF"/>
+									<box>
+										<topPen lineWidth="0.5"/>
+										<leftPen lineWidth="0.5"/>
+										<bottomPen lineWidth="0.5"/>
+										<rightPen lineWidth="0.5"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{SAL_DESC}.substring($V{SAL_DESC}.indexOf(" "),$V{SAL_DESC}.length())]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabColumnHeader>
+						<crosstabTotalColumnHeader>
+							<cellContents backcolor="#BFE1FF" mode="Opaque">
+								<box>
+									<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								</box>
+							</cellContents>
+						</crosstabTotalColumnHeader>
+					</columnGroup>
+					<measure name="SAL_AMTMeasure" class="java.math.BigDecimal">
+						<measureExpression><![CDATA[$F{SAL_AMT}]]></measureExpression>
+					</measure>
+					<measure name="Sort" class="java.math.BigDecimal">
+						<measureExpression><![CDATA[$F{SEQ_ORD}]]></measureExpression>
+					</measure>
+					<measure name="Sum" class="java.lang.Integer" calculation="Sum">
+						<measureExpression><![CDATA[$F{SAL_AMT}]]></measureExpression>
+					</measure>
+					<crosstabCell width="70" height="25">
+						<cellContents>
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" mode="Transparent" x="0" y="0" width="70" height="25"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="9"/>
+								</textElement>
+								<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{SAL_AMTMeasure}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="70" height="25" rowTotalGroup="EMP_ID">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="70" height="25"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="9"/>
+								</textElement>
+								<textFieldExpression class="java.lang.Integer"><![CDATA[$V{Sum}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="0" height="25" columnTotalGroup="SAL_DESC">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="0" height="25" rowTotalGroup="EMP_ID" columnTotalGroup="SAL_DESC">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="EMP_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="EMP_NM" columnTotalGroup="SAL_DESC">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Status">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Status" columnTotalGroup="SAL_DESC">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="PaidDays">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="PaidDays" columnTotalGroup="SAL_DESC">
+						<cellContents/>
+					</crosstabCell>
+				</crosstab>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="71">
+			<printWhenExpression><![CDATA[$P{ReportType}.equals( "P" )]]></printWhenExpression>
+			<image>
+				<reportElement x="0" y="0" width="156" height="36"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="1825" y="20" width="171" height="16" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<text><![CDATA[Salary Register]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="68" width="2000" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<subreport>
+				<reportElement x="1894" y="52" width="100" height="15"/>
+				<subreportParameter name="ToDate">
+					<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="FromDate">
+					<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Date_SubReport.jasper"]]></subreportExpression>
+			</subreport>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="1713" y="3" width="282" height="16" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1826" y="36" width="170" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{LOCATIONC}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1824" y="36" width="170" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{DEPT}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1824" y="36" width="170" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{GROUPC}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<lastPageFooter>
+		<band height="47">
+			<printWhenExpression><![CDATA[$P{ReportType}.equals('P')]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="0" width="1996" height="27"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated by ebizframe 10]]></text>
+			</staticText>
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="1951" y="2" width="40" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="1853" y="2" width="98" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="27" width="2000" height="3"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="26" width="2000" height="2"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="-1" y="0" width="100" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+</jasperReport>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RegionWisePurchaseReportSubreport1" language="groovy" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="StructId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AddsLbl" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[Select Cld_Id,Sloc_Id,Org_Id,Adds_Lbl,
+       Listagg((Adds_Loc), ',') Within Group (Order By adds_lbl) Adds_Chart
+From
+(Select Distinct Adds_Lbl,Adds_Loc,Cld_Id,Sloc_Id,Org_Id
+ From
+(Select B.CLD_ID,B.SLOC_ID,B.Adds_Lbl, B.Adds_Loc,B.Adds_Id, B.Level_Id,B.STRUCT_ID,A.ORG_ID
+ From Mm$drft$po A,
+(SELECT X.CLD_ID, X.SLOC_ID, X.ADDS_ID,X.STRUCT_ID, INITCAP(Z.ADDS_LBL) ADDS_LBL, Y.ADDS_LOC ADDS_LOC, X.LEVEL_ID
+      FROM APP.APP$ADDS$BK$DTL X, APP.APP$ADDS$LBL$VLU Y, APP.APP$ADDS$LBL Z
+      WHERE X.SLOC_ID = Y.SLOC_ID
+      AND X.CLD_ID = Y.CLD_ID
+      AND X.LOC_ID = Y.LOC_ID
+      AND X.SLOC_ID = Z.SLOC_ID
+      AND X.CLD_ID = Z.CLD_ID
+      AND X.LBL_ID = Z.LBL_ID) B
+WHERE A.CLD_ID = B.CLD_ID
+And A.Sloc_Id = B.Sloc_Id
+And A.Bill_Adds_Id   = B.Adds_Id))
+Where Cld_Id = Nvl($P{CldId},Cld_Id)
+And Sloc_Id = Nvl($P{SlocId},Sloc_Id)
+And Org_Id = Nvl($P{OrgId},Org_Id)
+And Adds_Lbl = Nvl($P{AddsLbl},Adds_Lbl)
+Group By Adds_Lbl,Cld_Id,Sloc_Id,Org_Id
+order by org_id]]>
+	</queryString>
+	<field name="CLD_ID" class="java.lang.String"/>
+	<field name="SLOC_ID" class="java.math.BigDecimal"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="ADDS_LBL" class="java.lang.String"/>
+	<field name="ADDS_CHART" class="java.lang.String"/>
+	<detail>
+		<band height="20">
+			<textField>
+				<reportElement x="0" y="0" width="132" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ADDS_LBL}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="132" y="0" width="422" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ADDS_CHART}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

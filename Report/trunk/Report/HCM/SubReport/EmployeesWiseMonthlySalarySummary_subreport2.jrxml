@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="EmployeesWiseMonthlySalarySummary_subreport2" language="groovy" pageWidth="395" pageHeight="802" columnWidth="395" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT DISTINCT prf.doc_id,
+  prf.emp_nm,
+  NVL(pf.tot_loan,0) loan_amt,
+  NVL(pf.tot_tax,0) tds_amt,
+  --Organization Name
+  (
+  SELECT o.org_desc
+  FROM app.org o
+  WHERE o.org_id               = prf.org_id
+  AND o.org_cld_id             = prf.cld_id
+  AND o.org_create_ref_sloc_id = prf.sloc_id
+  )org_desc,
+  --Organization Address
+  (
+  SELECT adds
+  FROM app.app$adds$vw
+  WHERE adds_id = od.org_add_id1
+  AND cld_id    = od.org_cld_id
+  )adds,
+  --Total PF
+  NVL(
+  (SELECT SUM(emp_ded_amt)
+  FROM hcm$mon$pf$ded pf
+  WHERE prf.cld_id   = pf.cld_id(+)
+  AND prf.sloc_id    = pf.sloc_id(+)
+  AND prf.org_id     = pf.org_id(+)
+  AND prf.ho_org_id  = pf.ho_org_id(+)
+  AND PF.CLD_ID      = $P{cldId}
+  AND PF.SLOC_ID     =$P{slocId}
+  AND PF.HO_ORG_ID   =$P{hoOrgId}
+  AND PF.ORG_ID      =$P{orgId}
+  AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.EMP_DOC_ID IN
+    (SELECT PRF.DOC_ID
+    FROM ORG$HCM$EMP$PRF PRF
+    WHERE PRF.EMP_DEPT_ID = $P{crtValue}
+    OR PRF.EMP_LOC_ID     = $P{crtValue}
+    OR PRF.EMP_GRP_ID     = $P{crtValue}
+    OR PRF.DOC_ID         = $P{crtValue}
+    )
+  AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)
+  ),0)tot_pf,
+
+
+
+
+
+
+   NVL(
+  (SELECT SUM(vpf_amt)
+  FROM hcm$mon$pf$ded pf
+  WHERE prf.cld_id   = pf.cld_id(+)
+  AND prf.sloc_id    = pf.sloc_id(+)
+  AND prf.org_id     = pf.org_id(+)
+  AND prf.ho_org_id  = pf.ho_org_id(+)
+  AND PF.CLD_ID      = $P{cldId}
+  AND PF.SLOC_ID     =$P{slocId}
+  AND PF.HO_ORG_ID   =$P{hoOrgId}
+  AND PF.ORG_ID      =$P{orgId}
+  AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.EMP_DOC_ID IN
+    (SELECT PRF.DOC_ID
+    FROM ORG$HCM$EMP$PRF PRF
+    WHERE PRF.EMP_DEPT_ID = $P{crtValue}
+    OR PRF.EMP_LOC_ID     = $P{crtValue}
+    OR PRF.EMP_GRP_ID     = $P{crtValue}
+    OR PRF.DOC_ID         = $P{crtValue}
+    )
+  AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)
+  ),0)tot_vpf,
+  --Total  ESI
+  NVL(
+  (SELECT SUM(emp_ded_amt)
+  FROM hcm$mon$esi$ded pf
+  WHERE prf.cld_id   = pf.cld_id
+  AND prf.sloc_id    = pf.sloc_id
+  AND prf.org_id     = pf.org_id
+  AND prf.ho_org_id  = pf.ho_org_id
+  AND PF.CLD_ID      = $P{cldId}
+  AND PF.SLOC_ID     =$P{slocId}
+  AND PF.HO_ORG_ID   =$P{hoOrgId}
+  AND PF.ORG_ID      =$P{orgId}
+  AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.EMP_DOC_ID IN
+    (SELECT PRF.DOC_ID
+    FROM ORG$HCM$EMP$PRF PRF
+    WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+    OR PRF.EMP_LOC_ID      = $P{crtValue}
+    OR PRF.EMP_GRP_ID      = $P{crtValue}
+    OR PRF.DOC_ID          = $P{crtValue})
+    AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+    )
+  ),0) tot_esi
+ ,
+
+ NVL(
+  (SELECT SUM(emp_ded_amt)
+  FROM HCM$MON$NHIF$DED pf
+  WHERE prf.cld_id   = pf.cld_id
+  AND prf.sloc_id    = pf.sloc_id
+  AND prf.org_id     = pf.org_id
+  AND prf.ho_org_id  = pf.ho_org_id
+  AND PF.CLD_ID      = $P{cldId}
+  AND PF.SLOC_ID     =$P{slocId}
+  AND PF.HO_ORG_ID   =$P{hoOrgId}
+  AND PF.ORG_ID      =$P{orgId}
+  AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.EMP_DOC_ID IN
+    (SELECT PRF.DOC_ID
+    FROM ORG$HCM$EMP$PRF PRF
+    WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+    OR PRF.EMP_LOC_ID      = $P{crtValue}
+    OR PRF.EMP_GRP_ID      = $P{crtValue}
+    OR PRF.DOC_ID          = $P{crtValue})
+    AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+    )
+  ),0)tot_nhif
+  ,
+  NVL(
+  (SELECT SUM(emp_ded_amt)
+  FROM HCM$MON$NSSF$DED pf
+  WHERE prf.cld_id   = pf.cld_id
+  AND prf.sloc_id    = pf.sloc_id
+  AND prf.org_id     = pf.org_id
+  AND prf.ho_org_id  = pf.ho_org_id
+  AND PF.CLD_ID      = $P{cldId}
+  AND PF.SLOC_ID     =$P{slocId}
+  AND PF.HO_ORG_ID   =$P{hoOrgId}
+  AND PF.ORG_ID      =$P{orgId}
+  AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.EMP_DOC_ID IN
+    (SELECT PRF.DOC_ID
+    FROM ORG$HCM$EMP$PRF PRF
+    WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+    OR PRF.EMP_LOC_ID      = $P{crtValue}
+    OR PRF.EMP_GRP_ID      = $P{crtValue}
+    OR PRF.DOC_ID          = $P{crtValue})
+    AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+    )
+  ),0)tot_nssf,
+
+ NVL(
+  (SELECT SUM(emp_amt)
+  FROM HCM$MON$lwf pf
+  WHERE prf.cld_id   = pf.cld_id
+  AND prf.sloc_id    = pf.sloc_id
+  AND prf.org_id     = pf.org_id
+  AND prf.ho_org_id  = pf.ho_org_id
+  AND PF.CLD_ID      = $P{cldId}
+  AND PF.SLOC_ID     =$P{slocId}
+  AND PF.HO_ORG_ID   =$P{hoOrgId}
+  AND PF.ORG_ID      =$P{orgId}
+  AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.EMP_DOC_ID IN
+    (SELECT PRF.DOC_ID
+    FROM ORG$HCM$EMP$PRF PRF
+    WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+    OR PRF.EMP_LOC_ID      = $P{crtValue}
+    OR PRF.EMP_GRP_ID      = $P{crtValue}
+    OR PRF.DOC_ID          = $P{crtValue})
+    AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+    )
+  ),0)tot_lwf
+  ,
+  NVL(
+  (SELECT SUM(emp_ded_amt)
+  FROM HCM$MON$PROFSNL$DED pf
+  WHERE prf.cld_id   = pf.cld_id
+  AND prf.sloc_id    = pf.sloc_id
+  AND prf.org_id     = pf.org_id
+  AND prf.ho_org_id  = pf.ho_org_id
+  AND PF.CLD_ID      = $P{cldId}
+  AND PF.SLOC_ID     =$P{slocId}
+  AND PF.HO_ORG_ID   =$P{hoOrgId}
+  AND PF.ORG_ID      =$P{orgId}
+  AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.EMP_DOC_ID IN
+    (SELECT PRF.DOC_ID
+    FROM ORG$HCM$EMP$PRF PRF
+    WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+    OR PRF.EMP_LOC_ID      = $P{crtValue}
+    OR PRF.EMP_GRP_ID      = $P{crtValue}
+    OR PRF.DOC_ID          = $P{crtValue})
+    AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+    )
+  ),0)tot_prof_Tax,
+
+
+  NVL(
+  (SELECT SUM(emp_ded_amt)
+  FROM HCM$MON$super$DED pf
+  WHERE prf.cld_id   = pf.cld_id
+  AND prf.sloc_id    = pf.sloc_id
+  AND prf.org_id     = pf.org_id
+  AND prf.ho_org_id  = pf.ho_org_id
+  AND PF.CLD_ID      = $P{cldId}
+  AND PF.SLOC_ID     =$P{slocId}
+  AND PF.HO_ORG_ID   =$P{hoOrgId}
+  AND PF.ORG_ID      =$P{orgId}
+  AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+  AND PF.EMP_DOC_ID IN
+    (SELECT PRF.DOC_ID
+    FROM ORG$HCM$EMP$PRF PRF
+    WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+    OR PRF.EMP_LOC_ID      = $P{crtValue}
+    OR PRF.EMP_GRP_ID      = $P{crtValue}
+    OR PRF.DOC_ID          = $P{crtValue})
+    AND PRF.DOC_ID         = NVL($P{empDocId}, PRF.DOC_ID)
+    )
+  ),0)tot_superannuation
+
+
+
+
+
+
+
+FROM org$hcm$emp$prf prf,
+  hcm$mon$loan$ded ln,
+  app.org$oth$dtl od,
+  hcm$mon$tax$ded tax,
+  hcm$sal$proc pf
+  --TOTAL LOAN
+WHERE prf.cld_id  = ln.cld_id(+)
+AND prf.sloc_id   = ln.sloc_id(+)
+AND prf.org_id    = ln.org_id(+)
+AND prf.ho_org_id = ln.ho_org_id(+)
+AND prf.doc_id    = ln.emp_doc_id(+)
+AND prf.emp_code  = ln.emp_code(+)
+  --TOTAL TDS
+AND prf.cld_id    = tax.cld_id(+)
+AND prf.sloc_id   = tax.sloc_id(+)
+AND prf.org_id    = tax.org_id(+)
+AND prf.ho_org_id = tax.ho_org_id(+)
+AND prf.doc_id    = tax.emp_doc_id(+)
+AND prf.emp_code  = tax.emp_code(+)
+  --ORG
+AND prf.org_id     = od.org_id(+)
+AND prf.cld_id     = od.org_cld_id(+)
+AND PF.CLD_ID      =PRF.CLD_ID
+AND PF.SLOC_ID     =PRF.SLOC_ID
+AND PF.ORG_ID      =PRF.ORG_ID
+AND PF.HO_ORG_ID   =PRF.HO_ORG_ID
+AND PF.EMP_DOC_ID  =PRF.DOC_ID
+AND PF.CLD_ID      = $P{cldId}
+AND PF.SLOC_ID     =$P{slocId}
+AND PF.HO_ORG_ID   =$P{hoOrgId}
+AND PF.ORG_ID      =$P{orgId}
+AND PF.PROC_FRM_DT = to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND PF.PROC_TO_DT  = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND PF.EMP_DOC_ID IN
+  (SELECT PRF.DOC_ID
+  FROM ORG$HCM$EMP$PRF PRF
+  WHERE (PRF.EMP_DEPT_ID = $P{crtValue}
+  OR PRF.EMP_LOC_ID      = $P{crtValue}
+  OR PRF.EMP_GRP_ID      = $P{crtValue}
+  OR PRF.DOC_ID          = $P{crtValue})
+  )
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)
+ORDER BY prf.emp_nm]]>
+	</queryString>
+	<field name="DOC_ID" class="java.lang.String"/>
+	<field name="EMP_NM" class="java.lang.String"/>
+	<field name="LOAN_AMT" class="java.math.BigDecimal"/>
+	<field name="TDS_AMT" class="java.math.BigDecimal"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="ADDS" class="java.lang.String"/>
+	<field name="TOT_PF" class="java.math.BigDecimal"/>
+	<field name="TOT_VPF" class="java.math.BigDecimal"/>
+	<field name="TOT_ESI" class="java.math.BigDecimal"/>
+	<field name="TOT_NHIF" class="java.math.BigDecimal"/>
+	<field name="TOT_NSSF" class="java.math.BigDecimal"/>
+	<field name="TOT_LWF" class="java.math.BigDecimal"/>
+	<field name="TOT_PROF_TAX" class="java.math.BigDecimal"/>
+	<field name="TOT_SUPERANNUATION" class="java.math.BigDecimal"/>
+	<sortField name="EMP_NM"/>
+	<variable name="loanTot" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{LOAN_AMT}]]></variableExpression>
+	</variable>
+	<variable name="TotalCount" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{tds_loanTot}.add( $F{TOT_PF}.add($F{TOT_ESI}))]]></variableExpression>
+	</variable>
+	<variable name="totTDS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{TDS_AMT}]]></variableExpression>
+	</variable>
+	<variable name="total" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{TotalCount}>0 ? $V{totDed}.add($V{TotalCount}) : $V{totDed}]]></variableExpression>
+	</variable>
+	<variable name="tds_loanTot" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{loanTot}>0?$V{totTDS}.add($V{loanTot}):$V{totTDS}]]></variableExpression>
+	</variable>
+	<variable name="totDed" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{tds_loanTot}>0?$V{tds_loanTot}.add($F{TOT_PF}.add($F{TOT_ESI}).add($F{TOT_VPF}).add($F{TOT_NHIF}).add($F{TOT_NSSF}).add($F{TOT_LWF}).add($F{TOT_PROF_TAX}).add($F{TOT_SUPERANNUATION})):$F{TOT_PF}.add($F{TOT_ESI}).add($F{TOT_VPF}).add($F{TOT_NHIF}).add($F{TOT_NSSF}).add($F{TOT_LWF}).add($F{TOT_PROF_TAX}).add($F{TOT_SUPERANNUATION})]]></variableExpression>
+	</variable>
+	<group name="emp">
+		<groupExpression><![CDATA[$F{ORG_DESC}]]></groupExpression>
+		<groupFooter>
+			<band height="129">
+				<staticText>
+					<reportElement x="0" y="13" width="391" height="116"/>
+					<box>
+						<leftPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+					<reportElement x="191" y="0" width="100" height="12"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{totTDS}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="false">
+					<reportElement x="291" y="24" width="100" height="12"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{tds_loanTot}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="291" y="35" width="100" height="12"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_PF}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="291" y="57" width="100" height="12"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_ESI}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="191" y="24" width="100" height="12"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="191" y="35" width="100" height="12"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[PF]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="191" y="57" width="100" height="12"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[ESI]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="191" y="13" width="100" height="12"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Canteen Exp.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="191" y="69" width="100" height="12"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Professional Tax]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="191" y="81" width="100" height="12"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[NHIF]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="191" y="47" width="100" height="12"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[VPF]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="291" y="47" width="100" height="12"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_VPF}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="291" y="69" width="100" height="12"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_PROF_TAX}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="191" y="93" width="100" height="12"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[NSSF]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="191" y="104" width="100" height="12"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Superannuation]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="191" y="116" width="100" height="12"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[LWF]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="291" y="81" width="100" height="12"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_NHIF}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="291" y="92" width="100" height="12"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_NSSF}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="291" y="104" width="100" height="12"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_SUPERANNUATION}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="291" y="116" width="100" height="12"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOT_LWF}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="0" width="391" height="12"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="291" y="0" width="100" height="12"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{loanTot}]]></textFieldExpression>
+				</textField>
+			</band>
+			<band height="20">
+				<staticText>
+					<reportElement x="0" y="0" width="391" height="20"/>
+					<box>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement x="291" y="0" width="100" height="20"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{totDed}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="-1" width="391" height="1"/>
+					<graphicElement>
+						<pen lineWidth="0.5"/>
+					</graphicElement>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="165" height="12"/>
+				<box leftPadding="5">
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_NM}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="191" y="0" width="100" height="12"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TDS_AMT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="291" y="0" width="100" height="12"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{LOAN_AMT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,803 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Full_N_Final" language="groovy" pageWidth="595" pageHeight="520" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Report\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select rownum seq_num,a.doc_id EMP_DOC_ID, a.EMP_CODE, a.EMP_ID, a.EMP_NM, a.EMP_DOB, a.EMP_DOJ, a.EMP_DEPT_ID, a.EMP_DESG_ID, a.EMP_LOC_ID, a.EMP_GRP_ID, a.EMP_PAY_MODE, h.att_nm PAY_MODE_NM,
+a.EMP_BNK_ID, a.BNK_BRNCH_ID, (select j.eo_nm from app.app$eo j where a.cld_id = j.eo_cld_id
+and a.ho_org_id = j.eo_ho_org_id
+and a.sloc_id = j.eo_sloc_id
+and a.BNK_BRNCH_ID = j.eo_id) bank_branch_nm, a.ACC_NO, a.ACC_TYPE, a.IFSC_CODE, a.SWIFT_CODE, a.EMP_PAN_NO,
+to_char(K.PROC_FRM_DT,'yyyy-mm-dd')PROC_FRM_DT,
+to_char(K.PROC_TO_DT,'yyyy-mm-dd')PROC_TO_DT,
+(select att_nm from hcm$ds$att where att_id=66) PF,
+(select att_nm from hcm$ds$att where att_id=67) ESI,
+(select b.MISC_DOC_NO
+  from hcm$emp$ded b, HCM$DED k where a.DOC_ID = b.emp_doc_id
+and a.CLD_ID = b.cld_id
+and a.SLOC_ID = b.sloc_id
+and a.HO_ORG_ID = b.ho_org_id
+and a.ORG_ID = b.org_id
+and a.EMP_CODE = b.emp_code
+and b.cld_id = k.cld_id
+and b.sloc_id = k.sloc_id
+and b.ho_org_id = k.ho_org_id
+and b.org_id = k.org_id
+and b.ded_doc_id = k.doc_id
+and k.ded_type = 66
+AND b.ded_prf = 50) PF_NO,
+(select  b.MISC_DOC_NO  from hcm$emp$ded b,HCM$DED k where a.DOC_ID = b.emp_doc_id
+and a.CLD_ID = b.cld_id
+and a.SLOC_ID = b.sloc_id
+and a.HO_ORG_ID = b.ho_org_id
+and a.ORG_ID = b.org_id
+and a.EMP_CODE = b.emp_code
+and b.cld_id = k.cld_id
+and b.sloc_id = k.sloc_id
+and b.ho_org_id = k.ho_org_id
+and b.org_id = k.org_id
+and b.ded_doc_id = k.doc_id
+and b.ded_prf = 50 and k.ded_type = 67) ESI_NO,
+d.dept_id, d.dept_nm DEPT_NAME, e.PARAM_ID, e.PARAM_DESC DESG_NAME, f.PARAM_ID LOCAT_ID, f.PARAM_DESC LOCAT_NAME, g.PARAM_ID GROUP_ID,
+g.PARAM_DESC GROUP_NAME, i.org_desc,a.emp_doj,
+(K.PROC_TO_DT-K.PROC_FRM_DT)+1 TTL_DAYS,
+    (((K.PROC_TO_DT-K.PROC_FRM_DT)+1)- (SELECT SUM(LV) FROM
+        (
+            SELECT COUNT(*) LV
+            FROM HCM$TIME$MOVE$EDIT$DTL X
+            WHERE X.CLD_ID = A.CLD_ID AND X.SLOC_ID = a.SLOC_ID AND X.HO_ORG_ID = a.HO_ORG_ID AND X.ORG_ID = a.ORG_ID
+            AND X.ATTEN_DT> = K.PROC_FRM_DT AND X.ATTEN_DT<=K.PROC_TO_DT
+            AND X.EMP_DOC_ID=a.doc_id
+            AND X.DED_CH='F'
+            UNION ALL
+            SELECT COUNT(*)/2 LV
+            FROM HCM$TIME$MOVE$EDIT$DTL Y
+            WHERE Y.CLD_ID = A.CLD_ID AND Y.SLOC_ID = a.SLOC_ID AND Y.HO_ORG_ID = a.HO_ORG_ID AND Y.ORG_ID = a.ORG_ID
+            AND Y.ATTEN_DT> = K.PROC_FRM_DT AND Y.ATTEN_DT<=K.PROC_TO_DT
+            AND Y.EMP_DOC_ID=a.doc_id
+            AND DED_CH='H'
+        )
+    ) ) PAID_DAYS,
+(SELECT SUM(LV) FROM
+        (
+            SELECT COUNT(*) LV
+            FROM HCM$TIME$MOVE$EDIT$DTL X
+            WHERE X.CLD_ID = A.CLD_ID AND X.SLOC_ID = a.SLOC_ID AND X.HO_ORG_ID = a.HO_ORG_ID AND X.ORG_ID = a.ORG_ID
+            AND X.ATTEN_DT> = K.PROC_FRM_DT AND X.ATTEN_DT<=K.PROC_TO_DT
+            AND X.EMP_DOC_ID=a.doc_id
+            AND X.DED_CH='F'
+            UNION ALL
+            SELECT COUNT(*)/2 LV
+            FROM HCM$TIME$MOVE$EDIT$DTL Y
+            WHERE Y.CLD_ID = A.CLD_ID AND Y.SLOC_ID = a.SLOC_ID AND Y.HO_ORG_ID = a.HO_ORG_ID AND Y.ORG_ID = a.ORG_ID
+            AND Y.ATTEN_DT> = K.PROC_FRM_DT AND Y.ATTEN_DT<=K.PROC_TO_DT
+            AND Y.EMP_DOC_ID=a.doc_id
+            AND DED_CH='H'
+        )
+    )lwp
+From ORG$HCM$EMP$PRF a,  app.app$dept d, hcm$setup e, hcm$setup f, hcm$setup g , hcm$ds$att h,
+app.org i,  HCM$SAL$PROC K
+where  a.CLD_ID = d.cld_id
+and a.SLOC_ID = d.sloc_id
+and a.HO_ORG_ID = d.ho_org_id
+and a.emp_dept_ID = d.dept_id
+and a.CLD_ID = e.cld_id
+and a.SLOC_ID = e.sloc_id
+and a.HO_ORG_ID = e.ho_org_id
+and a.emp_DESG_ID = e.param_id
+and a.CLD_ID = f.cld_id
+and a.SLOC_ID = f.sloc_id
+and a.HO_ORG_ID = f.ho_org_id
+and a.emp_LOC_ID = f.param_id
+and a.CLD_ID = g.cld_id
+and a.SLOC_ID = g.sloc_id
+and a.HO_ORG_ID = g.ho_org_id
+and a.emp_GRP_ID = g.param_id
+and a.EMP_PAY_MODE = h.att_id
+and a.cld_id = i.org_cld_id
+and a.org_id = i.org_id
+AND K.CLD_ID = a.CLD_ID
+AND K.SLOC_ID = a.SLOC_ID
+AND K.HO_ORG_ID = a.HO_ORG_ID
+AND K.ORG_ID = a.ORG_ID
+AND K.EMP_DOC_ID = a.DOC_ID
+
+AND (K.PROC_FRM_DT>= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND K.PROC_FRM_DT <=to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy'))
+AND (K.PROC_TO_DT>= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND K.PROC_TO_DT <=to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy'))
+AND a.CLD_ID = $P{cldId}
+AND a.SLOC_ID = $P{slocId}
+AND a.HO_ORG_ID = $P{hoOrgId}
+AND a.ORG_ID = $P{orgId}
+AND (A.EMP_DEPT_ID = $P{crtValue} OR A.EMP_LOC_ID =  $P{crtValue}
+OR A.EMP_GRP_ID = $P{crtValue} OR A.DOC_ID =$P{crtValue})
+AND A.DOC_ID = NVL($P{empDocId}, A.DOC_ID)]]>
+	</queryString>
+	<field name="SEQ_NUM" class="java.math.BigDecimal"/>
+	<field name="EMP_DOC_ID" class="java.lang.String"/>
+	<field name="EMP_CODE" class="java.math.BigDecimal"/>
+	<field name="EMP_ID" class="java.lang.String"/>
+	<field name="EMP_NM" class="java.lang.String"/>
+	<field name="EMP_DOB" class="java.sql.Timestamp"/>
+	<field name="EMP_DOJ" class="java.sql.Timestamp"/>
+	<field name="EMP_DEPT_ID" class="java.lang.String"/>
+	<field name="EMP_DESG_ID" class="java.lang.String"/>
+	<field name="EMP_LOC_ID" class="java.lang.String"/>
+	<field name="EMP_GRP_ID" class="java.lang.String"/>
+	<field name="EMP_PAY_MODE" class="java.math.BigDecimal"/>
+	<field name="PAY_MODE_NM" class="java.lang.String"/>
+	<field name="EMP_BNK_ID" class="java.math.BigDecimal"/>
+	<field name="BNK_BRNCH_ID" class="java.math.BigDecimal"/>
+	<field name="BANK_BRANCH_NM" class="java.lang.String"/>
+	<field name="ACC_NO" class="java.lang.String"/>
+	<field name="ACC_TYPE" class="java.lang.String"/>
+	<field name="IFSC_CODE" class="java.lang.String"/>
+	<field name="SWIFT_CODE" class="java.lang.String"/>
+	<field name="EMP_PAN_NO" class="java.lang.String"/>
+	<field name="PROC_FRM_DT" class="java.lang.String"/>
+	<field name="PROC_TO_DT" class="java.lang.String"/>
+	<field name="PF" class="java.lang.String"/>
+	<field name="ESI" class="java.lang.String"/>
+	<field name="PF_NO" class="java.lang.String"/>
+	<field name="ESI_NO" class="java.lang.String"/>
+	<field name="DEPT_ID" class="java.lang.String"/>
+	<field name="DEPT_NAME" class="java.lang.String"/>
+	<field name="PARAM_ID" class="java.lang.String"/>
+	<field name="DESG_NAME" class="java.lang.String"/>
+	<field name="LOCAT_ID" class="java.lang.String"/>
+	<field name="LOCAT_NAME" class="java.lang.String"/>
+	<field name="GROUP_ID" class="java.lang.String"/>
+	<field name="GROUP_NAME" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="TTL_DAYS" class="java.math.BigDecimal"/>
+	<field name="PAID_DAYS" class="java.math.BigDecimal"/>
+	<field name="LWP" class="java.math.BigDecimal"/>
+	<variable name="totalEarn" class="java.math.BigDecimal">
+		<initialValueExpression><![CDATA[0.00]]></initialValueExpression>
+	</variable>
+	<variable name="totalDed" class="java.math.BigDecimal">
+		<initialValueExpression><![CDATA[0.00]]></initialValueExpression>
+	</variable>
+	<variable name="LWP" class="java.math.BigDecimal"/>
+	<group name="EmployeeDocId" isStartNewPage="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{SEQ_NUM}]]></groupExpression>
+		<groupHeader>
+			<band height="72">
+				<textField isBlankWhenNull="true">
+					<reportElement x="67" y="18" width="110" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{DEPT_NAME}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="48" width="53" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[D.O.J.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="203" y="3" width="48" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Name]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="67" y="3" width="110" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_ID}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="18" width="53" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Department]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="3" width="53" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[ Emp ID]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="262" y="33" width="110" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{GROUP_NAME}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="262" y="3" width="110" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{EMP_NM}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="67" y="33" width="110" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{DESG_NAME}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="203" y="33" width="48" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Bank A/C No.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="33" width="53" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[ Designation]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="262" y="18" width="107" height="15"/>
+					<textElement verticalAlignment="Middle" markup="none">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{PF_NO}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="203" y="18" width="48" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[PF A/C No.     ]]></text>
+				</staticText>
+				<line>
+					<reportElement x="0" y="66" width="555" height="1"/>
+				</line>
+				<staticText>
+					<reportElement x="55" y="3" width="10" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="55" y="33" width="10" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="251" y="3" width="10" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="55" y="18" width="10" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="203" y="48" width="48" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[D.O.L.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="55" y="48" width="10" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="251" y="18" width="10" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="251" y="33" width="10" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="251" y="48" width="10" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+			</band>
+			<band height="17">
+				<staticText>
+					<reportElement x="30" y="0" width="82" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total Calender Days]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="419" y="0" width="67" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total Paid Days]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="119" y="0" width="56" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TTL_DAYS}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="491" y="0" width="56" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PAID_DAYS}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="181" y="0" width="82" height="15"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[LWP]]></text>
+				</staticText>
+				<textField evaluationTime="Band" isBlankWhenNull="true">
+					<reportElement x="268" y="0" width="100" height="15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{LWP}]]></textFieldExpression>
+				</textField>
+			</band>
+			<band height="67">
+				<subreport>
+					<reportElement x="11" y="0" width="533" height="67" printWhenGroupChanges="EmployeeDocId"/>
+					<subreportParameter name="orgId">
+						<subreportParameterExpression><![CDATA[$P{orgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ToDate">
+						<subreportParameterExpression><![CDATA[$F{PROC_TO_DT}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="cldId">
+						<subreportParameterExpression><![CDATA[$P{cldId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="empDocId">
+						<subreportParameterExpression><![CDATA[$F{EMP_DOC_ID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="hoOrgId">
+						<subreportParameterExpression><![CDATA[$P{hoOrgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="slocId">
+						<subreportParameterExpression><![CDATA[$P{slocId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="FromDate">
+						<subreportParameterExpression><![CDATA[$F{PROC_FRM_DT}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Salary_Slip_Leave_subreport.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="20">
+				<staticText>
+					<reportElement mode="Opaque" x="0" y="0" width="555" height="18" backcolor="#CCFFCC"/>
+					<box>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement/>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<textField evaluationTime="Band" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+					<reportElement mode="Transparent" x="450" y="0" width="101" height="15"/>
+					<textElement textAlignment="Right">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[($V{totalDed}.equals( null )? $V{totalEarn} : ($V{totalEarn}.subtract( $V{totalDed} )))]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="275" y="0" width="100" height="15"/>
+					<textElement>
+						<font fontName="Arial" size="8" isBold="true" isUnderline="false"/>
+					</textElement>
+					<text><![CDATA[Net Pay]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="2" y="1" width="20" height="14"/>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Rs.]]></text>
+				</staticText>
+				<subreport isUsingCache="true" runToBottom="false">
+					<reportElement x="25" y="1" width="242" height="14"/>
+					<subreportParameter name="NumberValue">
+						<subreportParameterExpression><![CDATA[($V{totalDed}.equals( null )? $V{totalEarn} : ($V{totalEarn}.subtract( $V{totalDed} )))]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="NumberValue1">
+						<subreportParameterExpression><![CDATA[($V{totalDed}.equals( null )? $V{totalEarn} : ($V{totalEarn}.subtract( $V{totalDed} )))]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Number_to_word_subreport1.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+			<band height="49">
+				<staticText>
+					<reportElement x="0" y="0" width="75" height="15"/>
+					<textElement textAlignment="Center">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Payment Details :]]></text>
+				</staticText>
+				<line>
+					<reportElement x="0" y="14" width="555" height="1"/>
+				</line>
+				<staticText>
+					<reportElement x="0" y="16" width="75" height="15"/>
+					<textElement textAlignment="Center">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Mode of Payment]]></text>
+				</staticText>
+				<line>
+					<reportElement x="0" y="32" width="555" height="1"/>
+				</line>
+				<staticText>
+					<reportElement x="112" y="16" width="74" height="15"/>
+					<textElement textAlignment="Center">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Disbursement Date]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="223" y="16" width="77" height="15"/>
+					<textElement textAlignment="Center">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Employee Bank]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="334" y="16" width="67" height="15"/>
+					<textElement textAlignment="Center">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Account No.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="469" y="16" width="80" height="15"/>
+					<textElement textAlignment="Right">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Amount]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="0" y="34" width="75" height="15"/>
+					<textElement textAlignment="Center">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{PAY_MODE_NM}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="334" y="34" width="67" height="15"/>
+					<textElement textAlignment="Center">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{ACC_NO}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="223" y="33" width="75" height="15"/>
+					<textElement textAlignment="Center">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{BANK_BRANCH_NM}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Band" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+					<reportElement mode="Transparent" x="450" y="34" width="101" height="15"/>
+					<textElement textAlignment="Right">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[($V{totalDed}.equals( null )? $V{totalEarn} : ($V{totalEarn}.subtract( $V{totalDed} )))]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band height="435" splitType="Stretch">
+			<rectangle>
+				<reportElement x="0" y="0" width="555" height="435"/>
+			</rectangle>
+		</band>
+	</background>
+	<pageHeader>
+		<band height="70">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="157" y="0" width="397" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement x="1" y="1" width="156" height="36"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="383" y="20" width="171" height="16" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<text><![CDATA[FULL & FINAL STATEMENT]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="57" width="554" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<subreport>
+				<reportElement x="455" y="36" width="100" height="15"/>
+				<subreportParameter name="ToDate">
+					<subreportParameterExpression><![CDATA[$F{PROC_TO_DT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="FromDate">
+					<subreportParameterExpression><![CDATA[$F{PROC_FRM_DT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Date_SubReport.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="132" splitType="Stretch">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="110" width="555" height="20" backcolor="#CCFFCC"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="272" y="1" width="282" height="12" backcolor="#FFCCCC"/>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="1" y="1" width="270" height="12" backcolor="#FFFF99"/>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<line>
+				<reportElement x="-1" y="1" width="555" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="3" y="1" width="100" height="13"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Earnings]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="0" y="17" width="264" height="93" printWhenGroupChanges="EmployeeDocId"/>
+				<subreportParameter name="orgId">
+					<subreportParameterExpression><![CDATA[$P{orgId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ToDate">
+					<subreportParameterExpression><![CDATA[$F{PROC_TO_DT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="cldId">
+					<subreportParameterExpression><![CDATA[$P{cldId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="empDocId">
+					<subreportParameterExpression><![CDATA[$F{EMP_DOC_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="hoOrgId">
+					<subreportParameterExpression><![CDATA[$P{hoOrgId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="FromDate">
+					<subreportParameterExpression><![CDATA[$F{PROC_FRM_DT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="slocId">
+					<subreportParameterExpression><![CDATA[$P{slocId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Path">
+					<subreportParameterExpression><![CDATA[$P{Path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="totalEarn" toVariable="totalEarn" calculation="Sum"/>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Salary_Slip_Earning_subreport.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="164" y="1" width="100" height="13"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Amount]]></text>
+			</staticText>
+			<line>
+				<reportElement x="271" y="1" width="1" height="128"/>
+			</line>
+			<line>
+				<reportElement x="0" y="13" width="554" height="1"/>
+			</line>
+			<line>
+				<reportElement x="0" y="130" width="554" height="1"/>
+			</line>
+			<line>
+				<reportElement x="1" y="110" width="553" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="276" y="1" width="100" height="12"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Deduction]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="112" width="100" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Total Earning]]></text>
+			</staticText>
+			<textField evaluationTime="Band" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="164" y="112" width="101" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{totalEarn}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="130" width="555" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="276" y="112" width="100" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Total Deduction]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="275" y="17" width="279" height="93" printWhenGroupChanges="EmployeeDocId"/>
+				<subreportParameter name="orgId">
+					<subreportParameterExpression><![CDATA[$P{orgId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ToDate">
+					<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="cldId">
+					<subreportParameterExpression><![CDATA[$P{cldId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="empDocId">
+					<subreportParameterExpression><![CDATA[$F{EMP_DOC_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="hoOrgId">
+					<subreportParameterExpression><![CDATA[$P{hoOrgId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="slocId">
+					<subreportParameterExpression><![CDATA[$P{slocId}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="FromDate">
+					<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="totalDedsub" toVariable="totalDed" calculation="Sum"/>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Salary_Slip_Deduction_subreport.jasper"]]></subreportExpression>
+			</subreport>
+			<textField evaluationTime="Band" isBlankWhenNull="true">
+				<reportElement x="454" y="110" width="97" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{totalDed}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="449" y="1" width="100" height="13"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Amount]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="30">
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="514" y="0" width="40" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="-1" y="0" width="555" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated by ebizframe 10]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="416" y="0" width="98" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="-1" y="25" width="555" height="3"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="-1" y="28" width="555" height="2"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="100" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Salary_Slip_Leave_SubReport" language="groovy" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select a.DOC_ID, a.LEAVE_ID, (select param_desc from hcm$setup where
+    CLD_ID = a.cld_id
+and SLOC_ID = a.sloc_id
+and HO_ORG_ID = a.ho_org_id
+and param_type = 21
+and param_id = a.leave_id) LEAVE_NM, c.LEAVE_OP, nvl(nvl(c.LEAVE_ACCRUAL,a.LEAVE_ACCRUAL_RATE),0) LEAVE_ACCRUAL, nvl(c.LEAVE_AVAIL,0) LEAVE_AVAIL, nvl(nvl(c.LEAVE_BAL,a.LEAVE_BAL),0) LEAVE_BAL,
+(select count(a.ded_ch) from hcm$time$move$edit$dtl a where a.ded_ch='F' and a.emp_doc_id=$P{empDocId}
+and a.atten_dt >=to_date($P{FromDate},'yyyy-mm-dd')
+and a.atten_dt <= to_date($P{ToDate},'yyyy-mm-dd')) FullLWP,
+(select count(a.ded_ch) from hcm$time$move$edit$dtl a where a.ded_ch='H'  and a.emp_doc_id=$P{empDocId}
+and a.atten_dt >=to_date($P{FromDate},'yyyy-mm-dd')
+and a.atten_dt <= to_date($P{ToDate},'yyyy-mm-dd')) HalfLWP,
+(nvl(nvl(c.LEAVE_ACCRUAL,a.LEAVE_ACCRUAL_RATE),0) + nvl(nvl(c.LEAVE_BAL,a.LEAVE_BAL),0)-NVL(C.LEAVE_AVAIL,0)) LEAVE_CLOSE_BAL
+from HCM$EMP$LEAVE a, HCM$SAL$PROC$LEAVE c
+where a.CLD_ID = $P{cldId}
+and a.SLOC_ID = $P{slocId}
+and a.HO_ORG_ID = $P{hoOrgId}
+and a.ORG_ID = $P{orgId}
+and a.DOC_ID = $P{empDocId}
+and A.DOC_ID = C.EMP_DOC_ID(+)
+and a.CLD_ID = c.cld_id(+)
+and a.SLOC_ID = c.sloc_id(+)
+and a.HO_ORG_ID = c.ho_org_id(+)
+and a.ORG_ID = c.org_id(+)
+and a.LEAVE_ID = c.Leave_id(+)
+
+and c.PROC_FRM_DT(+) =to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+and c.PROC_TO_DT(+) = to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')]]>
+	</queryString>
+	<field name="DOC_ID" class="java.lang.String"/>
+	<field name="LEAVE_ID" class="java.lang.String"/>
+	<field name="LEAVE_NM" class="java.lang.String"/>
+	<field name="LEAVE_OP" class="java.math.BigDecimal"/>
+	<field name="LEAVE_ACCRUAL" class="java.math.BigDecimal"/>
+	<field name="LEAVE_AVAIL" class="java.math.BigDecimal"/>
+	<field name="LEAVE_BAL" class="java.math.BigDecimal"/>
+	<field name="FULLLWP" class="java.math.BigDecimal"/>
+	<field name="HALFLWP" class="java.math.BigDecimal"/>
+	<field name="LEAVE_CLOSE_BAL" class="java.math.BigDecimal"/>
+	<variable name="LWP" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$F{FULLLWP}.add($F{HALFLWP}.divide(2))]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<summary>
+		<band height="30" splitType="Stretch">
+			<elementGroup>
+				<crosstab>
+					<reportElement x="0" y="0" width="595" height="30"/>
+					<crosstabHeaderCell>
+						<cellContents>
+							<staticText>
+								<reportElement style="Crosstab Data Text" x="70" y="0" width="74" height="15"/>
+								<box>
+									<topPen lineWidth="0.0"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Previous Balance]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" x="144" y="0" width="74" height="15"/>
+								<box>
+									<topPen lineWidth="0.0"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Availed]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="70" height="15"/>
+								<box>
+									<topPen lineWidth="0.0"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Leave Type]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" x="218" y="0" width="74" height="15"/>
+								<box>
+									<topPen lineWidth="0.0"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Accrual]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" x="292" y="0" width="74" height="15"/>
+								<box>
+									<topPen lineWidth="0.0"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Closing Balance]]></text>
+							</staticText>
+						</cellContents>
+					</crosstabHeaderCell>
+					<rowGroup name="LEAVE_NM" width="70">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{LEAVE_NM}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents backcolor="#FFFFFF" mode="Opaque">
+								<textField>
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="70" height="12"/>
+									<box>
+										<topPen lineWidth="0.0"/>
+										<leftPen lineWidth="0.0"/>
+										<bottomPen lineWidth="0.0"/>
+										<rightPen lineWidth="0.0"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{LEAVE_NM}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Bal" width="74">
+						<bucket>
+							<bucketExpression class="java.math.BigDecimal"><![CDATA[$F{LEAVE_BAL}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField>
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="74" height="12"/>
+									<box>
+										<topPen lineWidth="0.0"/>
+										<leftPen lineWidth="0.0"/>
+										<bottomPen lineWidth="0.0"/>
+										<rightPen lineWidth="0.0"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Bal}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Avail" width="74">
+						<bucket>
+							<bucketExpression class="java.math.BigDecimal"><![CDATA[$F{LEAVE_AVAIL}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField>
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="74" height="12"/>
+									<box>
+										<topPen lineWidth="0.0"/>
+										<leftPen lineWidth="0.0"/>
+										<bottomPen lineWidth="0.0"/>
+										<rightPen lineWidth="0.0"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Avail}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Accural" width="74">
+						<bucket>
+							<bucketExpression class="java.math.BigDecimal"><![CDATA[$F{LEAVE_ACCRUAL}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField>
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="74" height="12"/>
+									<textElement>
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Accural}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Closing Balance" width="74">
+						<bucket>
+							<bucketExpression class="java.math.BigDecimal"><![CDATA[$F{LEAVE_CLOSE_BAL}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField>
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="74" height="12"/>
+									<textElement>
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Closing Balance}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<columnGroup name="LEAVE_AVAIL" height="15">
+						<bucket>
+							<bucketExpression class="java.math.BigDecimal"><![CDATA[$F{LEAVE_AVAIL}]]></bucketExpression>
+						</bucket>
+						<crosstabColumnHeader>
+							<cellContents backcolor="#FFFFFF" mode="Opaque"/>
+						</crosstabColumnHeader>
+						<crosstabTotalColumnHeader>
+							<cellContents/>
+						</crosstabTotalColumnHeader>
+					</columnGroup>
+					<measure name="LEAVE_AVAILMeasure" class="java.math.BigDecimal">
+						<measureExpression><![CDATA[$F{LEAVE_AVAIL}]]></measureExpression>
+					</measure>
+					<crosstabCell width="1" height="12">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell height="25" rowTotalGroup="LEAVE_NM">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25"/>
+								<textElement/>
+								<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{LEAVE_AVAILMeasure}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="50" columnTotalGroup="LEAVE_AVAIL">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25"/>
+								<textElement/>
+								<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{LEAVE_AVAILMeasure}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="LEAVE_NM" columnTotalGroup="LEAVE_AVAIL">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25"/>
+								<textElement/>
+								<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{LEAVE_AVAILMeasure}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Bal">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Bal" columnTotalGroup="LEAVE_AVAIL">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Avail">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Avail" columnTotalGroup="LEAVE_AVAIL">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Accural">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Accural" columnTotalGroup="LEAVE_AVAIL">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Closing Balance">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Closing Balance" columnTotalGroup="LEAVE_AVAIL">
+						<cellContents/>
+					</crosstabCell>
+				</crosstab>
+			</elementGroup>
+		</band>
+	</summary>
+</jasperReport>

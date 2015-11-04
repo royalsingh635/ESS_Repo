@@ -1,0 +1,1206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PurchaseInvoiceRegsiter" language="groovy" pageWidth="3000" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="2976" leftMargin="12" rightMargin="12" topMargin="12" bottomMargin="12" isIgnorePagination="true">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="383"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SlocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EoIdSrc" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="InvcType" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ReportType" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT A.ORG_ID, B.DOC_ID_RCPT, D.ORG_DESC, A.DOC_ID,  A.INVC_NO,  A.INVC_DT, A.EO_ID_SRC, E.EO_NM, A.CURR_ID_SP, F.CURR_NOTATION_ALIAS CURR_DESC
+,A.TOT_AMT_bs TOT_AMT_SP, A.TOT_AMT_BS, A.ORG_ID_SRC, A.WH_ID_SRC, A.INVC_TYPE, G.ATT_NM INVC_TYPE_NM
+, B.ITM_ID, I.ITM_DESC, B.ITM_UOM,  J.UOM_NM, B.FINAL_RCPT_QTY
+,NVL(B.DISC_AMT_bs,0) DISC_AMT_SP,    B.ITM_AMT_bs ITM_AMT_SP
+,(B.FINAL_RCPT_QTY * B.ITM_PRICE_bs) GROSS_PRICE
+-------------tot amt
+,(select sum(net_amt_sp)
+from
+(SELECT (SUM(B.FINAL_RCPT_QTY * B.ITM_PRICE_bs) +  SUM(NVL(C.TAX_AMT_bs,0)) - SUM(NVL(B.DISC_AMT_bS,0))) NET_AMT_SP
+,SUM(A.TOT_AMT_bS) TOT_AMT_SP, SUM(A.TOT_AMT_BS)TOT_AMT_BS
+FROM MM.MM$INVC A, MM.MM$INVC$ITM B, MM$INVC$TR C
+WHERE A.CLD_ID = B.CLD_ID
+AND A.SLOC_ID = B.SLOC_ID
+AND A.ORG_ID = B.ORG_ID
+AND A.DOC_ID = B.DOC_ID
+AND B.CLD_ID = C.CLD_ID(+)
+AND B.SLOC_ID = C.SLOC_ID(+)
+AND B.ORG_ID = C.ORG_ID(+)
+AND B.DOC_ID = C.DOC_ID(+)
+AND B.DOC_ID_RCPT = C.DOC_ID_RCPT(+)
+AND B.DOC_ID_PO = C.DOC_ID_PO(+)
+AND B.DLV_SCHDL_NO = C.DLV_SCHDL_NO(+)
+AND B.ITM_ID = C.ITM_ID(+)
+AND B.ITM_UOM = C.ITM_UOM(+)
+AND A.AUTH_STAT = 'Y'
+and a.INVC_TYPE <> 492
+AND A.INVC_TYPE = NVL($P{InvcType},A.INVC_TYPE)
+AND A.CLD_ID = NVL($P{CldId},A.CLD_ID)
+AND A.SLOC_ID = NVL($P{SlocId},A.SLOC_ID)
+AND A.ORG_ID = NVL($P{OrgId},A.ORG_ID)
+AND A.DOC_ID= NVL($P{DocId},A.DOC_ID)
+AND A.EO_ID_SRC = NVL($P{EoIdSrc},A.EO_ID_SRC)
+AND TRUNC(A.INVC_DT) >= NVL(TO_DATE($P{FromDate},'yyyy-mm-dd'),TRUNC(A.INVC_DT))
+AND TRUNC(A.INVC_DT) <= NVL(TO_DATE($P{ToDate},'yyyy-mm-dd'),TRUNC(A.INVC_DT))))net_amt_TOT
+--end of tot amt
+--tax amt and name
+,tax.net_amt
+,NVL(TN.TAX_AMT_sp,0)TAX_AMT_SP
+, (CASE WHEN initcap(TN.TAX_NM) LIKE 'Basic' THEN 'Z'||initcap(TN.TAX_NM) ELSE initcap(TN.TAX_NM) END )TAX_NM
+,DECODE(A.INVC_TYPE ,739, A.EXT_DOC_NO, R.INVOICE_NO_SRC) TPT_BILL_NO,
+DECODE(A.INVC_TYPE , 739, A.EXT_DOC_DT, R.INVOICE_DT_SRC) TPT_BILL_DT, R.RCPT_NO, R.DN_NO_SRC, R.DN_DT_SRC
+FROM MM.MM$INVC A, MM.MM$INVC$ITM B,
+APP.ORG D, APP.APP$EO E, APP.APP$CURR_VW F, APP.APP$DS$ATT G
+, APP.APP$ITM$PRF I, APP.APP$UOM$CONV$STD J
+--tax amt and name
+,(select  TL.CLD_ID, TL.SLOC_ID, TL.ORG_ID, TL.DOC_ID, TL.DOC_ID_RCPT, TL.DOC_ID_PO,TL.ITM_ID, sum(NVL(TL.TAX_AMT_bs,0))tax_amt_sp,
+INITCAP(FC.COA_NM)TAX_NM
+from mm$invc$tr$lines TL, fin.fin$COA FC
+WHERE TL.CLD_ID = FC.COA_CLD_ID
+AND TL.SLOC_ID = FC.COA_SLOC_ID
+AND APP.FN_GET_PARENT_ORG_L0(TL.CLD_ID, TL.ORG_ID) = FC.COA_HO_ORG_ID
+AND TL.TAX_COA_ID = FC.COA_ID
+group by TL.CLD_ID, TL.SLOC_ID, TL.ORG_ID, TL.DOC_ID, TL.ITM_ID, INITCAP(FC.COA_NM),TL.DOC_ID_RCPT, TL.DOC_ID_PO
+having sum(tl.tax_amt_bs)>0
+)TN
+,(SELECT a.org_id, a.doc_id, b.itm_id, B.DOC_ID_RCPT, B.DOC_ID_PO,
+(SUM(B.FINAL_RCPT_QTY * B.ITM_PRICE_bs) +  SUM(NVL(C.TAX_AMT_bs,0)) - SUM(NVL(B.DISC_AMT_bs,0))) NET_AMT
+FROM MM.MM$INVC A, MM.MM$INVC$ITM B, MM$INVC$TR C
+WHERE A.CLD_ID = B.CLD_ID
+AND A.SLOC_ID = B.SLOC_ID
+AND A.ORG_ID = B.ORG_ID
+AND A.DOC_ID = B.DOC_ID
+AND B.CLD_ID = C.CLD_ID(+)
+AND B.SLOC_ID = C.SLOC_ID(+)
+AND B.ORG_ID = C.ORG_ID(+)
+AND B.DOC_ID = C.DOC_ID(+)
+AND B.DOC_ID_RCPT = C.DOC_ID_RCPT(+)
+AND B.DOC_ID_PO = C.DOC_ID_PO(+)
+AND B.DLV_SCHDL_NO = C.DLV_SCHDL_NO(+)
+AND B.ITM_ID = C.ITM_ID(+)
+AND B.ITM_UOM = C.ITM_UOM(+)
+AND A.AUTH_STAT = 'Y'
+and a.INVC_TYPE <> 492
+AND A.INVC_TYPE = NVL($P{InvcType},A.INVC_TYPE)
+AND A.CLD_ID = NVL($P{CldId},A.CLD_ID)
+AND A.SLOC_ID = NVL($P{SlocId},A.SLOC_ID)
+AND A.ORG_ID = NVL($P{OrgId},A.ORG_ID)
+AND A.DOC_ID= NVL($P{DocId},A.DOC_ID)
+AND A.EO_ID_SRC = NVL($P{EoIdSrc},A.EO_ID_SRC)
+AND TRUNC(A.INVC_DT) >= NVL(TO_DATE($P{FromDate},'yyyy-mm-dd'),TRUNC(A.INVC_DT))
+AND TRUNC(A.INVC_DT) <= NVL(TO_DATE($P{ToDate},'yyyy-mm-dd'),TRUNC(A.INVC_DT))
+group by a.org_id, a.doc_id, b.itm_id, B.DOC_ID_RCPT, B.DOC_ID_PO)tax
+,MM$MTL$RCPT R
+WHERE A.CLD_ID = B.CLD_ID
+AND A.SLOC_ID = B.SLOC_ID
+AND A.ORG_ID = B.ORG_ID
+AND A.DOC_ID = B.DOC_ID
+AND B.ORG_ID  = TAX.ORG_ID(+)
+AND B.DOC_ID  = TAX.DOC_ID(+)
+AND B.ITM_ID  = TAX.ITM_ID(+)
+AND B.DOC_ID_RCPT = TAX.DOC_ID_RCPT(+)
+AND B.DOC_ID_PO = TAX.DOC_ID_PO(+)
+AND B.ORG_ID  = TN.ORG_ID(+)
+AND B.DOC_ID  = TN.DOC_ID(+)
+AND B.ITM_ID  = TN.ITM_ID(+)
+AND B.DOC_ID_RCPT = TN.DOC_ID_RCPT(+)
+AND B.DOC_ID_PO = TN.DOC_ID_PO(+)
+AND B.CLD_ID    = I.CLD_ID
+AND  B.SLOC_ID = I.SLOC_ID
+AND   MM.MM_GET_HO_ORG(B.CLD_ID, B.SLOC_ID, B.ORG_ID) = I.HO_ORG_ID
+AND   B.ITM_ID = I.ITM_ID
+AND   B.ITM_UOM = J.UOM_ID
+AND A.CLD_ID = D.ORG_CLD_ID
+AND A.SLOC_ID = D.ORG_CREATE_REF_SLOC_ID
+AND A.ORG_ID = D.ORG_ID
+AND A.CLD_ID = E.EO_CLD_ID
+AND A.SLOC_ID = E.EO_SLOC_ID
+AND A.EO_ID_SRC = E.EO_ID
+AND MM.MM_GET_HO_ORG(A.CLD_ID, A.SLOC_ID, A.ORG_ID)= E.EO_HO_ORG_ID
+AND APP.get_org_def_curr_bs1(A.CLD_ID,A.SLOC_ID,A.ORG_ID) = F.CURR_ID
+AND A.INVC_TYPE = G.ATT_ID
+AND A.AUTH_STAT = 'Y'
+and a.INVC_TYPE <> 492
+AND B.CLD_ID  = R.CLD_ID(+)
+AND B.SLOC_ID = R.SLOC_ID(+)
+AND B.ORG_ID  = R.ORG_ID(+)
+AND B.DOC_ID_RCPT  = R.DOC_ID(+)
+AND A.INVC_TYPE = NVL($P{InvcType},A.INVC_TYPE)
+AND A.CLD_ID = NVL($P{CldId},A.CLD_ID)
+AND A.SLOC_ID = NVL($P{SlocId},A.SLOC_ID)
+AND A.ORG_ID = NVL($P{OrgId},A.ORG_ID)
+AND A.DOC_ID= NVL($P{DocId},A.DOC_ID)
+AND A.EO_ID_SRC = NVL($P{EoIdSrc},A.EO_ID_SRC)
+AND TRUNC(A.INVC_DT) >= NVL(TO_DATE($P{FromDate},'yyyy-mm-dd'),TRUNC(A.INVC_DT))
+AND TRUNC(A.INVC_DT) <= NVL(TO_DATE($P{ToDate},'yyyy-mm-dd'),TRUNC(A.INVC_DT))
+/*GROUP BY A.ORG_ID, B.DOC_ID_RCPT, D.ORG_DESC, A.DOC_ID,  A.INVC_NO,  A.INVC_DT, A.EO_ID_SRC, E.EO_NM,
+A.CURR_ID_SP, F.CURR_NOTATION_ALIAS,B.DOC_ID_RCPT
+,A.TOT_AMT_SP, A.TOT_AMT_BS, A.ORG_ID_SRC, A.WH_ID_SRC, A.INVC_TYPE, G.ATT_NM
+, B.ITM_ID, I.ITM_DESC, B.ITM_UOM,  J.UOM_NM, B.FINAL_RCPT_QTY
+,NVL(B.DISC_AMT_SP,0) ,    B.ITM_AMT_SP
+,(B.FINAL_RCPT_QTY * B.ITM_PRICE),tax.net_amt,initcap(TN.TAX_NM),R.INVOICE_NO_SRC, R.INVOICE_DT_SRC, R.RCPT_NO*/
+ORDER BY A.INVC_NO DESC, A.INVC_DT]]>
+	</queryString>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="DOC_ID_RCPT" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="DOC_ID" class="java.lang.String"/>
+	<field name="INVC_NO" class="java.lang.String"/>
+	<field name="INVC_DT" class="java.sql.Timestamp"/>
+	<field name="EO_ID_SRC" class="java.math.BigDecimal"/>
+	<field name="EO_NM" class="java.lang.String"/>
+	<field name="CURR_ID_SP" class="java.math.BigDecimal"/>
+	<field name="CURR_DESC" class="java.lang.String"/>
+	<field name="TOT_AMT_SP" class="java.math.BigDecimal"/>
+	<field name="TOT_AMT_BS" class="java.math.BigDecimal"/>
+	<field name="ORG_ID_SRC" class="java.lang.String"/>
+	<field name="WH_ID_SRC" class="java.lang.String"/>
+	<field name="INVC_TYPE" class="java.math.BigDecimal"/>
+	<field name="INVC_TYPE_NM" class="java.lang.String"/>
+	<field name="ITM_ID" class="java.lang.String"/>
+	<field name="ITM_DESC" class="java.lang.String"/>
+	<field name="ITM_UOM" class="java.lang.String"/>
+	<field name="UOM_NM" class="java.lang.String"/>
+	<field name="FINAL_RCPT_QTY" class="java.math.BigDecimal"/>
+	<field name="DISC_AMT_SP" class="java.math.BigDecimal"/>
+	<field name="ITM_AMT_SP" class="java.math.BigDecimal"/>
+	<field name="GROSS_PRICE" class="java.math.BigDecimal"/>
+	<field name="NET_AMT_TOT" class="java.math.BigDecimal"/>
+	<field name="NET_AMT" class="java.math.BigDecimal"/>
+	<field name="TAX_AMT_SP" class="java.math.BigDecimal"/>
+	<field name="TAX_NM" class="java.lang.String"/>
+	<field name="TPT_BILL_NO" class="java.lang.String"/>
+	<field name="TPT_BILL_DT" class="java.sql.Timestamp"/>
+	<field name="RCPT_NO" class="java.lang.String"/>
+	<field name="DN_NO_SRC" class="java.lang.String"/>
+	<field name="DN_DT_SRC" class="java.sql.Timestamp"/>
+	<variable name="Sno" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$V{Sno}]]></variableExpression>
+		<initialValueExpression><![CDATA[1]]></initialValueExpression>
+	</variable>
+	<variable name=" NetTotAmt" class="java.math.BigDecimal" calculation="Average">
+		<variableExpression><![CDATA[$F{TOT_AMT_SP}]]></variableExpression>
+	</variable>
+	<group name="CrossTabGrp">
+		<groupFooter>
+			<band height="40">
+				<crosstab>
+					<reportElement x="1" y="0" width="3000" height="40"/>
+					<crosstabHeaderCell>
+						<cellContents backcolor="#FFFFFF">
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="50" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Invoice No]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="831" y="0" width="51" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Discount]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="355" y="0" width="50" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Bill Date]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="100" y="0" width="120" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Supplier Name]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="761" y="0" width="70" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Gross Amount]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="405" y="0" width="60" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[D.N. No.]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="710" y="0" width="51" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Quantity]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="675" y="0" width="35" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Unit]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="50" y="0" width="50" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Invoice Date]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="515" y="0" width="40" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Currency]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="220" y="0" width="75" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Receipt No.]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="295" y="0" width="60" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Bill No.]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="555" y="0" width="120" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Item Description]]></text>
+							</staticText>
+							<staticText>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="465" y="0" width="50" height="20" backcolor="#C1DDF9"/>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[D.N. Date]]></text>
+							</staticText>
+						</cellContents>
+					</crosstabHeaderCell>
+					<rowGroup name="INVC_NO" width="50" totalPosition="End">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{INVC_NO}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents mode="Opaque">
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Dashed"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+								</box>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="20"/>
+									<box leftPadding="3">
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<leftPen lineWidth="0.5"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+										<rightPen lineWidth="0.5" lineStyle="Solid"/>
+									</box>
+									<textElement textAlignment="Left" verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{INVC_NO}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents backcolor="#BFE1FF" mode="Opaque">
+								<box>
+									<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								</box>
+								<staticText>
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="502" height="22"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="Arial" size="8" isBold="true"/>
+									</textElement>
+									<text><![CDATA[ Total :]]></text>
+								</staticText>
+							</cellContents>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="InvcDt" width="50">
+						<bucket>
+							<bucketExpression class="java.sql.Timestamp"><![CDATA[$F{INVC_DT}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Dashed"/>
+									<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+								</box>
+								<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="20"/>
+									<box leftPadding="2">
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<leftPen lineWidth="0.5" lineStyle="Solid"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+										<rightPen lineWidth="0.5" lineStyle="Solid"/>
+									</box>
+									<textElement textAlignment="Left" verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.sql.Timestamp"><![CDATA[$V{InvcDt}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Supplier Name" width="120">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{EO_NM}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="120" height="20"/>
+									<box leftPadding="3">
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<leftPen lineWidth="0.5" lineStyle="Solid"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+										<rightPen lineWidth="0.5" lineStyle="Solid"/>
+									</box>
+									<textElement textAlignment="Left" verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{Supplier Name}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Receipt No." width="75">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{RCPT_NO}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="75" height="20"/>
+									<box leftPadding="3"/>
+									<textElement textAlignment="Left" verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{Receipt No.}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Bill No" width="60">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{TPT_BILL_NO}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="60" height="20"/>
+									<box leftPadding="3"/>
+									<textElement textAlignment="Left" verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{Bill No}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Bill Date" width="50">
+						<bucket>
+							<bucketExpression class="java.sql.Timestamp"><![CDATA[$F{TPT_BILL_DT}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="20"/>
+									<box leftPadding="3"/>
+									<textElement textAlignment="Left" verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.sql.Timestamp"><![CDATA[$V{Bill Date}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="D.N. No." width="60">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{DN_NO_SRC}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="60" height="20"/>
+									<box leftPadding="2"/>
+									<textElement textAlignment="Left" verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{D.N. No.}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="D.N. Date" width="50">
+						<bucket>
+							<bucketExpression class="java.sql.Timestamp"><![CDATA[$F{DN_DT_SRC}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="20"/>
+									<box leftPadding="2"/>
+									<textElement textAlignment="Left" verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.sql.Timestamp"><![CDATA[$V{D.N. Date}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Currency" width="40">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{CURR_DESC}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="40" height="20"/>
+									<box leftPadding="2">
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<leftPen lineWidth="0.5" lineStyle="Solid"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+										<rightPen lineWidth="0.5" lineStyle="Solid"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{Currency}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Item Desc" width="120">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{ITM_DESC}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="120" height="20"/>
+									<box leftPadding="3">
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<leftPen lineWidth="0.5" lineStyle="Solid"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+										<rightPen lineWidth="0.5" lineStyle="Solid"/>
+									</box>
+									<textElement textAlignment="Left" verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{Item Desc}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Unit" width="35">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{UOM_NM}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="35" height="20"/>
+									<box leftPadding="2">
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<leftPen lineWidth="0.5" lineStyle="Solid"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+										<rightPen lineWidth="0.5" lineStyle="Solid"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{Unit}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Quantity" width="51">
+						<bucket>
+							<bucketExpression class="java.math.BigDecimal"><![CDATA[$F{FINAL_RCPT_QTY}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<box>
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="51" height="20"/>
+									<box rightPadding="3">
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									</box>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Quantity}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Gross Amount" width="70">
+						<bucket>
+							<bucketExpression class="java.math.BigDecimal"><![CDATA[$F{GROSS_PRICE}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="70" height="20"/>
+									<box rightPadding="3">
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<leftPen lineStyle="Solid"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+										<rightPen lineStyle="Solid"/>
+									</box>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="Arial" size="8"/>
+									</textElement>
+									<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Gross Amount}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<rowGroup name="Discount" width="51">
+						<bucket>
+							<bucketExpression class="java.math.BigDecimal"><![CDATA[$F{DISC_AMT_SP}]]></bucketExpression>
+						</bucket>
+						<crosstabRowHeader>
+							<cellContents>
+								<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="51" height="20"/>
+									<box rightPadding="3">
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<leftPen lineWidth="0.5" lineStyle="Solid"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+										<rightPen lineWidth="0.5" lineStyle="Solid"/>
+									</box>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="Arial" size="8" isBold="false"/>
+									</textElement>
+									<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{Discount}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabRowHeader>
+						<crosstabTotalRowHeader>
+							<cellContents/>
+						</crosstabTotalRowHeader>
+					</rowGroup>
+					<columnGroup name="TAX_NM" height="20" totalPosition="End">
+						<bucket>
+							<bucketExpression class="java.lang.String"><![CDATA[$F{TAX_NM}]]></bucketExpression>
+						</bucket>
+						<crosstabColumnHeader>
+							<cellContents backcolor="#C1DDF9" mode="Opaque">
+								<box>
+									<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								</box>
+								<textField isBlankWhenNull="true">
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="75" height="20">
+										<printWhenExpression><![CDATA[!$V{TAX_NM}.equals("ZBasic")]]></printWhenExpression>
+									</reportElement>
+									<box>
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<leftPen lineWidth="0.5" lineStyle="Solid"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+										<rightPen lineWidth="0.5" lineStyle="Solid"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression class="java.lang.String"><![CDATA[$V{TAX_NM}]]></textFieldExpression>
+								</textField>
+							</cellContents>
+						</crosstabColumnHeader>
+						<crosstabTotalColumnHeader>
+							<cellContents backcolor="#C1DDF9" mode="Opaque">
+								<box>
+									<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								</box>
+								<staticText>
+									<reportElement style="Crosstab Data Text" x="0" y="0" width="70" height="20"/>
+									<box>
+										<topPen lineWidth="0.5" lineStyle="Solid"/>
+										<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+										<rightPen lineWidth="0.5" lineStyle="Solid"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="Arial" size="8" isBold="true"/>
+									</textElement>
+									<text><![CDATA[Net Amount]]></text>
+								</staticText>
+							</cellContents>
+						</crosstabTotalColumnHeader>
+					</columnGroup>
+					<measure name="TAX_AMT_SPMeasure" class="java.math.BigDecimal" calculation="Sum">
+						<measureExpression><![CDATA[$F{TAX_AMT_SP}]]></measureExpression>
+					</measure>
+					<measure name="NetAmt" class="java.math.BigDecimal">
+						<measureExpression><![CDATA[$F{NET_AMT}]]></measureExpression>
+					</measure>
+					<measure name="NetAmtTot" class="java.math.BigDecimal">
+						<measureExpression><![CDATA[$F{NET_AMT_TOT}]]></measureExpression>
+					</measure>
+					<crosstabCell width="75" height="20">
+						<cellContents>
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<topPen lineStyle="Dashed"/>
+								<leftPen lineWidth="0.0"/>
+								<bottomPen lineStyle="Dashed"/>
+								<rightPen lineWidth="0.0"/>
+							</box>
+							<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="75" height="20"/>
+								<box rightPadding="3">
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="Arial" size="8"/>
+								</textElement>
+								<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TAX_AMT_SPMeasure}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="75" height="22" rowTotalGroup="INVC_NO">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<topPen lineStyle="Dashed"/>
+								<leftPen lineWidth="0.0"/>
+								<bottomPen lineStyle="Dashed"/>
+								<rightPen lineWidth="0.0"/>
+							</box>
+							<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="75" height="22"/>
+								<box rightPadding="3">
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TAX_AMT_SPMeasure}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="70" height="20" columnTotalGroup="TAX_NM">
+						<cellContents mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<topPen lineStyle="Dashed"/>
+								<leftPen lineWidth="0.0"/>
+								<bottomPen lineStyle="Dashed"/>
+								<rightPen lineWidth="0.0"/>
+							</box>
+							<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="70" height="20"/>
+								<box rightPadding="3">
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="false"/>
+								</textElement>
+								<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{NetAmt}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell width="70" height="22" rowTotalGroup="INVC_NO" columnTotalGroup="TAX_NM">
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<topPen lineStyle="Dashed"/>
+								<leftPen lineWidth="0.0"/>
+								<bottomPen lineStyle="Dashed"/>
+							</box>
+							<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="70" height="22"/>
+								<box rightPadding="3">
+									<topPen lineWidth="0.5" lineStyle="Solid"/>
+									<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+									<rightPen lineWidth="0.5" lineStyle="Solid"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{NetAmtTot}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Currency">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Currency" columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Supplier Name">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Supplier Name" columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Gross Amount">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Gross Amount" columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Discount">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Discount" columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="InvcDt">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="InvcDt" columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Item Desc">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Item Desc" columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Unit">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Unit" columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Quantity">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Quantity" columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Bill No">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Bill No" columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Bill Date">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Bill Date" columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Receipt No.">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="Receipt No." columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="D.N. No.">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="D.N. No." columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="D.N. Date">
+						<cellContents/>
+					</crosstabCell>
+					<crosstabCell rowTotalGroup="D.N. Date" columnTotalGroup="TAX_NM">
+						<cellContents/>
+					</crosstabCell>
+				</crosstab>
+			</band>
+			<band height="21">
+				<subreport>
+					<reportElement x="711" y="-22" width="123" height="21"/>
+					<subreportParameter name="InvcType">
+						<subreportParameterExpression><![CDATA[$P{InvcType}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ReportType">
+						<subreportParameterExpression><![CDATA[$P{ReportType}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ToDate">
+						<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="EoIdSrc">
+						<subreportParameterExpression><![CDATA[$P{EoIdSrc}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="SlocId">
+						<subreportParameterExpression><![CDATA[$P{SlocId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="DocId">
+						<subreportParameterExpression><![CDATA[$P{DocId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="CldId">
+						<subreportParameterExpression><![CDATA[$P{CldId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="OrgId">
+						<subreportParameterExpression><![CDATA[$P{OrgId}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="FromDate">
+						<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="Path">
+						<subreportParameterExpression><![CDATA[$P{Path}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/PurchaseInvoiceRegister_subreport_Tot_Sum.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{ReportType}.equalsIgnoreCase("P")]]></printWhenExpression>
+		</band>
+	</background>
+	<pageHeader>
+		<band height="66" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{ReportType}.equalsIgnoreCase("P")]]></printWhenExpression>
+			<staticText>
+				<reportElement x="1510" y="15" width="166" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Purchase Invoice Register]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1" y="35" width="392" height="15">
+					<printWhenExpression><![CDATA[$F{ORG_ID}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Organisation : "+$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="RetainShape" hAlign="Left" vAlign="Top" onErrorType="Blank">
+				<reportElement x="0" y="0" width="120" height="35"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="1351" y="0" width="325" height="15" forecolor="#6600CC" backcolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{OrgId} == ""?"All Organisations":$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="62" width="1676" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="58" width="1676" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="1625" y="38" width="15" height="10"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1560" y="38" width="28" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[Period :]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="1641" y="35" width="35" height="10"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/ToDate_SubReport.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="1589" y="35" width="35" height="10"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/FromDate_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</pageHeader>
+	<pageFooter>
+		<band height="39" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{ReportType}.equalsIgnoreCase("P")]]></printWhenExpression>
+			<line>
+				<reportElement x="0" y="2" width="1676" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="6" width="1676" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="1" y="7" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="1647" y="10" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1589" y="10" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="46">
+			<printWhenExpression><![CDATA[$P{ReportType}.equalsIgnoreCase("P")]]></printWhenExpression>
+			<line>
+				<reportElement x="0" y="2" width="1676" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="6" width="1676" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField evaluationTime="Report">
+				<reportElement x="1647" y="12" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="9" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1589" y="12" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="22" width="1676" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated By ebizframe10]]></text>
+			</staticText>
+		</band>
+	</lastPageFooter>
+</jasperReport>

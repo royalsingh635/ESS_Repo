@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PaymentReg_Inst_SubReport" language="groovy" pageWidth="108" pageHeight="25" whenNoDataType="NoDataSection" columnWidth="108" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="org_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="coa_id" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cld_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="vou_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Report_Type" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select distinct nvl(a.gl_instrmnt_no,'CASH') cheque_number,
+       a.gl_instrmnt_dt cheque_date,
+       b.gl_amt_bs chq_amt,
+       (select att_nm from app.app$ds$att where att_type_id = 25 and att_id = a.gl_instrmnt_typ) type
+from   gl_line_instrumnt a, gl_lines b
+where
+a.gl_cld_id = $P{cld_id}
+and a.gl_org_id = $P{org_id}
+and a.gl_vou_id = $P{vou_id}
+and( a.gl_coa_id = $P{coa_id}
+OR a.gl_coa_bnk_id=$P{coa_id})
+
+
+and a.gl_cld_id = b.gl_cld_id
+and a.gl_org_id = b.gl_org_id
+and a.gl_vou_id = b.gl_vou_id
+and (a.gl_coa_id=b.gl_coa_id
+OR a.gl_coa_bnk_id=b.gl_coa_id)
+
+union ALl
+
+select nvl(a.TVOU_INSTRMNT_NO,'CASH') cheque_number,
+       a.TVOU_INSTRMNT_DT cheque_date,
+       b.TVOU_AMT_BS chq_amt,
+       (select att_nm from app.app$ds$att where att_type_id = 25 and att_id = a.TVOU_INSTRMNT_TYP) type
+from   tvou_line_chq a, tvou_lines b
+where
+a.TVOU_CLD_ID = $P{cld_id}
+and a.TVOU_ORG_ID = $P{org_id}
+and a.TVOU_ID = $P{vou_id}
+and (a.TVOU_COA_ID = $P{coa_id} OR a.tvou_coa_bnk_id=$P{coa_id})
+
+and a.TVOU_CLD_ID = b.TVOU_CLD_ID
+and a.TVOU_ORG_ID = b.TVOU_ORG_ID
+and a.TVOU_ID = b.TVOU_ID
+and (a.TVOU_COA_ID=b.TVOU_COA_ID OR a.TVOU_COA_BNK_ID=b.TVOU_COA_ID)]]>
+	</queryString>
+	<field name="CHEQUE_NUMBER" class="java.lang.String"/>
+	<field name="CHEQUE_DATE" class="java.sql.Timestamp"/>
+	<field name="CHQ_AMT" class="java.math.BigDecimal"/>
+	<field name="TYPE" class="java.lang.String"/>
+	<sortField name="CHEQUE_DATE"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="25" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{Report_Type} == "P"]]></printWhenExpression>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="42" y="10" width="28" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Arial" size="7" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{CHEQUE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="70" y="10" width="38" height="15"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{CHEQUE_DATE}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="10" width="42" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{CHQ_AMT}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="108" height="25"/>
+				<textElement>
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TYPE}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="25">
+			<printWhenExpression><![CDATA[$P{Report_Type} == "E"]]></printWhenExpression>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="54" y="0" width="27" height="25" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Arial" size="7" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{CHEQUE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="80" y="0" width="27" height="25" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{CHEQUE_DATE}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="28" y="0" width="27" height="25" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{CHQ_AMT}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="27" height="25" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TYPE}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Tax_Invoice_SubReport" language="groovy" pageWidth="235" pageHeight="20" whenNoDataType="AllSectionsNoDetail" columnWidth="235" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="DocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Tax_Id" class="java.math.BigDecimal"/>
+	<queryString>
+		<![CDATA[SELECT c.coa_nm,
+  sr_no,
+  SUM(B.TAX_AMT_SP) tax_amt_sp,
+  SUM(B.TAX_AMT_bs) tax_amt_bs,
+  b.tax_id
+FROM sls$inv a,
+  sls$inv$tr$lines b,
+  fin.fin$coa c,
+  sls$so d,
+  sls$so e
+WHERE a.doc_id   =b.doc_id
+AND A.CLD_ID     =C.coa_CLD_ID
+AND A.SLOC_ID    =C.coa_SLOC_ID
+AND A.HO_ORG_ID  =C.coa_HO_ORG_ID
+AND B.tax_coa_ID =C.coa_ID
+AND d.cld_id     = e.cld_id
+AND d.sloc_id    = e.sloc_id
+AND d.org_id     = e.org_id
+AND d.ho_org_id  = e.ho_org_id
+AND d.ref_doc_split_src     = e.doc_id
+AND e.doc_id     = $P{DocId}
+AND a.cld_id     = d.cld_id
+AND a.sloc_id    = d.sloc_id
+AND a.org_id     = d.org_id
+AND a.ho_org_id  = d.ho_org_id
+AND b.so_id      = d.doc_id
+AND sr_no       <>1
+GROUP BY c.coa_nm,
+  sr_no,
+  tax_id
+ORDER BY sr_no]]>
+	</queryString>
+	<field name="COA_NM" class="java.lang.String"/>
+	<field name="SR_NO" class="java.math.BigDecimal"/>
+	<field name="TAX_AMT_SP" class="java.math.BigDecimal"/>
+	<field name="TAX_AMT_BS" class="java.math.BigDecimal"/>
+	<field name="TAX_ID" class="java.math.BigDecimal"/>
+	<sortField name="SR_NO"/>
+	<variable name="TotalAmt" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{TAX_AMT_SP}]]></variableExpression>
+		<initialValueExpression><![CDATA[0.00]]></initialValueExpression>
+	</variable>
+	<variable name="TAX_ID" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$F{TAX_ID}]]></variableExpression>
+	</variable>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="154" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{COA_NM}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="155" y="0" width="70" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TAX_AMT_SP}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="96" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{DocId}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

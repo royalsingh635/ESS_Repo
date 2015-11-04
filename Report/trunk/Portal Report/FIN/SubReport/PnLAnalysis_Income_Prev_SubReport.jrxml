@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PnLAnalysis_Income_Prev_SubReport" language="groovy" pageWidth="100" pageHeight="790" orientation="Landscape" columnWidth="100" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="To_Date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="From_Date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Org_Id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Sloc_Id" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Cld_Id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Coa_Id" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Voucher_Type" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\DEPLOYMENT\\Report\\FIN\\SubReport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[-- Profit and Loss  PRV YR
+
+SELECT  A.CLD_ID,
+        A.SLOC_ID,
+        A.HO_ORG_ID,
+        A.ORG_ID,
+        B.ORG_DESC,
+        A.COA_ID,
+        C.COA_NM,
+        C.COA_COG_ID,
+
+        D.COG_ID,
+       A.PL_YEAR_PREV,
+      nvl(sum(amt_prev),0) Previous_Yr
+
+
+
+FROM    (
+        SELECT  GL_CLD_ID CLD_ID,
+                GL_SLOC_ID SLOC_ID,
+                GL_HO_ORG_ID HO_ORG_ID,
+                GL_ORG_ID ORG_ID,
+                GL_COA_ID COA_ID,
+                GL_TYPE_ID VOUCHER_TYPE,
+	              GL_VOU_DT,
+                sum(gl_amt_bs) amt_prev,
+                GL_COG_ID,
+      to_char(gl_vou_dt,'YYYY') PL_YEAR_PREV
+
+        FROM    GL_LINES
+        WHERE
+        GL_CLD_ID = NVL($P{Cld_Id},GL_CLD_ID)
+    and GL_SLOC_ID = NVL($P{Sloc_Id},GL_SLOC_ID)
+    and GL_ORG_ID = nvl($P{Org_Id},GL_ORG_ID)
+    and GL_COA_ID = nvl($P{Coa_Id},GL_COA_ID)
+    AND TRUNC(Gl_VOU_DT) BETWEEN ADD_MONTHS(TO_DATE($P{From_Date} , 'YYYY-mm-dd'),-12)
+    AND ADD_MONTHS(TO_DATE($P{To_Date} , 'YYYY-mm-dd'),-12)
+    AND GL_TXN_TYP_MIG not in  ('O','MO')
+
+group by
+GL_CLD_ID, GL_SLOC_ID, GL_HO_ORG_ID, GL_ORG_ID, GL_COA_ID,
+to_char(gl_vou_dt,'YYYY'),
+GL_TYPE_ID,
+GL_VOU_DT,GL_COG_ID
+    ) A,
+
+        APP.ORG B,
+        FIN$COA C,
+        FIN$COG D
+
+WHERE
+       d.COG_ID=c.COA_COG_ID
+and d.COG_SLOC_ID=C.COA_SLOC_ID
+and d.COG_CLD_ID=c.COA_CLD_ID
+and d.COG_GRP_TYPE=c.COA_GRP_TYPE
+
+    AND	SUBSTR(D.COG_ID,1,1) IN ('3','4')
+
+and    C.COA_PNL_ITEM = 'Y'
+and    C.COA_GRP_TYPE  ='I'
+and    B.ORG_CLD_ID = A.CLD_ID
+
+
+AND D.COG_SLOC_ID=A.SLOC_ID
+AND D.COG_CLD_ID=A.CLD_ID
+AND D.COG_ORG_ID=A.ORG_ID
+AND D.COG_ID=A.GL_COG_ID
+
+and     B.ORG_ID = A.ORG_ID
+and     c.COA_CLD_ID = a.CLD_ID
+and     c.COA_SLOC_ID = a.SLOC_ID
+and     c.COA_HO_ORG_ID = app.FN_GET_PARENT_ORG_L0(a.CLD_ID,A.ORG_ID)
+and     c.COA_ID = a.COA_ID
+
+
+
+group by A.CLD_ID,
+        A.SLOC_ID,
+        A.HO_ORG_ID,
+        A.ORG_ID,
+        B.ORG_DESC,
+        A.COA_ID,
+        C.COA_NM,
+        C.COA_COG_ID,
+        --A.VOUCHER_TYPE,
+        D.COG_ID,
+        --A.GL_VOU_DT
+        --A.amt_prev,
+        A.PL_YEAR_PREV]]>
+	</queryString>
+	<field name="CLD_ID" class="java.lang.String"/>
+	<field name="SLOC_ID" class="java.math.BigDecimal"/>
+	<field name="HO_ORG_ID" class="java.lang.String"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="COA_ID" class="java.math.BigDecimal"/>
+	<field name="COA_NM" class="java.lang.String"/>
+	<field name="COA_COG_ID" class="java.lang.String"/>
+	<field name="COG_ID" class="java.lang.String"/>
+	<field name="PL_YEAR_PREV" class="java.lang.String"/>
+	<field name="PREVIOUS_YR" class="java.math.BigDecimal"/>
+	<sortField name="COA_NM"/>
+	<variable name="TotPrevVal" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{PREVIOUS_YR}]]></variableExpression>
+	</variable>
+	<detail>
+		<band height="25">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="100" height="25"/>
+				<textElement/>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="95" height="25" forecolor="#660000"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PREVIOUS_YR}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

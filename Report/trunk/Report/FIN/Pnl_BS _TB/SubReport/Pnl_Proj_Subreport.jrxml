@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Pnl_Proj_Income_SubReport" language="groovy" pageWidth="1500" pageHeight="802" columnWidth="1460" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="Org_Id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Margin_Detail" class="java.lang.String"/>
+	<parameter name="Head" class="java.lang.String"/>
+	<parameter name="BgColor" class="java.lang.String"/>
+	<parameter name="PostFlag" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Cld_Id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Cog_Id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AsOnDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GroupAccount" class="java.lang.String"/>
+	<parameter name="zeroAmt" class="java.lang.String"/>
+	<parameter name="Curr" class="java.lang.String"/>
+	<parameter name="Include_Grp" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\DEPLOYMENT\\Report\\FIN\\SubReport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="Coa_Id" class="java.math.BigDecimal"/>
+	<parameter name="Sloc_Id" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Ho_Org_Id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[-- PNL PROJECT INCOME
+select * from (
+SELECT
+COG_ID,
+COG_ID_GRP,
+COG_NM_TREE cog_ind,
+COG_NM_INDENT COG_NM,
+COA_ID,
+COA_LEG_CD LEG_CODE,
+COA_NM,
+ORG_FY_ID,
+PROJECT_ID,
+PROJECT_DESC,
+decode(cl_BAL_type,'Cr',CL_BAL_CURR,'Dr',-CL_BAL_CURR,CL_BAL_CURR) CL_BAL_CURR,DISP_SR_NO
+FROM	(SELECT	c.ORG_COA_CLD_ID CLD_ID,
+		c.ORG_ID ORG_ID,
+		a.ORG_DESC ORG_DESC,
+		c.ORG_FY_ID ORG_FY_ID,
+		c.ORG_COA_ID COA_ID,
+		b.COA_NM COA_NM,
+		b.COA_LEG_CD,
+		d.COG_ID,
+    SUBSTR(d.COG_ID,1,1) COG_ID_GRP,
+		d.COG_NM COG_NM,
+		d.COG_NM_TREE,
+		d.COG_NM_INDENT,
+		d.COG_SUBLDGR,
+    d.DISP_SR_NO ,
+    e1.PROJECT_ID,
+    e1.PROJECT_DESC,
+		DECODE($P{PostFlag},
+		'A',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',ABS(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0) + NVL(f1.tmp_dr_amt_op, 0) -NVL(f1.tmp_cr_amt_op, 0)),
+					'CR',ABS(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0) - NVL(f1.tmp_dr_amt_op, 0) +NVL(f1.tmp_cr_amt_op, 0) )),
+		'P',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',ABS(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0)),
+					'CR',ABS(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0)))) CL_BAL_CURR,
+		DECODE($P{PostFlag},
+		'A',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0) + NVL(f1.tmp_dr_amt_op, 0) -NVL(f1.tmp_cr_amt_op, 0) ),0,'Dr',1,'Dr',-1,'Cr'),
+					'CR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0) - NVL(f1.tmp_dr_amt_op, 0) +NVL(f1.tmp_cr_amt_op, 0) ),0,'Dr',1,'Cr',-1,'Dr')),
+		'P',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0)),0,'Dr',1,'Dr',-1,'Cr'),
+					'CR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0)),0,'Dr',1,'Cr',-1,'Dr'))) cl_BAL_type
+     	FROM	app.org a,
+      (SELECT	DISTINCT A.ORG_CLD_ID ORG_CLD_ID,
+			A.ORG_ID ORG_ID,
+			b.COA_ID,
+			b.COA_NM,
+			b.COA_COG_ID,
+			b.COA_LEG_CD,
+			b.COA_ACC_ID
+		FROM	app.org A,
+			fin$coa B
+		WHERE	A.ORG_CLD_ID = NVL($P{Cld_Id}, A.ORG_CLD_ID)
+		AND  	A.ORG_ID = NVL($P{Org_Id}, A.ORG_ID)
+		AND	COA_CLD_ID = A.ORG_CLD_ID
+ 		AND	B.COA_HO_ORG_ID = NVL(A.ORG_ID_PARENT_L0,A.ORG_ID)
+		AND 	B.COA_COG_ID LIKE decode($P{Include_Grp},'Y', NVL($P{Cog_Id}, COA_COG_ID)||'%', NVL($P{Cog_Id}, COA_COG_ID))
+--    AND b.COA_GRP_TYPE  ='I'
+    AND b.COA_PNL_ITEM =  'Y'
+                   	)b,
+		(SELECT	A.ORG_COA_CLD_ID,
+			A.ORG_ID,
+			 A.ORG_FY_ID,
+ 			A.ORG_COA_COG_ID,
+			A.ORG_COA_ID,
+			ABS(SUM(DECODE(A.ORG_COA_OP_BAL_TYP,'Dr',A.ORG_COA_OP_BAL,-ORG_COA_OP_BAL))) ORG_COA_OP_BAL,
+			DECODE(SIGN(SUM(DECODE(A.ORG_COA_OP_BAL_TYP,'Dr',A.ORG_COA_OP_BAL,-ORG_COA_OP_BAL))),1,'Dr',0,'Dr','Cr') ORG_COA_OP_BAL_TYP
+		FROM	ORG$COA$FY A,
+        (select app.fn_get_fy_id($P{Cld_Id}, $P{Org_Id},TO_DATE($P{AsOnDate}, 'YYYY-MM-DD'),'FY') fy
+        from dual) B
+		WHERE	A.ORG_COA_CLD_ID = NVL($P{Cld_Id}, A.ORG_COA_CLD_ID)
+	 	AND  	A.ORG_ID = NVL($P{Org_Id}, A.ORG_ID)
+		AND    A.ORG_FY_ID = B.FY
+		AND 	A.ORG_COA_COG_ID LIKE decode($P{Include_Grp},'Y', NVL($P{Cog_Id}, A.ORG_COA_COG_ID)||'%', NVL($P{Cog_Id}, A.ORG_COA_COG_ID))
+		GROUP BY 	A.ORG_COA_CLD_ID,
+			A.ORG_ID,
+			A.ORG_FY_ID,
+		 	A.ORG_COA_COG_ID,
+			A.ORG_COA_ID
+		)  c,
+		(SELECT  DISTINCT COG_CLD_ID COG_CLD_ID,
+
+			 COG_ID,
+			COG_NM,
+			SUBSTR(SYS_CONNECT_BY_PATH(COG_NM, '->'),3) COG_NM_TREE,
+			LPAD(' ',2*(LENGTH(COG_ID)-1))||COG_NM COG_NM_INDENT,
+			COG_ID_PARENT,
+			 COG_SUBLDGR,
+			COG_BS_ITEM,
+			COG_PNL_ITEM,
+			COG_CF_ITEM,
+			COG_TRF_BAL,
+			COG_ACTV,DISP_SR_NO
+       	FROM    (select app.FN_GET_PARENT_ORG_L0 ($P{Cld_Id}, $P{Org_Id}) ho_org_id from dual) A,
+       			(select cog_cld_id,cog_sloc_id,cog_org_id,
+					cog_id,cog_id_parent,
+					cog_nm,
+					cog_subldgr,cog_bs_item,cog_pnl_item,cog_cf_item,cog_trf_bal,
+					cog_actv,DISP_SR_NO
+					from fin$cog
+					where     cog_cld_id = $P{Cld_Id}
+					--and    cog_org_id = '01'
+					  ) B
+		WHERE
+		B.COG_ORG_ID = a.ho_org_id
+		AND	SUBSTR(B.COG_ID,1,1) IN ('3','4')
+		START WITH nvl(COG_ID_PARENT,'!') in ('!','00')
+		CONNECT BY NOCYCLE PRIOR COG_ID = COG_ID_PARENT
+		) d,
+		(SELECT	A.GL_CLD_ID,
+			A.GL_ORG_ID,
+			A.GL_COA_ID,
+      E.PROJECT_ID PROJECT_ID,
+      E.PROJECT_DESC PROJECT_DESC,
+			NVL(SUM(DECODE(GL_AMT_TYP, 'Dr', GL_AMT_BS, 0)),0) gl_dr_amt_op,
+			NVL(SUM(DECODE(GL_AMT_TYP, 'Cr', GL_AMT_BS, 0)),0) gl_cr_amt_op
+		FROM    GL_LINES A,
+           		GL B,
+          (SELECT app.fn_get_fy_start_date($P{Cld_Id}, $P{Org_Id}, TO_DATE($P{AsOnDate},'YYYY-mm-dd'),'FY') FY_START_dATE
+               FROM DUAL) C,
+          (SELECT DISTINCT
+      a.CC_CLD_ID CLD_ID,
+      a.CC_SLOC_ID SLOC_ID,
+      a.CC_ORG_ID ORG_ID,
+      a.CC_HO_ORG_ID HO_ORG_ID,
+      a.CC_ID,
+      b.COL_ID PROJECT_ID,
+      b.COL_VALUE PROJECT_DESC
+        FROM GL$COST$CENTER a, app.APP$CC b
+      where
+      a.CC_CLD_ID=b.CLD_ID
+  AND a.CC_SLOC_ID=b.SLOC_ID
+  AND a.CC_HO_ORG_ID=b.HO_ORG_ID
+  AND a.CC_ORG_ID=b.ORG_ID
+  AND a.CC_CCID_LVL1=b.COL_ID
+
+  AND a.CC_CLD_ID=NVL($P{Cld_Id},a.CC_CLD_ID)
+  AND a.CC_HO_ORG_ID=NVL($P{Ho_Org_Id},a.CC_HO_ORG_ID)
+  AND a.CC_ORG_ID=NVL($P{Org_Id},a.CC_ORG_ID)
+
+  ) E
+		WHERE 	B.GL_CLD_ID = NVL($P{Cld_Id},B.GL_CLD_ID)
+		AND 	B.GL_STAT = DECODE($P{PostFlag}, 'A', B.GL_STAT, 'P', 'FLC')
+		AND 	A.GL_CLD_ID = B.GL_CLD_ID
+		AND 	A.GL_SLOC_ID = B.GL_SLOC_ID
+		AND 	A.GL_VOU_ID = B.GL_VOU_ID
+
+		AND	  a.GL_ORG_ID = NVL($P{Org_Id}, a.GL_ORG_ID)
+		AND 	a.GL_COG_ID LIKE decode($P{Include_Grp},'Y', NVL($P{Cog_Id}, a.GL_COG_ID)||'%', NVL($P{Cog_Id}, a.GL_COG_ID))
+		AND 	TRUNC(a.GL_VOU_DT) >=  C.FY_START_dATE
+		AND   TRUNC(a.GL_VOU_DT) <= TO_DATE($P{AsOnDate}, 'YYYY-mm-dd')
+		AND 	A.GL_TXN_TYP_MIG not in  ('O','MO')
+
+    AND   A.GL_CLD_ID = E.CLD_ID
+		AND 	A.GL_SLOC_ID = E.SLOC_ID
+    AND 	A.GL_HO_ORG_ID = E.HO_ORG_ID
+		AND 	A.GL_ORG_ID = E.ORG_ID
+    AND   A.CC_ID=E.CC_ID
+
+		GROUP BY A.GL_CLD_ID,
+			A.GL_ORG_ID,
+			A.GL_COA_ID,
+      E.PROJECT_ID,
+      E.PROJECT_DESC
+		) e1,
+		(
+		SELECT	a.TVOU_CLD_ID,
+			a.TVOU_ORG_ID,
+			a.TVOU_COA_ID,
+			NVL(SUM(DECODE(a.TVOU_AMT_TYP,'Dr',a.TVOU_AMT_BS,0)),0) tmp_dr_amt_op,
+			NVL(SUM(DECODE(a.TVOU_AMT_TYP,'Cr',a.TVOU_AMT_BS,0)),0) tmp_cr_amt_op
+		FROM    TVOU_LINES a,
+            (SELECT app.fn_get_fy_start_date($P{Cld_Id}, $P{Org_Id}, TO_DATE($P{AsOnDate},'YYYY-mm-dd'),'FY') FY_START_dATE
+            FROM DUAL) C
+		WHERE  	a.TVOU_CLD_ID = NVL($P{Cld_Id},a.TVOU_CLD_ID)
+		AND	a.tvou_ORG_ID = NVL($P{Org_Id}, a.tvou_ORG_ID)
+		AND 	a.tvou_COG_ID LIKE decode($P{Include_Grp},'Y', NVL($P{Cog_Id}, a.tvou_COG_ID)||'%', NVL($P{Cog_Id}, a.tvou_COG_ID))
+		AND 	TRUNC(a.tVOU_DT) >=  C.FY_START_dATE
+		AND     TRUNC(a.tVOU_DT) <= TO_DATE($P{AsOnDate}, 'YYYY-mm-dd')
+		GROUP BY a.TVOU_CLD_ID,
+			a.TVOU_ORG_ID,
+			a.TVOU_COA_ID
+		) f1
+	WHERE	A.ORG_CLD_ID = NVL($P{Cld_Id}, A.ORG_CLD_ID)
+	AND  	A.ORG_ID = NVL($P{Org_Id}, A.ORG_ID)
+	AND	B.ORG_CLD_ID = A.ORG_CLD_ID
+	AND	B.ORG_ID = A.ORG_ID
+
+	AND     c.ORG_COA_CLD_ID = B.ORG_CLD_ID
+	AND     c.ORG_ID = B.ORG_ID
+	AND     c.ORG_COA_ID = b.COA_ID
+
+	AND     d.COG_CLD_ID = B.ORG_CLD_ID
+	AND     d.COG_ID = b.COA_COG_ID
+
+	AND     c.ORG_COA_CLD_ID = e1.GL_CLD_ID(+)
+	AND     c.ORG_ID = e1.GL_ORG_ID(+)
+	AND     c.ORG_COA_ID = e1.GL_COA_ID(+)
+
+	AND     c.ORG_COA_CLD_ID = f1.TVOU_CLD_ID(+)
+	AND     c.ORG_ID = f1.tvou_ORG_ID(+)
+	AND     c.ORG_COA_ID = f1.tvou_COA_ID(+))
+  WHERE CL_BAL_CURR <> 0
+union
+select
+'-1' COG_ID, '4' COG_ID_GRP, 'Closing Stock' cog_ind,'Closing Stock' COG_NM , -1 COA_ID, '' LEG_CODE,'Stock In Hand' COA_NM, APP.fn_get_fy_id($P{Cld_Id},$P{Org_Id},TO_DATE($P{AsOnDate}, 'YYYY-mm-dd')) ORG_FY_ID,'PROJ0000' PROJECT_ID,'Default Project' PROJECT_DESC,fin.fn_get_pnl_rpt_stk_in_hand(null,$P{Cld_Id},$P{Org_Id},$P{Ho_Org_Id},$P{AsOnDate}) CL_BAL_CURR,0 DISP_SR_NO
+from dual
+union
+select
+'-1' COG_ID, '4' COG_ID_GRP, 'Closing Stock' cog_ind,'Closing Stock' COG_NM, -2 COA_ID, '' LEG_CODE,          'WIP' COA_NM, APP.fn_get_fy_id($P{Cld_Id},$P{Org_Id},TO_DATE($P{AsOnDate}, 'YYYY-mm-dd')) ORG_FY_ID,'PROJ0000' PROJECT_ID,'Default Project' PROJECT_DESC,fin.fn_get_pnl_rpt_stk_wip(null,$P{Cld_Id},$P{Org_Id},$P{Ho_Org_Id},$P{AsOnDate}) CL_BAL_CURR, 0 DISP_SR_NO
+from dual)
+ WHERE CL_BAL_CURR <> 0]]>
+	</queryString>
+	<field name="COG_ID" class="java.lang.String"/>
+	<field name="COG_ID_GRP" class="java.lang.String"/>
+	<field name="COG_IND" class="java.lang.String"/>
+	<field name="COG_NM" class="java.lang.String"/>
+	<field name="COA_ID" class="java.math.BigDecimal"/>
+	<field name="LEG_CODE" class="java.lang.String"/>
+	<field name="COA_NM" class="java.lang.String"/>
+	<field name="ORG_FY_ID" class="java.math.BigDecimal"/>
+	<field name="PROJECT_ID" class="java.lang.String"/>
+	<field name="PROJECT_DESC" class="java.lang.String"/>
+	<field name="CL_BAL_CURR" class="java.math.BigDecimal"/>
+	<field name="DISP_SR_NO" class="java.math.BigDecimal"/>
+	<sortField name="DISP_SR_NO" order="Descending"/>
+	<sortField name="COG_ID_GRP"/>
+	<sortField name="COG_IND"/>
+	<title>
+		<band/>
+	</title>
+	<pageFooter>
+		<band/>
+	</pageFooter>
+	<lastPageFooter>
+		<band/>
+	</lastPageFooter>
+	<summary>
+		<band height="50">
+			<crosstab>
+				<reportElement x="0" y="0" width="1460" height="50"/>
+				<crosstabHeaderCell>
+					<cellContents>
+						<box>
+							<topPen lineWidth="0.5"/>
+							<leftPen lineWidth="0.5"/>
+							<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+							<rightPen lineWidth="0.5"/>
+						</box>
+						<staticText>
+							<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="324" height="30" forecolor="#000099" backcolor="#C1DDF9"/>
+							<box>
+								<pen lineWidth="0.5" lineColor="#000000"/>
+								<topPen lineWidth="0.5" lineColor="#000000"/>
+								<leftPen lineWidth="0.5" lineColor="#000000"/>
+								<bottomPen lineWidth="0.5" lineColor="#000000"/>
+								<rightPen lineWidth="0.5" lineColor="#000000"/>
+							</box>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Chart Of Group]]></text>
+						</staticText>
+						<staticText>
+							<reportElement style="Crosstab Data Text" mode="Opaque" x="324" y="0" width="212" height="30" forecolor="#000099" backcolor="#C1DDF9"/>
+							<box>
+								<pen lineWidth="0.5" lineColor="#000000"/>
+								<topPen lineWidth="0.5" lineColor="#000000"/>
+								<leftPen lineWidth="0.5" lineColor="#000000"/>
+								<bottomPen lineWidth="0.5" lineColor="#000000"/>
+								<rightPen lineWidth="0.5" lineColor="#000000"/>
+							</box>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Chart Of Account]]></text>
+						</staticText>
+					</cellContents>
+				</crosstabHeaderCell>
+				<rowGroup name="COG_IND" width="324" totalPosition="End">
+					<bucket>
+						<bucketExpression class="java.lang.String"><![CDATA[$F{COG_IND}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Transparent">
+							<box>
+								<topPen lineWidth="0.5" lineStyle="Dashed"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="324" height="25" forecolor="#000099"/>
+								<box leftPadding="5">
+									<leftPen lineWidth="0.5" lineColor="#000000"/>
+									<rightPen lineWidth="0.5" lineColor="#000000"/>
+								</box>
+								<textElement textAlignment="Left" verticalAlignment="Middle">
+									<font fontName="Arial" size="10" isBold="true"/>
+								</textElement>
+								<textFieldExpression class="java.lang.String"><![CDATA[$V{COG_IND}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents backcolor="#005FB3" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<topPen lineStyle="Solid" lineColor="#000000"/>
+								<leftPen lineColor="#000000"/>
+								<bottomPen lineColor="#000000"/>
+								<rightPen lineColor="#000000"/>
+							</box>
+							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="324" height="25" forecolor="#F0F0F0"/>
+								<box>
+									<bottomPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="Arial" size="12" isBold="true"/>
+								</textElement>
+								<textFieldExpression class="java.lang.String"><![CDATA["Total   "]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="COA_NM" width="212" totalPosition="End">
+					<bucket>
+						<bucketExpression class="java.lang.String"><![CDATA[$F{COA_NM}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Transparent">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<topPen lineStyle="Solid" lineColor="#000000"/>
+								<leftPen lineWidth="0.0"/>
+								<bottomPen lineStyle="Solid" lineColor="#000000"/>
+								<rightPen lineWidth="0.0"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="212" height="25"/>
+								<box leftPadding="5">
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement textAlignment="Left" verticalAlignment="Middle">
+									<font fontName="Arial" isBold="true"/>
+								</textElement>
+								<textFieldExpression class="java.lang.String"><![CDATA[$V{COA_NM}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+							</box>
+						</cellContents>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="PROJECT_DESC" height="30" totalPosition="End">
+					<bucket>
+						<bucketExpression class="java.lang.String"><![CDATA[$F{PROJECT_DESC}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<topPen lineColor="#000000"/>
+								<leftPen lineColor="#000000"/>
+								<bottomPen lineColor="#000000"/>
+								<rightPen lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="128" height="30" forecolor="#000099" backcolor="#C1DDF9"/>
+								<box>
+									<pen lineWidth="0.5" lineColor="#000000"/>
+									<topPen lineWidth="0.5" lineColor="#000000"/>
+									<leftPen lineWidth="0.5" lineColor="#000000"/>
+									<bottomPen lineWidth="0.5" lineColor="#000000"/>
+									<rightPen lineWidth="0.5" lineColor="#000000"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="12" isBold="true"/>
+								</textElement>
+								<textFieldExpression class="java.lang.String"><![CDATA[$V{PROJECT_DESC}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<topPen lineColor="#000000"/>
+								<leftPen lineColor="#000000"/>
+								<bottomPen lineStyle="Dashed" lineColor="#000000"/>
+								<rightPen lineColor="#000000"/>
+							</box>
+							<staticText>
+								<reportElement mode="Opaque" x="0" y="0" width="147" height="30" forecolor="#000099" backcolor="#C1DDF9"/>
+								<box>
+									<pen lineWidth="0.5" lineColor="#000000"/>
+									<topPen lineWidth="0.5" lineColor="#000000"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.5" lineColor="#000000"/>
+									<rightPen lineWidth="0.5" lineColor="#000000"/>
+								</box>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="Arial" size="12" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Total ]]></text>
+							</staticText>
+						</cellContents>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="CL_BAL_CURRMeasure" class="java.math.BigDecimal" calculation="Sum">
+					<measureExpression><![CDATA[$F{CL_BAL_CURR}]]></measureExpression>
+				</measure>
+				<measure name="COG_NM" class="java.lang.String">
+					<measureExpression><![CDATA[$F{COG_NM}]]></measureExpression>
+				</measure>
+				<crosstabCell width="128" height="25">
+					<cellContents>
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							<topPen lineStyle="Dashed" lineColor="#000000"/>
+							<leftPen lineWidth="0.0"/>
+							<bottomPen lineStyle="Dashed" lineColor="#000000"/>
+							<rightPen lineWidth="0.0"/>
+						</box>
+						<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="128" height="25"/>
+							<box rightPadding="8"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="Arial" size="8" isBold="true"/>
+							</textElement>
+							<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{CL_BAL_CURRMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="128" height="25" rowTotalGroup="COG_IND">
+					<cellContents backcolor="#005FB3" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							<topPen lineWidth="0.5" lineStyle="Dashed" lineColor="#000000"/>
+							<leftPen lineWidth="0.0"/>
+							<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							<rightPen lineWidth="0.0"/>
+						</box>
+						<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="128" height="25" forecolor="#FFFFFF"/>
+							<box rightPadding="8"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="Arial" size="8" isBold="true"/>
+							</textElement>
+							<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{CL_BAL_CURRMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="147" height="25" columnTotalGroup="PROJECT_DESC">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							<topPen lineStyle="Solid" lineColor="#000000"/>
+							<leftPen lineColor="#000000"/>
+							<bottomPen lineWidth="0.5" lineStyle="Dashed" lineColor="#000000"/>
+							<rightPen lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="147" height="25"/>
+							<box rightPadding="8">
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="Arial" size="8" isBold="true"/>
+							</textElement>
+							<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{CL_BAL_CURRMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="147" height="25" rowTotalGroup="COG_IND" columnTotalGroup="PROJECT_DESC">
+					<cellContents backcolor="#005FB3" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							<topPen lineStyle="Dashed" lineColor="#000000"/>
+							<leftPen lineColor="#000000"/>
+							<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							<rightPen lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="147" height="25" forecolor="#FFFFFF"/>
+							<box rightPadding="8">
+								<rightPen lineWidth="0.5" lineColor="#000000"/>
+							</box>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="Arial" size="8" isBold="true"/>
+							</textElement>
+							<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{CL_BAL_CURRMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="128" height="0" rowTotalGroup="COA_NM">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+						</box>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="147" height="0" rowTotalGroup="COA_NM" columnTotalGroup="PROJECT_DESC">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#FFFFFF"/>
+						</box>
+					</cellContents>
+				</crosstabCell>
+			</crosstab>
+		</band>
+	</summary>
+</jasperReport>

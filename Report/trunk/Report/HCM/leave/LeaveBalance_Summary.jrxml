@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="LeaveBalanceSummary " language="groovy" pageWidth="700" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="660" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="65"/>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ReportType" class="java.lang.String"/>
+	<parameter name="shiftId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="desgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="deptId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT a.emp_code,
+  a.emp_id,
+  --B.emp_nm,
+  a.emp_dob,
+  a.emp_doj,
+  a.emp_dept_id,
+  c.dept_nm department,
+  a.EMP_EMAIL,
+  NVL(a.EMP_PHONE1,a.EMP_PHONE2) Contact,
+  d.org_desc,
+  d.org_id ,
+  E.SHIFT_ID,
+  F.SHIFT_NM,
+  a.emp_GEN gen_id,
+  A.emp_nm employee,
+  (SELECT b.emp_nm parent
+  FROM org$hcm$emp$prf b
+  WHERE b.doc_id  =a.mgr_doc_id
+  AND b.CLD_ID    = $P{cldId}
+  AND b.SLOC_ID   = $P{slocId}
+  AND b.HO_ORG_ID = $P{hoOrgId}
+  AND b.ORG_ID    = $P{orgId}
+    --AND b.DOC_ID = e.doc_id
+  )RepTo,
+  DECODE(
+  (SELECT p.param_desc FROM hcm$setup p WHERE p.param_id = a.emp_GEN
+  AND p.cld_id                                           = a.cld_id
+  AND p.sloc_id                                          = a.sloc_id
+  AND p.ho_org_id                                        = a.ho_org_id
+  ),'MALE','Mr.','Mrs.')Emp_Alias,
+  (SELECT p.param_desc
+  FROM hcm$setup p
+  WHERE p.param_id = a.emp_grp_id
+  AND p.cld_id     = a.cld_id
+  AND p.sloc_id    = a.sloc_id
+  AND p.ho_org_id  = a.ho_org_id
+  )emp_grp_nm ,
+  a.EMP_DESG_ID,
+  (SELECT p.param_desc
+  FROM hcm$setup p
+  WHERE p.param_id = a.EMP_DESG_ID
+  AND p.cld_id     = a.cld_id
+  AND p.sloc_id    = a.sloc_id
+  AND p.ho_org_id  = a.ho_org_id
+  )emp_desg_nm,
+  a.emp_loc_id,
+  (SELECT p.param_desc
+  FROM hcm$setup p
+  WHERE p.param_id = a.emp_loc_id
+  AND p.cld_id     = a.cld_id
+  AND p.sloc_id    = a.sloc_id
+  AND p.ho_org_id  = a.ho_org_id
+  )emp_loc_nm,
+  (SELECT p.param_desc
+  FROM hcm$setup p
+  WHERE p.param_id = a.emp_GEN
+  AND p.cld_id     = a.cld_id
+  AND p.sloc_id    = a.sloc_id
+  AND p.ho_org_id  = a.ho_org_id
+  )emp_GEN ,
+  (SELECT p.param_desc
+  FROM hcm$setup p
+  WHERE p.param_id = L.LEAVE_ID
+  AND P.PARAM_TYPE ='21'
+  AND p.cld_id     = l.cld_id
+  AND p.sloc_id    = l.sloc_id
+  AND p.ho_org_id  = l.ho_org_id
+  )leave ,
+  g.grp_id,
+  l.leave_baL
+FROM org$hcm$emp$prf A ,
+  app.app$dept c,
+  app.org d,
+  HCM$EMP$SHIFT e,
+  app.app$shift F,
+  hcm$grp$comp$off g,
+  HCM$EMP$LEAVE L
+WHERE a.cld_id        = c.cld_id
+AND a.sloc_id         = c.sloc_id
+AND a.ho_org_id       = c.ho_org_id
+AND A.EMP_DEPT_ID     = C.DEPT_ID
+AND A.ORG_ID          = d.org_id
+AND a.cld_id          = d.org_cld_id
+AND A.CLD_ID          =E.CLD_ID
+AND A.SLOC_ID         =E.SLOC_ID
+AND A.ORG_ID          =E.ORG_ID
+AND A.HO_ORG_ID       =E.HO_ORG_ID
+AND A.DOC_ID          =E.DOC_ID
+AND E.CLD_ID          = F.CLD_ID
+AND E.HO_ORG_ID       = F.HO_ORG_ID
+AND E.SLOC_ID         = F.SLOC_ID
+AND E.SHIFT_ID        = F.SHIFT_ID
+AND a.cld_id          =g.cld_id(+)
+AND a.org_id          =g.org_id(+)
+AND a.sloc_id         =g.sloc_id(+)
+AND a.ho_org_id       =g.ho_org_id(+)
+AND a.emp_grp_id      =G.GRP_ID(+)
+AND A.ORG_ID          =L.ORG_ID
+AND A.HO_ORG_ID       =L.HO_ORG_ID
+AND A.CLD_ID          =L.CLD_ID
+AND A.DOC_ID          =L.DOC_ID
+AND a.sloc_id         = L.sloc_id
+AND A.EMP_CODE        =L.EMP_CODE
+AND a.CLD_ID          = NVL($P{cldId} ,a.CLD_ID )
+AND a.SLOC_ID         = NVL($P{slocId},a.SLOC_ID)
+AND a.HO_ORG_ID       = NVL($P{hoOrgId},a.ho_org_id)
+AND a.ORG_ID          = NVL($P{orgId},a.org_id)
+AND TRUNC(a.emp_doj) >= NVL(to_date($P{FromDate},'yyyy-MM-dd'),TRUNC(a.emp_doj))
+AND TRUNC(a.emp_doj) <=NVL(to_date($P{ToDate},'yyyy-MM-dd'),TRUNC(a.emp_doj))
+AND (A.EMP_DEPT_ID    = $P{crtValue}
+OR A.EMP_LOC_ID       = $P{crtValue}
+OR A.EMP_GRP_ID       = $P{crtValue}
+OR A.DOC_ID           =$P{crtValue})
+AND A.DOC_ID          = NVL($P{empDocId}, A.DOC_ID)
+AND a.EMP_DESG_ID     =NVL ($P{desgId}, a.EMP_DESG_ID )
+AND E.SHIFT_ID        =NVL($P{shiftId},E.SHIFT_ID)
+
+
+
+UNION
+SELECT a.emp_code,
+  a.emp_id,
+  --B.emp_nm,
+  a.emp_dob,
+  a.emp_doj,
+  a.emp_dept_id,
+  c.dept_nm department,
+  a.EMP_EMAIL,
+  NVL(a.EMP_PHONE1,a.EMP_PHONE2) Contact,
+  d.org_desc,
+  d.org_id ,
+  E.SHIFT_ID,
+  F.SHIFT_NM,
+  a.emp_GEN gen_id,
+  A.emp_nm employee,
+  (SELECT b.emp_nm parent
+  FROM org$hcm$emp$prf b
+  WHERE b.doc_id  =a.mgr_doc_id
+  AND b.CLD_ID    = $P{cldId}
+  AND b.SLOC_ID   = $P{slocId}
+  AND b.HO_ORG_ID = $P{hoOrgId}
+  AND b.ORG_ID    = $P{orgId}
+    --AND b.DOC_ID = e.doc_id
+  )RepTo,
+  DECODE(
+  (SELECT p.param_desc FROM hcm$setup p WHERE p.param_id = a.emp_GEN
+  AND p.cld_id                                           = a.cld_id
+  AND p.sloc_id                                          = a.sloc_id
+  AND p.ho_org_id                                        = a.ho_org_id
+  ),'MALE','Mr.','Mrs.')Emp_Alias,
+  (SELECT p.param_desc
+  FROM hcm$setup p
+  WHERE p.param_id = a.emp_grp_id
+  AND p.cld_id     = a.cld_id
+  AND p.sloc_id    = a.sloc_id
+  AND p.ho_org_id  = a.ho_org_id
+  )emp_grp_nm ,
+  a.EMP_DESG_ID,
+  (SELECT p.param_desc
+  FROM hcm$setup p
+  WHERE p.param_id = a.EMP_DESG_ID
+  AND p.cld_id     = a.cld_id
+  AND p.sloc_id    = a.sloc_id
+  AND p.ho_org_id  = a.ho_org_id
+  )emp_desg_nm,
+  a.emp_loc_id,
+  (SELECT p.param_desc
+  FROM hcm$setup p
+  WHERE p.param_id = a.emp_loc_id
+  AND p.cld_id     = a.cld_id
+  AND p.sloc_id    = a.sloc_id
+  AND p.ho_org_id  = a.ho_org_id
+  )emp_loc_nm,
+  (SELECT p.param_desc
+  FROM hcm$setup p
+  WHERE p.param_id = a.emp_GEN
+  AND p.cld_id     = a.cld_id
+  AND p.sloc_id    = a.sloc_id
+  AND p.ho_org_id  = a.ho_org_id
+  )emp_GEN ,
+  'COMPOFF' leave ,
+  g.grp_id,
+
+   g.COMP_OFF_DAYS leave_bal
+FROM org$hcm$emp$prf A ,
+  app.app$dept c,
+  app.org d,
+  HCM$EMP$SHIFT e,
+  app.app$shift F,
+  hcm$grp$comp$off g,
+  HCM$EMP$LEAVE L
+WHERE a.cld_id        = c.cld_id
+AND a.sloc_id         = c.sloc_id
+AND a.ho_org_id       = c.ho_org_id
+AND A.EMP_DEPT_ID     = C.DEPT_ID
+AND A.ORG_ID          = d.org_id
+AND a.cld_id          = d.org_cld_id
+AND A.CLD_ID          =E.CLD_ID
+AND A.SLOC_ID         =E.SLOC_ID
+AND A.ORG_ID          =E.ORG_ID
+AND A.HO_ORG_ID       =E.HO_ORG_ID
+AND A.DOC_ID          =E.DOC_ID
+AND E.CLD_ID          = F.CLD_ID
+AND E.HO_ORG_ID       = F.HO_ORG_ID
+AND E.SLOC_ID         = F.SLOC_ID
+AND E.SHIFT_ID        = F.SHIFT_ID
+AND a.cld_id          =g.cld_id
+AND a.org_id          =g.org_id
+AND a.sloc_id         =g.sloc_id
+AND a.ho_org_id       =g.ho_org_id
+AND a.emp_grp_id      =G.GRP_ID
+AND A.ORG_ID          =L.ORG_ID
+AND A.HO_ORG_ID       =L.HO_ORG_ID
+AND A.CLD_ID          =L.CLD_ID
+AND A.DOC_ID          =L.DOC_ID
+AND a.sloc_id         = L.sloc_id
+AND A.EMP_CODE        =L.EMP_CODE
+AND a.CLD_ID          = NVL($P{cldId} ,a.CLD_ID )
+AND a.SLOC_ID         = NVL($P{slocId},a.SLOC_ID)
+AND a.HO_ORG_ID       = NVL($P{hoOrgId},a.ho_org_id)
+AND a.ORG_ID          = NVL($P{orgId},a.org_id)
+AND TRUNC(a.emp_doj) >= NVL(to_date($P{FromDate},'yyyy-MM-dd'),TRUNC(a.emp_doj))
+AND TRUNC(a.emp_doj) <=NVL(to_date($P{ToDate},'yyyy-MM-dd'),TRUNC(a.emp_doj))
+AND (A.EMP_DEPT_ID    = $P{crtValue}
+OR A.EMP_LOC_ID       = $P{crtValue}
+OR A.EMP_GRP_ID       = $P{crtValue}
+OR A.DOC_ID           =$P{crtValue})
+AND A.DOC_ID          = NVL($P{empDocId}, A.DOC_ID)
+AND a.EMP_DESG_ID     =NVL ($P{desgId}, a.EMP_DESG_ID )
+AND E.SHIFT_ID        =NVL($P{shiftId},E.SHIFT_ID)]]>
+	</queryString>
+	<field name="EMP_CODE" class="java.math.BigDecimal"/>
+	<field name="EMP_ID" class="java.lang.String"/>
+	<field name="EMP_DOB" class="java.sql.Timestamp"/>
+	<field name="EMP_DOJ" class="java.sql.Timestamp"/>
+	<field name="EMP_DEPT_ID" class="java.lang.String"/>
+	<field name="DEPARTMENT" class="java.lang.String"/>
+	<field name="EMP_EMAIL" class="java.lang.String"/>
+	<field name="CONTACT" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="SHIFT_ID" class="java.lang.String"/>
+	<field name="SHIFT_NM" class="java.lang.String"/>
+	<field name="GEN_ID" class="java.lang.String"/>
+	<field name="EMPLOYEE" class="java.lang.String"/>
+	<field name="REPTO" class="java.lang.String"/>
+	<field name="EMP_ALIAS" class="java.lang.String"/>
+	<field name="EMP_GRP_NM" class="java.lang.String"/>
+	<field name="EMP_DESG_ID" class="java.lang.String"/>
+	<field name="EMP_DESG_NM" class="java.lang.String"/>
+	<field name="EMP_LOC_ID" class="java.lang.String"/>
+	<field name="EMP_LOC_NM" class="java.lang.String"/>
+	<field name="EMP_GEN" class="java.lang.String"/>
+	<field name="LEAVE" class="java.lang.String"/>
+	<field name="GRP_ID" class="java.lang.String"/>
+	<field name="LEAVE_BAL" class="java.math.BigDecimal"/>
+	<pageHeader>
+		<band height="100" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="51" width="660" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="47" width="660" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<image>
+				<reportElement x="3" y="4" width="58" height="40"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="469" y="23" width="190" height="16" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[List of Holidays
+]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="470" y="7" width="190" height="16" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="11" isBold="true" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="111" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Employee Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="111" y="0" width="74" height="20" backcolor="#C1DDF9"/>
+				<box leftPadding="0">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Group ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="185" y="0" width="65" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Shift]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="250" y="0" width="59" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Department]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="309" y="0" width="73" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Designation]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="382" y="0" width="35" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CL Balance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="417" y="0" width="38" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[EL Balance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="455" y="0" width="40" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ML Balance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="495" y="0" width="60" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Comp. Off]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="554" y="0" width="106" height="20" backcolor="#C1DDF9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Quarter Leave Balance]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="37" splitType="Stretch"/>
+	</detail>
+	<pageFooter>
+		<band height="82" splitType="Stretch">
+			<textField evaluationTime="Report">
+				<reportElement x="631" y="13" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="1" y="12" width="122" height="13"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="573" y="13" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="4" width="660" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="8" width="660" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="95">
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="1" y="11" width="122" height="12"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="631" y="12" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="573" y="12" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="24" width="660" height="22"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated By ebizframe10]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="3" width="660" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="7" width="660" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</lastPageFooter>
+	<summary>
+		<band height="57"/>
+	</summary>
+</jasperReport>

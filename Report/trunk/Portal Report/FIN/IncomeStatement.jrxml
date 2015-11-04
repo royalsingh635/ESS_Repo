@@ -1,0 +1,845 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="IncomeStatement" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="15" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="foreColor">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$F{CHANGES}<0]]></conditionExpression>
+			<style forecolor="#FF3333"/>
+		</conditionalStyle>
+	</style>
+	<style name="BgColorStyle">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("D")]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("R")]]></conditionExpression>
+			<style backcolor="#F5B5B5"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("G")]]></conditionExpression>
+			<style backcolor="#DDE39B"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("Y")]]></conditionExpression>
+			<style backcolor="#FFFF95"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("GG")]]></conditionExpression>
+			<style backcolor="#EBEBEB"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{BgColor}.equalsIgnoreCase("B")]]></conditionExpression>
+			<style backcolor="#BEBEED"/>
+		</conditionalStyle>
+	</style>
+	<style name="HeaderStyle">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("D")]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("R")]]></conditionExpression>
+			<style backcolor="#FF0000"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("G")]]></conditionExpression>
+			<style backcolor="#CDDB27"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("Y")]]></conditionExpression>
+			<style backcolor="#FFFF00"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("GG")]]></conditionExpression>
+			<style backcolor="#CCCCCC"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$P{Head}.equalsIgnoreCase("B")]]></conditionExpression>
+			<style backcolor="#3333FF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="Path" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AsOnDate" class="java.lang.String"/>
+	<parameter name="CldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="IncludeGrp" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CogId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PostFlag" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="BgColor" class="java.lang.String"/>
+	<parameter name="Head" class="java.lang.String"/>
+	<parameter name="Margin_Detail" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+a.org_id,
+a.org_desc,
+a.ORG_CURR_ID_BS,
+b.GLBL_CURR_NOTATION_ALIAS, c.coa_nm,nvl(c.cl_bal_2014,'0.00')cl_bal_2014,nvl(c.cl_bal_2013,'0.00')cl_bal_2013,nvl((cl_bal_2014 - cl_bal_2013),0) changes
+,nvl(100/(cl_bal_2013/(cl_bal_2014 - cl_bal_2013)),0) as perc
+from app.org a,app.app$glbl$curr b,
+(--PNL Income From date is not defined
+SELECT COG_ID, COG_ID_GRP, COG_NM_TREE cog_ind, COA_ID , z.COA_NM,
+decode(cl_BAL_type,'Cr',cl_bal_2014,'Dr',-cl_bal_2014,cl_bal_2014) cl_bal_2014,
+ y.CL_BAL_2013
+FROM	(SELECT	c.ORG_COA_CLD_ID CLD_ID,C.ORG_ID ORG_ID,a.ORG_DESC ORG_DESC,c.ORG_FY_ID ORG_FY_ID,c.ORG_COA_ID COA_ID,b.COA_NM COA_NM,
+		d.COG_ID,    SUBSTR(d.COG_ID,1,1) COG_ID_GRP,		d.COG_NM COG_NM,		d.COG_NM_TREE,		d.COG_NM_INDENT,		d.COG_SUBLDGR,
+		DECODE($P{PostFlag},
+					'A',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',ABS(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0) + NVL(f1.tmp_dr_amt_op, 0) -NVL(f1.tmp_cr_amt_op, 0)),
+					'CR',ABS(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0) - NVL(f1.tmp_dr_amt_op, 0) +NVL(f1.tmp_cr_amt_op, 0) )),
+					'P',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',ABS(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0)),
+					'CR',ABS(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0)))) cl_bal_2014,
+		DECODE($P{PostFlag},
+					'A',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0) + NVL(f1.tmp_dr_amt_op, 0) -NVL(f1.tmp_cr_amt_op, 0) ),0,'Dr',1,'Dr',-1,'Cr'),
+					'CR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0) - NVL(f1.tmp_dr_amt_op, 0) +NVL(f1.tmp_cr_amt_op, 0) ),0,'Dr',1,'Cr',-1,'Dr')),
+					'P',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0)),0,'Dr',1,'Dr',-1,'Cr'),
+					'CR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0)),0,'Dr',1,'Cr',-1,'Dr'))) cl_BAL_type
+     	FROM	app.org a,
+      (SELECT	DISTINCT A.ORG_CLD_ID ORG_CLD_ID,
+			A.ORG_ID ORG_ID,
+			b.COA_ID,
+			b.COA_NM,
+			b.COA_COG_ID,
+			b.COA_ACC_ID
+		FROM	app.org A,
+			fin$coa B
+		WHERE	A.ORG_CLD_ID = NVL($P{CldId}, A.ORG_CLD_ID)
+		AND  	A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+		AND	COA_CLD_ID = A.ORG_CLD_ID
+ 		AND	B.COA_HO_ORG_ID = NVL(A.ORG_ID_PARENT_L0,A.ORG_ID)
+		AND 	B.COA_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, COA_COG_ID)||'%', NVL($P{CogId}, COA_COG_ID))
+    AND b.COA_GRP_TYPE  ='I'
+    AND b.COA_PNL_ITEM =  'Y'
+                   	)b,
+		(SELECT	A.ORG_COA_CLD_ID,
+			A.ORG_ID,
+			 A.ORG_FY_ID,
+ 			A.ORG_COA_COG_ID,
+			A.ORG_COA_ID,
+			ABS(SUM(DECODE(A.ORG_COA_OP_BAL_TYP,'Dr',A.ORG_COA_OP_BAL,-ORG_COA_OP_BAL))) ORG_COA_OP_BAL,
+			DECODE(SIGN(SUM(DECODE(A.ORG_COA_OP_BAL_TYP,'Dr',A.ORG_COA_OP_BAL,-ORG_COA_OP_BAL))),1,'Dr',0,'Dr','Cr') ORG_COA_OP_BAL_TYP
+		FROM	ORG$COA$FY A,
+        (select app.fn_get_fy_id($P{CldId}, $P{OrgId},TO_DATE($P{AsOnDate}, 'YYYY-MM-DD'),'FY') fy
+        from dual) B
+		WHERE	A.ORG_COA_CLD_ID = NVL($P{CldId}, A.ORG_COA_CLD_ID)
+	 	AND  	A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+		AND    A.ORG_FY_ID = B.FY
+		AND 	A.ORG_COA_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, A.ORG_COA_COG_ID)||'%', NVL($P{CogId}, A.ORG_COA_COG_ID))
+		GROUP BY 	A.ORG_COA_CLD_ID,
+			A.ORG_ID,
+			A.ORG_FY_ID,
+		 	A.ORG_COA_COG_ID,
+			A.ORG_COA_ID
+		)  c,
+		(SELECT  DISTINCT COG_CLD_ID COG_CLD_ID,
+
+			 COG_ID,
+			COG_NM,
+			SUBSTR(SYS_CONNECT_BY_PATH(COG_NM, '->'),3) COG_NM_TREE,
+			LPAD(' ',2*(LENGTH(COG_ID)-1))||COG_NM COG_NM_INDENT,
+			COG_ID_PARENT,
+			 COG_SUBLDGR,
+			COG_BS_ITEM,
+			COG_PNL_ITEM,
+			COG_CF_ITEM,
+			COG_TRF_BAL,
+			COG_ACTV
+       	FROM    (select app.FN_GET_PARENT_ORG_L0 ($P{CldId}, $P{OrgId}) ho_org_id from dual) A,
+       			(select cog_cld_id,cog_sloc_id,cog_org_id,
+					cog_id,cog_id_parent,
+					cog_nm,
+					cog_subldgr,cog_bs_item,cog_pnl_item,cog_cf_item,cog_trf_bal,
+					cog_actv
+					from fin$cog
+					where     cog_cld_id = $P{CldId}
+					--and    cog_org_id = '01'
+					  ) B
+		WHERE
+		B.COG_ORG_ID = a.ho_org_id
+		AND	SUBSTR(B.COG_ID,1,1) IN ('3','4')
+		START WITH nvl(COG_ID_PARENT,'!') in ('!','00')
+		CONNECT BY NOCYCLE PRIOR COG_ID = COG_ID_PARENT
+		) d,
+		(SELECT	A.GL_CLD_ID,
+			A.GL_ORG_ID,
+			A.GL_COA_ID,
+			NVL(SUM(DECODE(GL_AMT_TYP, 'Dr', GL_AMT_BS, 0)),0) gl_dr_amt_op,
+			NVL(SUM(DECODE(GL_AMT_TYP, 'Cr', GL_AMT_BS, 0)),0) gl_cr_amt_op
+		FROM    GL_LINES A,
+           		GL B,
+          (SELECT app.fn_get_fy_start_date($P{CldId}, $P{OrgId}, TO_DATE($P{AsOnDate},'YYYY-mm-dd'),'FY') FY_START_dATE
+               FROM DUAL) C
+		WHERE 	B.GL_CLD_ID = NVL($P{CldId},B.GL_CLD_ID)
+		AND 	B.GL_STAT = DECODE($P{PostFlag}, 'A', B.GL_STAT, 'P', 'FLC')
+		AND 	A.GL_CLD_ID = B.GL_CLD_ID
+		AND 	A.GL_SLOC_ID = B.GL_SLOC_ID
+		AND 	A.GL_VOU_ID = B.GL_VOU_ID
+
+		AND	a.GL_ORG_ID = NVL($P{OrgId}, a.GL_ORG_ID)
+		AND 	a.GL_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, a.GL_COG_ID)||'%', NVL($P{CogId}, a.GL_COG_ID))
+		AND 	TRUNC(a.GL_VOU_DT) >=  C.FY_START_dATE
+		AND     TRUNC(a.GL_VOU_DT) <= TO_DATE($P{AsOnDate}, 'YYYY-mm-dd')
+		AND 	A.GL_TXN_TYP_MIG not in  ('O','MO')
+		GROUP BY A.GL_CLD_ID,
+			A.GL_ORG_ID,
+			A.GL_COA_ID
+		) e1,
+		(
+		SELECT	a.TVOU_CLD_ID,
+			a.TVOU_ORG_ID,
+			a.TVOU_COA_ID,
+			NVL(SUM(DECODE(a.TVOU_AMT_TYP,'Dr',a.TVOU_AMT_BS,0)),0) tmp_dr_amt_op,
+			NVL(SUM(DECODE(a.TVOU_AMT_TYP,'Cr',a.TVOU_AMT_BS,0)),0) tmp_cr_amt_op
+		FROM    TVOU_LINES a,
+            (SELECT app.fn_get_fy_start_date($P{CldId}, $P{OrgId}, TO_DATE($P{AsOnDate},'YYYY-mm-dd'),'FY') FY_START_dATE
+            FROM DUAL) C
+		WHERE  	a.TVOU_CLD_ID = NVL($P{CldId},a.TVOU_CLD_ID)
+		AND	a.tvou_ORG_ID = NVL($P{OrgId}, a.tvou_ORG_ID)
+		AND 	a.tvou_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, a.tvou_COG_ID)||'%', NVL($P{CogId}, a.tvou_COG_ID))
+		AND 	TRUNC(a.tVOU_DT) >=  C.FY_START_dATE
+		AND     TRUNC(a.tVOU_DT) <= TO_DATE($P{AsOnDate}, 'YYYY-mm-dd')
+		GROUP BY a.TVOU_CLD_ID,
+			a.TVOU_ORG_ID,
+			a.TVOU_COA_ID
+		) f1
+	WHERE	A.ORG_CLD_ID = NVL($P{CldId}, A.ORG_CLD_ID)
+	AND  	A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+	AND	B.ORG_CLD_ID = A.ORG_CLD_ID
+	AND	B.ORG_ID = A.ORG_ID
+
+	AND     c.ORG_COA_CLD_ID = B.ORG_CLD_ID
+	AND     c.ORG_ID = B.ORG_ID
+	AND     c.ORG_COA_ID = b.COA_ID
+
+	AND     d.COG_CLD_ID = B.ORG_CLD_ID
+	AND     d.COG_ID = b.COA_COG_ID
+
+	AND     c.ORG_COA_CLD_ID = e1.GL_CLD_ID(+)
+	AND     c.ORG_ID = e1.GL_ORG_ID(+)
+	AND     c.ORG_COA_ID = e1.GL_COA_ID(+)
+
+	AND     c.ORG_COA_CLD_ID = f1.TVOU_CLD_ID(+)
+	AND     c.ORG_ID = f1.tvou_ORG_ID(+)
+	AND     c.ORG_COA_ID = f1.tvou_COA_ID(+)
+	                ) z,
+
+                  --PNL Income From date is not defined
+(SELECT
+COA_NM,
+decode(cl_BAL_type,'Cr',CL_BAL_2013,'Dr',-CL_BAL_2013,CL_BAL_2013) CL_BAL_2013
+FROM	(SELECT	c.ORG_COA_CLD_ID CLD_ID,
+		c.ORG_ID ORG_ID,
+		a.ORG_DESC ORG_DESC,
+		c.ORG_FY_ID ORG_FY_ID,
+		c.ORG_COA_ID COA_ID,
+		b.COA_NM COA_NM,
+		d.COG_ID,
+    SUBSTR(d.COG_ID,1,1) COG_ID_GRP,
+		d.COG_NM COG_NM,
+		d.COG_NM_TREE,
+		d.COG_NM_INDENT,
+		d.COG_SUBLDGR,
+		DECODE($P{PostFlag},
+		'A',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',ABS(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0) + NVL(f1.tmp_dr_amt_op, 0) -NVL(f1.tmp_cr_amt_op, 0)),
+					'CR',ABS(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0) - NVL(f1.tmp_dr_amt_op, 0) +NVL(f1.tmp_cr_amt_op, 0) )),
+		'P',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',ABS(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0)),
+					'CR',ABS(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0)))) CL_BAL_2013,
+		DECODE($P{PostFlag},
+		'A',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0) + NVL(f1.tmp_dr_amt_op, 0) -NVL(f1.tmp_cr_amt_op, 0) ),0,'Dr',1,'Dr',-1,'Cr'),
+					'CR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0) - NVL(f1.tmp_dr_amt_op, 0) +NVL(f1.tmp_cr_amt_op, 0) ),0,'Dr',1,'Cr',-1,'Dr')),
+		'P',DECODE(LTRIM(RTRIM(UPPER(NVL(c.ORG_COA_OP_BAL_TYP,'Dr')))),
+					'DR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) +NVL(e1.gl_dr_amt_op, 0) -NVL(e1.gl_cr_amt_op, 0)),0,'Dr',1,'Dr',-1,'Cr'),
+					'CR',DECODE(SIGN(NVL(c.ORG_COA_OP_BAL, 0) -NVL(e1.gl_dr_amt_op, 0) +NVL(e1.gl_cr_amt_op, 0)),0,'Dr',1,'Cr',-1,'Dr'))) cl_BAL_type
+     	FROM	app.org a,
+      (SELECT	DISTINCT A.ORG_CLD_ID ORG_CLD_ID,
+			A.ORG_ID ORG_ID,
+			b.COA_ID,
+			b.COA_NM,
+			b.COA_COG_ID,
+			b.COA_ACC_ID
+		FROM	app.org A,
+			fin$coa B
+		WHERE	A.ORG_CLD_ID = NVL($P{CldId}, A.ORG_CLD_ID)
+		AND  	A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+		AND	COA_CLD_ID = A.ORG_CLD_ID
+ 		AND	B.COA_HO_ORG_ID = NVL(A.ORG_ID_PARENT_L0,A.ORG_ID)
+		AND 	B.COA_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, COA_COG_ID)||'%', NVL($P{CogId}, COA_COG_ID))
+    AND b.COA_GRP_TYPE  ='I'
+    AND b.COA_PNL_ITEM =  'Y'
+                   	)b,
+		(SELECT	A.ORG_COA_CLD_ID,
+			A.ORG_ID,
+			 A.ORG_FY_ID,
+ 			A.ORG_COA_COG_ID,
+			A.ORG_COA_ID,
+			ABS(SUM(DECODE(A.ORG_COA_OP_BAL_TYP,'Dr',A.ORG_COA_OP_BAL,-ORG_COA_OP_BAL))) ORG_COA_OP_BAL,
+			DECODE(SIGN(SUM(DECODE(A.ORG_COA_OP_BAL_TYP,'Dr',A.ORG_COA_OP_BAL,-ORG_COA_OP_BAL))),1,'Dr',0,'Dr','Cr') ORG_COA_OP_BAL_TYP
+		FROM	ORG$COA$FY A,
+        (select app.fn_get_fy_id($P{CldId}, $P{OrgId},add_months(TO_DATE($P{AsOnDate}, 'YYYY-MM-DD'),-12),'FY') fy
+        from dual) B
+		WHERE	A.ORG_COA_CLD_ID = NVL($P{CldId}, A.ORG_COA_CLD_ID)
+	 	AND  	A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+		AND    A.ORG_FY_ID = B.FY
+		AND 	A.ORG_COA_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, A.ORG_COA_COG_ID)||'%', NVL($P{CogId}, A.ORG_COA_COG_ID))
+		GROUP BY 	A.ORG_COA_CLD_ID,
+			A.ORG_ID,
+			A.ORG_FY_ID,
+		 	A.ORG_COA_COG_ID,
+			A.ORG_COA_ID
+		)  c,
+		(SELECT  DISTINCT COG_CLD_ID COG_CLD_ID,
+
+			 COG_ID,
+			COG_NM,
+			SUBSTR(SYS_CONNECT_BY_PATH(COG_NM, '->'),3) COG_NM_TREE,
+			LPAD(' ',2*(LENGTH(COG_ID)-1))||COG_NM COG_NM_INDENT,
+			COG_ID_PARENT,
+			 COG_SUBLDGR,
+			COG_BS_ITEM,
+			COG_PNL_ITEM,
+			COG_CF_ITEM,
+			COG_TRF_BAL,
+			COG_ACTV
+       	FROM    (select app.FN_GET_PARENT_ORG_L0 ($P{CldId}, $P{OrgId}) ho_org_id from dual) A,
+       			(select cog_cld_id,cog_sloc_id,cog_org_id,
+					cog_id,cog_id_parent,
+					cog_nm,
+					cog_subldgr,cog_bs_item,cog_pnl_item,cog_cf_item,cog_trf_bal,
+					cog_actv
+					from fin$cog
+					where     cog_cld_id = $P{CldId}
+					--and    cog_org_id = '01'
+					  ) B
+		WHERE
+		B.COG_ORG_ID = a.ho_org_id
+		AND	SUBSTR(B.COG_ID,1,1) IN ('3','4')
+		START WITH nvl(COG_ID_PARENT,'!') in ('!','00')
+		CONNECT BY NOCYCLE PRIOR COG_ID = COG_ID_PARENT
+		) d,
+		(SELECT	A.GL_CLD_ID,
+			A.GL_ORG_ID,
+			A.GL_COA_ID,
+			NVL(SUM(DECODE(GL_AMT_TYP, 'Dr', GL_AMT_BS, 0)),0) gl_dr_amt_op,
+			NVL(SUM(DECODE(GL_AMT_TYP, 'Cr', GL_AMT_BS, 0)),0) gl_cr_amt_op
+		FROM    GL_LINES A,
+           		GL B,
+          (SELECT app.fn_get_fy_start_date($P{CldId}, $P{OrgId}, add_months(TO_DATE($P{AsOnDate},'YYYY-mm-dd'),-12),'FY') FY_START_dATE
+               FROM DUAL) C
+		WHERE 	B.GL_CLD_ID = NVL($P{CldId},B.GL_CLD_ID)
+		AND 	B.GL_STAT = DECODE($P{PostFlag}, 'A', B.GL_STAT, 'P', 'FLC')
+		AND 	A.GL_CLD_ID = B.GL_CLD_ID
+		AND 	A.GL_SLOC_ID = B.GL_SLOC_ID
+		AND 	A.GL_VOU_ID = B.GL_VOU_ID
+
+		AND	a.GL_ORG_ID = NVL($P{OrgId}, a.GL_ORG_ID)
+		AND 	a.GL_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, a.GL_COG_ID)||'%', NVL($P{CogId}, a.GL_COG_ID))
+		AND 	TRUNC(a.GL_VOU_DT) >=  C.FY_START_dATE
+		AND     TRUNC(a.GL_VOU_DT) <= add_months(TO_DATE($P{AsOnDate}, 'YYYY-mm-dd'),-12)
+		AND 	A.GL_TXN_TYP_MIG not in  ('O','MO')
+		GROUP BY A.GL_CLD_ID,
+			A.GL_ORG_ID,
+			A.GL_COA_ID
+		) e1,
+		(
+		SELECT	a.TVOU_CLD_ID,
+			a.TVOU_ORG_ID,
+			a.TVOU_COA_ID,
+			NVL(SUM(DECODE(a.TVOU_AMT_TYP,'Dr',a.TVOU_AMT_BS,0)),0) tmp_dr_amt_op,
+			NVL(SUM(DECODE(a.TVOU_AMT_TYP,'Cr',a.TVOU_AMT_BS,0)),0) tmp_cr_amt_op
+		FROM    TVOU_LINES a,
+            (SELECT app.fn_get_fy_start_date($P{CldId}, $P{OrgId}, add_months(TO_DATE($P{AsOnDate},'YYYY-mm-dd'),-12),'FY') FY_START_dATE
+            FROM DUAL) C
+		WHERE  	a.TVOU_CLD_ID = NVL($P{CldId},a.TVOU_CLD_ID)
+		AND	a.tvou_ORG_ID = NVL($P{OrgId}, a.tvou_ORG_ID)
+		AND 	a.tvou_COG_ID LIKE decode($P{IncludeGrp},'Y', NVL($P{CogId}, a.tvou_COG_ID)||'%', NVL($P{CogId}, a.tvou_COG_ID))
+		AND 	TRUNC(a.tVOU_DT) >=  C.FY_START_dATE
+		AND     TRUNC(a.tVOU_DT) <= add_months(TO_DATE($P{AsOnDate}, 'YYYY-mm-dd'),-12)
+		GROUP BY a.TVOU_CLD_ID,
+			a.TVOU_ORG_ID,
+			a.TVOU_COA_ID
+		) f1
+	WHERE	A.ORG_CLD_ID = NVL($P{CldId}, A.ORG_CLD_ID)
+	AND  	A.ORG_ID = NVL($P{OrgId}, A.ORG_ID)
+	AND	B.ORG_CLD_ID = A.ORG_CLD_ID
+	AND	B.ORG_ID = A.ORG_ID
+
+	AND     c.ORG_COA_CLD_ID = B.ORG_CLD_ID
+	AND     c.ORG_ID = B.ORG_ID
+	AND     c.ORG_COA_ID = b.COA_ID
+
+	AND     d.COG_CLD_ID = B.ORG_CLD_ID
+	AND     d.COG_ID = b.COA_COG_ID
+
+	AND     c.ORG_COA_CLD_ID = e1.GL_CLD_ID(+)
+	AND     c.ORG_ID = e1.GL_ORG_ID(+)
+	AND     c.ORG_COA_ID = e1.GL_COA_ID(+)
+
+	AND     c.ORG_COA_CLD_ID = f1.TVOU_CLD_ID(+)
+	AND     c.ORG_ID = f1.tvou_ORG_ID(+)
+	AND     c.ORG_COA_ID = f1.tvou_COA_ID(+))
+  where not (CL_BAL_2013=0)
+	                ) y
+where not (cl_bal_2014=0) and
+z.coa_nm = y.coa_nm(+)) c
+where org_id = $P{OrgId}
+and a.ORG_CURR_ID_BS=b.GLBL_CURR_ID
+order by 2,c.coa_nm]]>
+	</queryString>
+	<field name="ORG_ID" class="java.lang.String"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<field name="ORG_CURR_ID_BS" class="java.math.BigDecimal"/>
+	<field name="GLBL_CURR_NOTATION_ALIAS" class="java.lang.String"/>
+	<field name="COA_NM" class="java.lang.String"/>
+	<field name="CL_BAL_2014" class="java.math.BigDecimal"/>
+	<field name="CL_BAL_2013" class="java.math.BigDecimal"/>
+	<field name="CHANGES" class="java.math.BigDecimal"/>
+	<field name="PERC" class="java.math.BigDecimal"/>
+	<variable name="TotAmt14" class="java.math.BigDecimal" resetType="Group" resetGroup="OrgId" calculation="Sum">
+		<variableExpression><![CDATA[$F{CL_BAL_2014}]]></variableExpression>
+	</variable>
+	<variable name="TotAmt13" class="java.math.BigDecimal" resetType="Group" resetGroup="OrgId" calculation="Sum">
+		<variableExpression><![CDATA[$F{CL_BAL_2013}]]></variableExpression>
+	</variable>
+	<variable name="TotChangeVal" class="java.math.BigDecimal" resetType="Group" resetGroup="OrgId" calculation="Sum">
+		<variableExpression><![CDATA[$F{CHANGES}]]></variableExpression>
+	</variable>
+	<variable name="TotPerc" class="java.math.BigDecimal" resetType="Group" resetGroup="OrgId" calculation="Sum">
+		<variableExpression><![CDATA[$F{PERC}]]></variableExpression>
+	</variable>
+	<group name="OrgId">
+		<groupExpression><![CDATA[$F{ORG_ID}]]></groupExpression>
+		<groupHeader>
+			<band height="20">
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="0" y="0" width="220" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="220" y="0" width="85" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="305" y="0" width="85" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="390" y="0" width="90" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="HeaderStyle" mode="Opaque" x="480" y="0" width="76" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[    % Change]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="403" y="0" width="77" height="20"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{GLBL_CURR_NOTATION_ALIAS}+"  Change"]]></textFieldExpression>
+				</textField>
+				<subreport>
+					<reportElement x="340" y="0" width="50" height="20"/>
+					<subreportParameter name="AsOnDate">
+						<subreportParameterExpression><![CDATA[$P{AsOnDate}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/backYear_SubReport.jasper"]]></subreportExpression>
+				</subreport>
+				<textField>
+					<reportElement x="220" y="0" width="66" height="20"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{AsOnDate}.substring( 0, 4 )]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="20">
+				<staticText>
+					<reportElement x="0" y="0" width="220" height="20"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[      Net Income (Loss) ]]></text>
+				</staticText>
+				<textField pattern="###0.0" isBlankWhenNull="true">
+					<reportElement x="220" y="0" width="66" height="20"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotAmt14}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0.0" isBlankWhenNull="true">
+					<reportElement x="305" y="0" width="67" height="20"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotAmt13}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0" isBlankWhenNull="true">
+					<reportElement x="480" y="0" width="55" height="20"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotPerc}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0.0" isBlankWhenNull="true">
+					<reportElement x="390" y="0" width="70" height="20"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{TotChangeVal}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="535" y="0" width="20" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<text><![CDATA[%]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band height="802" splitType="Stretch">
+			<rectangle>
+				<reportElement style="BgColorStyle" x="-20" y="-20" width="595" height="822"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<image scaleImage="FillFrame">
+				<reportElement x="1" y="69" width="555" height="733">
+					<printWhenExpression><![CDATA[$P{BgColor}.equalsIgnoreCase( "d" )]]></printWhenExpression>
+				</reportElement>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org_logo_dim.png"]]></imageExpression>
+			</image>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-19" y="400" width="17" height="200">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="558" y="200" width="17" height="200">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="558" y="600" width="17" height="189">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-19" y="0" width="17" height="200">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-19" y="600" width="17" height="189">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="-19" y="200" width="17" height="200">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Left">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="558" y="400" width="17" height="200">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="558" y="0" width="17" height="200">
+					<printWhenExpression><![CDATA[$P{Margin_Detail}.equalsIgnoreCase("Y")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="Right">
+					<font fontName="Arial" size="7" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+		</band>
+	</background>
+	<pageHeader>
+		<band height="55" splitType="Stretch">
+			<image scaleImage="FillFrame">
+				<reportElement x="0" y="0" width="28" height="35"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<textField isBlankWhenNull="true">
+				<reportElement x="165" y="2" width="390" height="15" forecolor="#6600CC" backcolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="344" y="17" width="211" height="15" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<text><![CDATA[Income Statement]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="461" y="32" width="53" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[    As On Date:]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="514" y="32" width="40" height="15"/>
+				<subreportParameter name="Date">
+					<subreportParameterExpression><![CDATA[$P{AsOnDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OrgId">
+					<subreportParameterExpression><![CDATA[]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="CldId"/>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Date_SubReport1.jasper"]]></subreportExpression>
+			</subreport>
+			<line>
+				<reportElement x="0" y="49" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="53" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="15"/>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="14" y="0" width="202" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{COA_NM}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.0" isBlankWhenNull="true">
+				<reportElement x="220" y="0" width="66" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{CL_BAL_2014}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.0" isBlankWhenNull="true">
+				<reportElement x="305" y="0" width="67" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{CL_BAL_2013}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="535" y="0" width="20" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[%]]></text>
+			</staticText>
+			<textField pattern="###0.0" isBlankWhenNull="true">
+				<reportElement style="foreColor" x="390" y="0" width="70" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{CHANGES}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0" isBlankWhenNull="true">
+				<reportElement x="480" y="0" width="55" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PERC}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="40" splitType="Stretch">
+			<staticText>
+				<reportElement style="BgColorStyle" mode="Opaque" x="-20" y="1" width="595" height="39"/>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="4" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="8" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="465" y="15" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="523" y="17" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="1" y="15" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="50">
+			<staticText>
+				<reportElement style="BgColorStyle" mode="Opaque" x="-20" y="2" width="595" height="48"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated By ebizframe10]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="3" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="7" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="466" y="14" width="58" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="524" y="14" width="29" height="12" forecolor="#000000"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="2" y="14" width="122" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+</jasperReport>

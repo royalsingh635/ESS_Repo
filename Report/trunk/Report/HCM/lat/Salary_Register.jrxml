@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Salary_Register" language="groovy" pageWidth="1200" pageHeight="595" orientation="Landscape" columnWidth="1160" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="cldId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="slocId" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="hoOrgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orgId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="empDocId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="FromDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ToDate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="crtValue" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT distinct --A.CLD_ID,A.HO_ORG_ID,A.ORG_ID,A.DOC_ID,A.SAL_ID,
+--(A.SEQ_ORD || ' ' || A.SAL_DESC ) SAL_DES,
+NVL(DECODE((A.SEQ_ORD || ' ' || A.SAL_DESC ),'BS','1BS'),(A.SEQ_ORD || ' ' || A.SAL_DESC )) SAL_DESC
+,A.SAL_AMT,
+--A.PROC_FRM_DT,A.PROC_TO_DT,
+A.EMP_ID,
+A.EMP_NM,A.SEQ_ORD, B.ORG_DESC FROM(
+
+SELECT PRF.CLD_ID,
+       PRF.SLOC_ID,
+       PRF.HO_ORG_ID,
+       PRF.ORG_ID,
+       PRF.DOC_ID,
+       SL.SAL_ID,
+       (SELECT ST.SAL_NOTATION FROM ORG$HCM$SALARY ST
+        WHERE PRF.CLD_ID = ST.CLD_ID AND PRF.SLOC_ID = ST.SLOC_ID AND PRF.HO_ORG_ID = ST.HO_ORG_ID
+        AND SL.SAL_ID = ST.SAL_ID)
+        SAL_DESC,
+       nvl(SL.SAL_AMT,0) SAL_AMT,
+SL.PROC_FRM_DT,
+SL.PROC_TO_DT,
+PRF.EMP_ID,
+PRF.EMP_NM,
+1 SEQ_ORD
+FROM ORG$HCM$EMP$PRF PRF,HCM$SAL$PROC$SAL SL
+WHERE PRF.CLD_ID=SL.CLD_ID AND PRF.SLOC_ID=SL.SLOC_ID AND PRF.HO_ORG_ID=SL.HO_ORG_ID AND PRF.ORG_ID=SL.ORG_ID AND PRF.DOC_ID=SL.EMP_DOC_ID
+and SL.SAL_BEHAV=11
+AND SL.PROC_FRM_DT=to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND SL.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND PRF.CLD_ID = $P{cldId}
+AND PRF.SLOC_ID = $P{slocId}
+AND PRF.HO_ORG_ID = $P{hoOrgId}
+AND PRF.ORG_ID = $P{orgId}
+AND (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)
+union
+SELECT PRF.CLD_ID,
+       PRF.SLOC_ID,
+       PRF.HO_ORG_ID,
+       PRF.ORG_ID,
+       PRF.DOC_ID,
+       SL.SAL_ID,
+       (SELECT ST.SAL_NOTATION FROM ORG$HCM$SALARY ST
+        WHERE PRF.CLD_ID = ST.CLD_ID AND PRF.SLOC_ID = ST.SLOC_ID AND PRF.HO_ORG_ID = ST.HO_ORG_ID
+        AND SL.SAL_ID = ST.SAL_ID)
+        SAL_DESC,
+       nvl(SL.SAL_AMT,0) SAL_AMT,
+SL.PROC_FRM_DT,
+SL.PROC_TO_DT,
+PRF.EMP_ID,
+PRF.EMP_NM,
+2 SEQ_ORD
+FROM ORG$HCM$EMP$PRF PRF,HCM$SAL$PROC$SAL SL
+WHERE PRF.CLD_ID=SL.CLD_ID AND PRF.SLOC_ID=SL.SLOC_ID AND PRF.HO_ORG_ID=SL.HO_ORG_ID AND PRF.ORG_ID=SL.ORG_ID AND PRF.DOC_ID=SL.EMP_DOC_ID
+and SL.SAL_BEHAV=12
+AND SL.PROC_FRM_DT=to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND SL.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND PRF.CLD_ID = $P{cldId}
+AND PRF.SLOC_ID = $P{slocId}
+AND PRF.HO_ORG_ID = $P{hoOrgId}
+AND PRF.ORG_ID = $P{orgId}
+AND (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)
+UNION
+SELECT PRF.CLD_ID,
+       PRF.SLOC_ID,
+       PRF.HO_ORG_ID,
+       PRF.ORG_ID,
+       PRF.DOC_ID,
+       SL.SAL_ID,
+       (SELECT ST.SAL_NOTATION FROM ORG$HCM$SALARY ST
+        WHERE PRF.CLD_ID = ST.CLD_ID AND PRF.SLOC_ID = ST.SLOC_ID AND PRF.HO_ORG_ID = ST.HO_ORG_ID
+        AND SL.SAL_ID = ST.SAL_ID)
+        SAL_DESC,
+       nvl(SL.SAL_AMT,0) SAL_AMT,
+SL.PROC_FRM_DT,
+SL.PROC_TO_DT,
+PRF.EMP_ID,
+PRF.EMP_NM,
+3 SEQ_ORD
+FROM ORG$HCM$EMP$PRF PRF,HCM$SAL$PROC$SAL SL
+WHERE PRF.CLD_ID=SL.CLD_ID AND PRF.SLOC_ID=SL.SLOC_ID AND PRF.HO_ORG_ID=SL.HO_ORG_ID AND PRF.ORG_ID=SL.ORG_ID AND PRF.DOC_ID=SL.EMP_DOC_ID
+and SL.SAL_BEHAV=13
+AND SL.PROC_FRM_DT=to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND SL.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND PRF.CLD_ID = $P{cldId}
+AND PRF.SLOC_ID = $P{slocId}
+AND PRF.HO_ORG_ID = $P{hoOrgId}
+AND PRF.ORG_ID = $P{orgId}
+AND (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)
+UNION
+SELECT PRF.CLD_ID,
+       PRF.SLOC_ID,
+       PRF.HO_ORG_ID,
+       PRF.ORG_ID,
+       PRF.DOC_ID,
+       SL.SAL_ID,
+       (SELECT ST.SAL_NOTATION FROM ORG$HCM$SALARY ST
+        WHERE PRF.CLD_ID = ST.CLD_ID AND PRF.SLOC_ID = ST.SLOC_ID AND PRF.HO_ORG_ID = ST.HO_ORG_ID
+        AND SL.SAL_ID = ST.SAL_ID)
+        SAL_DESC,
+       nvl(SL.SAL_AMT,0) SAL_AMT,
+SL.PROC_FRM_DT,
+SL.PROC_TO_DT,
+PRF.EMP_ID,
+PRF.EMP_NM,
+5 SEQ_ORD
+FROM ORG$HCM$EMP$PRF PRF,HCM$SAL$PROC$SAL SL
+WHERE PRF.CLD_ID=SL.CLD_ID AND PRF.SLOC_ID=SL.SLOC_ID AND PRF.HO_ORG_ID=SL.HO_ORG_ID AND PRF.ORG_ID=SL.ORG_ID AND PRF.DOC_ID=SL.EMP_DOC_ID
+and SL.SAL_BEHAV=10
+AND SL.PROC_FRM_DT=to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND SL.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+AND PRF.CLD_ID = $P{cldId}
+AND PRF.SLOC_ID = $P{slocId}
+AND PRF.HO_ORG_ID = $P{hoOrgId}
+AND PRF.ORG_ID = $P{orgId}
+AND (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)
+union
+(SELECT PF.CLD_ID,PF.SLOC_ID,PF.HO_ORG_ID,PF.ORG_ID,PF.EMP_DOC_ID,PF.DED_DOC_ID SAL_ID,
+ (SELECT DED_DESC FROM HCM$DED D WHERE D.DOC_ID=PF.DED_DOC_ID AND PF.CLD_ID=D.CLD_ID AND PF.SLOC_ID=D.SLOC_ID AND
+ PF.HO_ORG_ID=D.HO_ORG_ID AND PF.ORG_ID=D.ORG_ID) SAL_DESC, nvl(PF.EMP_DED_AMT,0) SAL_AMT, PF.PROC_FRM_DT PROC_FRM_DT,
+ PF.PROC_TO_DT PROC_TO_DT,
+ (SELECT EMP_ID FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_ID,
+  (SELECT EMP_NM FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_NM,
+  6 SEQ_ORD
+    FROM HCM$MON$PF$DED PF
+    WHERE  PF.CLD_ID= $P{cldId} AND PF.SLOC_ID=$P{slocId} AND PF.HO_ORG_ID=$P{hoOrgId}
+    AND PF.ORG_ID=$P{orgId} AND PF.PROC_FRM_DT= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID in (SELECT PRF.DOC_ID FROM ORG$HCM$EMP$PRF PRF WHERE (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)) )
+    --PF
+union
+(SELECT PF.CLD_ID,PF.SLOC_ID,PF.HO_ORG_ID,PF.ORG_ID,PF.EMP_DOC_ID,PF.DED_DOC_ID SAL_ID,
+ (SELECT DED_DESC FROM HCM$DED D WHERE D.DOC_ID=PF.DED_DOC_ID AND PF.CLD_ID=D.CLD_ID AND PF.SLOC_ID=D.SLOC_ID AND
+ PF.HO_ORG_ID=D.HO_ORG_ID AND PF.ORG_ID=D.ORG_ID) SAL_DESC, nvl(PF.EMP_DED_AMT,0) SAL_AMT, PF.PROC_FRM_DT PROC_FRM_DT,
+ PF.PROC_TO_DT PROC_TO_DT,
+ (SELECT EMP_ID FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_ID,
+  (SELECT EMP_NM FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_NM
+   ,9 SEQ_ORD
+    FROM HCM$MON$LOAN$DED PF
+    WHERE PF.CLD_ID= $P{cldId} AND PF.SLOC_ID=$P{slocId} AND PF.HO_ORG_ID=$P{hoOrgId}
+    AND PF.ORG_ID=$P{orgId} AND PF.PROC_FRM_DT= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID in (SELECT PRF.DOC_ID FROM ORG$HCM$EMP$PRF PRF WHERE (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)) )
+    --LOAN
+union
+(SELECT PF.CLD_ID,PF.SLOC_ID,PF.HO_ORG_ID,PF.ORG_ID,PF.EMP_DOC_ID,PF.DED_DOC_ID SAL_ID,
+ (SELECT DED_DESC FROM HCM$DED D WHERE D.DOC_ID=PF.DED_DOC_ID AND PF.CLD_ID=D.CLD_ID AND PF.SLOC_ID=D.SLOC_ID AND
+ PF.HO_ORG_ID=D.HO_ORG_ID AND PF.ORG_ID=D.ORG_ID) SAL_DESC, nvl(PF.EMP_DED_AMT,0) SAL_AMT, PF.PROC_FRM_DT PROC_FRM_DT,
+ PF.PROC_TO_DT PROC_TO_DT,
+ (SELECT EMP_ID FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_ID,
+  (SELECT EMP_NM FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_NM
+   ,7 SEQ_ORD
+    FROM HCM$MON$TAX$DED PF
+    WHERE PF.CLD_ID= $P{cldId} AND PF.SLOC_ID=$P{slocId} AND PF.HO_ORG_ID=$P{hoOrgId}
+    AND PF.ORG_ID=$P{orgId} AND PF.PROC_FRM_DT= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID in (SELECT PRF.DOC_ID FROM ORG$HCM$EMP$PRF PRF WHERE (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)) )
+    --TAX
+union
+(SELECT PF.CLD_ID,PF.SLOC_ID,PF.HO_ORG_ID,PF.ORG_ID,PF.EMP_DOC_ID,PF.DED_DOC_ID SAL_ID,
+ (SELECT DED_DESC FROM HCM$DED D WHERE D.DOC_ID=PF.DED_DOC_ID AND PF.CLD_ID=D.CLD_ID AND PF.SLOC_ID=D.SLOC_ID AND
+ PF.HO_ORG_ID=D.HO_ORG_ID AND PF.ORG_ID=D.ORG_ID) SAL_DESC, nvl(PF.EMP_DED_AMT,0) SAL_AMT, PF.PROC_FRM_DT PROC_FRM_DT,
+ PF.PROC_TO_DT PROC_TO_DT,
+ (SELECT EMP_ID FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_ID,
+  (SELECT EMP_NM FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_NM
+    ,8 SEQ_ORD
+    FROM HCM$MON$ESI$DED PF
+    WHERE PF.CLD_ID= $P{cldId} AND PF.SLOC_ID=$P{slocId} AND PF.HO_ORG_ID=$P{hoOrgId}
+    AND PF.ORG_ID=$P{orgId} AND PF.PROC_FRM_DT= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID in (SELECT PRF.DOC_ID FROM ORG$HCM$EMP$PRF PRF WHERE (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)) )
+    --ESI
+union
+(SELECT PF.CLD_ID,PF.SLOC_ID,PF.HO_ORG_ID,PF.ORG_ID,PF.EMP_DOC_ID,PF.DOC_ID SAL_ID,
+ ('TOTAL GROSS') SAL_DESC, nvl(PF.TOT_GROSS,0) SAL_AMT, PF.PROC_FRM_DT PROC_FRM_DT,
+ PF.PROC_TO_DT PROC_TO_DT,
+ (SELECT EMP_ID FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_ID,
+  (SELECT EMP_NM FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_NM
+    ,4 SEQ_ORD
+    FROM HCM$SAL$PROC PF
+    WHERE PF.CLD_ID= $P{cldId} AND PF.SLOC_ID=$P{slocId} AND PF.HO_ORG_ID=$P{hoOrgId}
+    AND PF.ORG_ID=$P{orgId} AND PF.PROC_FRM_DT= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID in (SELECT PRF.DOC_ID FROM ORG$HCM$EMP$PRF PRF WHERE (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)) )
+    --TTL_GRS
+union
+(SELECT PF.CLD_ID,PF.SLOC_ID,PF.HO_ORG_ID,PF.ORG_ID,PF.EMP_DOC_ID,PF.DED_DOC_ID SAL_ID,
+ (SELECT DED_DESC FROM HCM$DED D WHERE D.DOC_ID=PF.DED_DOC_ID AND PF.CLD_ID=D.CLD_ID AND PF.SLOC_ID=D.SLOC_ID AND
+ PF.HO_ORG_ID=D.HO_ORG_ID AND PF.ORG_ID=D.ORG_ID) SAL_DESC, nvl(PF.EMP_DED_AMT,0) SAL_AMT, PF.PROC_FRM_DT PROC_FRM_DT,
+ PF.PROC_TO_DT PROC_TO_DT,
+ (SELECT EMP_ID FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_ID,
+  (SELECT EMP_NM FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_NM
+    ,10 SEQ_ORD
+    FROM HCM$MON$PROFSNL$DED PF
+    WHERE PF.CLD_ID= $P{cldId} AND PF.SLOC_ID=$P{slocId} AND PF.HO_ORG_ID=$P{hoOrgId}
+    AND PF.ORG_ID=$P{orgId} AND PF.PROC_FRM_DT= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID in (SELECT PRF.DOC_ID FROM ORG$HCM$EMP$PRF PRF WHERE (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)) )
+union
+(SELECT PF.CLD_ID,PF.SLOC_ID,PF.HO_ORG_ID,PF.ORG_ID,PF.EMP_DOC_ID,PF.DOC_ID SAL_ID,
+ ('TOTAL DEDUCTION') SAL_DESC, nvl(PF.TOTAL_DED,0) SAL_AMT, PF.PROC_FRM_DT PROC_FRM_DT,
+ PF.PROC_TO_DT PROC_TO_DT,
+ (SELECT EMP_ID FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_ID,
+  (SELECT EMP_NM FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_NM
+   ,11 SEQ_ORD
+    FROM HCM$SAL$PROC PF
+    WHERE PF.CLD_ID= $P{cldId} AND PF.SLOC_ID=$P{slocId} AND PF.HO_ORG_ID=$P{hoOrgId}
+    AND PF.ORG_ID=$P{orgId} AND PF.PROC_FRM_DT= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID in (SELECT PRF.DOC_ID FROM ORG$HCM$EMP$PRF PRF WHERE (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)) )
+    --TTL_DED
+union
+(SELECT PF.CLD_ID,PF.SLOC_ID,PF.HO_ORG_ID,PF.ORG_ID,PF.EMP_DOC_ID,PF.DOC_ID SAL_ID,
+ ('NET PAY') SAL_DESC, nvl(PF.TOT_SAL_AMT,0) SAL_AMT, PF.PROC_FRM_DT PROC_FRM_DT,
+ PF.PROC_TO_DT PROC_TO_DT,
+ (SELECT EMP_ID FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_ID,
+  (SELECT EMP_NM FROM ORG$HCM$EMP$PRF PRF  WHERE  PRF.CLD_ID = PF.CLD_ID AND PRF.SLOC_ID = PF.SLOC_ID AND PRF.DOC_ID = PF.EMP_DOC_ID AND PRF.ORG_ID = PF.ORG_ID AND PRF.HO_ORG_ID = PF.HO_ORG_ID) EMP_NM
+    ,12 SEQ_ORD
+    FROM HCM$SAL$PROC PF
+    WHERE PF.CLD_ID= $P{cldId} AND PF.SLOC_ID=$P{slocId} AND PF.HO_ORG_ID=$P{hoOrgId}
+    AND PF.ORG_ID=$P{orgId} AND PF.PROC_FRM_DT= to_date(to_date($P{FromDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.PROC_TO_DT= to_date(to_date($P{ToDate},'yyyy-mm-dd'),'dd-mm-yy')
+    AND PF.EMP_DOC_ID in (SELECT PRF.DOC_ID FROM ORG$HCM$EMP$PRF PRF WHERE (PRF.EMP_DEPT_ID = $P{crtValue} OR PRF.EMP_LOC_ID = $P{crtValue} OR PRF.EMP_GRP_ID = $P{crtValue} OR PRF.DOC_ID = $P{crtValue})
+AND PRF.DOC_ID = NVL($P{empDocId}, PRF.DOC_ID)) )) A, APP.ORG B
+WHERE A.CLD_ID = B.ORG_CLD_ID
+AND A.ORG_ID = B.ORG_ID
+    --NET_PY
+ORDER BY seq_ord]]>
+	</queryString>
+	<field name="SAL_DESC" class="java.lang.String"/>
+	<field name="SAL_AMT" class="java.math.BigDecimal"/>
+	<field name="EMP_ID" class="java.lang.String"/>
+	<field name="EMP_NM" class="java.lang.String"/>
+	<field name="SEQ_ORD" class="java.math.BigDecimal"/>
+	<field name="ORG_DESC" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="60" splitType="Stretch">
+			<image>
+				<reportElement x="0" y="0" width="156" height="36"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="988" y="20" width="171" height="16" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<text><![CDATA[Salary Register]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="56" width="1159" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<subreport>
+				<reportElement x="1060" y="36" width="100" height="15"/>
+				<subreportParameter name="ToDate">
+					<subreportParameterExpression><![CDATA[$P{ToDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="FromDate">
+					<subreportParameterExpression><![CDATA[$P{FromDate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path} + "SubReport/Date_SubReport.jasper"]]></subreportExpression>
+			</subreport>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="876" y="0" width="282" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_DESC}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageFooter>
+		<band height="20">
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="1060" y="0" width="98" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="50">
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="1118" y="0" width="40" height="15"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="1159" height="50"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated by ebizframe 10]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="1020" y="0" width="98" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="45" width="1159" height="3"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="44" width="1160" height="2"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="-1" y="0" width="100" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+	<summary>
+		<band height="59" splitType="Stretch">
+			<crosstab>
+				<reportElement x="1" y="0" width="1159" height="59">
+					<printWhenExpression><![CDATA[$F{SAL_AMT} == null ? 0 : $F{SAL_AMT}]]></printWhenExpression>
+				</reportElement>
+				<crosstabDataset isDataPreSorted="true"/>
+				<crosstabHeaderCell>
+					<cellContents>
+						<staticText>
+							<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="69" height="20" backcolor="#F0F8FF"/>
+							<box>
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" size="8" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Employee ID]]></text>
+						</staticText>
+						<staticText>
+							<reportElement style="Crosstab Data Text" mode="Opaque" x="69" y="0" width="100" height="20" backcolor="#F0F8FF"/>
+							<box>
+								<topPen lineWidth="0.5"/>
+								<leftPen lineWidth="0.5"/>
+								<bottomPen lineWidth="0.5"/>
+								<rightPen lineWidth="0.5"/>
+							</box>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" size="8" isBold="true"/>
+							</textElement>
+							<text><![CDATA[Employee Name]]></text>
+						</staticText>
+					</cellContents>
+				</crosstabHeaderCell>
+				<rowGroup name="EMP_ID" width="69" totalPosition="End">
+					<bucket>
+						<bucketExpression class="java.lang.String"><![CDATA[$F{EMP_ID}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="69" height="20"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="false"/>
+								</textElement>
+								<textFieldExpression class="java.lang.String"><![CDATA[$V{EMP_ID}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<staticText>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="169" height="22"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="Arial" size="8"/>
+								</textElement>
+								<text><![CDATA[Total Salary Amount  ]]></text>
+							</staticText>
+						</cellContents>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="EmpName" width="100">
+					<bucket>
+						<bucketExpression class="java.lang.String"><![CDATA[$F{EMP_NM}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents>
+							<textField>
+								<reportElement style="Crosstab Data Text" mode="Transparent" x="0" y="0" width="100" height="20" backcolor="#BFE1FF"/>
+								<box>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8"/>
+								</textElement>
+								<textFieldExpression class="java.lang.String"><![CDATA[$V{EmpName}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="SAL_DESC" height="20" totalPosition="End">
+					<bucket>
+						<bucketExpression class="java.lang.String"><![CDATA[$F{SAL_DESC}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField isBlankWhenNull="true">
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="75" height="20"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="Arial" size="8" isBold="true"/>
+								</textElement>
+								<textFieldExpression class="java.lang.String"><![CDATA[$V{SAL_DESC}.substring( 2, $V{SAL_DESC}.length())]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+						</cellContents>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="SAL_AMTMeasure" class="java.math.BigDecimal">
+					<measureExpression><![CDATA[$F{SAL_AMT}]]></measureExpression>
+				</measure>
+				<measure name="Sum" class="java.lang.Integer" calculation="Sum">
+					<measureExpression><![CDATA[$F{SAL_AMT}]]></measureExpression>
+				</measure>
+				<crosstabCell width="75" height="20">
+					<cellContents>
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField isBlankWhenNull="true">
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="75" height="20"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" size="8"/>
+							</textElement>
+							<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{SAL_AMTMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="75" height="22" rowTotalGroup="EMP_ID">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="75" height="22"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="Arial" size="8"/>
+							</textElement>
+							<textFieldExpression class="java.lang.Integer"><![CDATA[$V{Sum}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="0" height="20" columnTotalGroup="SAL_DESC">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="0" height="22" rowTotalGroup="EMP_ID" columnTotalGroup="SAL_DESC">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="EmpName">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="EmpName" columnTotalGroup="SAL_DESC">
+					<cellContents/>
+				</crosstabCell>
+			</crosstab>
+		</band>
+	</summary>
+</jasperReport>
