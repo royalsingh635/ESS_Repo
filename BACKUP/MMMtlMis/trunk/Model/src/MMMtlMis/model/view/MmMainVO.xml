@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="MmMainVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full"
+  UseGlueCode="false"
+  ComponentClass="MMMtlMis.model.view.MmMainVOImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Coll|VarAccess"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="MMMtlMis.model.view.MmMainVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="bindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="bindSlocId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="bindItmId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="bindGrpId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="bindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="bindWhId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="bindChkSpwFlg"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="bindWipItmFlg"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="bindSlsItmFlg"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="bindPurItmFlg"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="bindMinDt"
+    Kind="where"
+    Type="java.sql.Timestamp"/>
+  <Variable
+    Name="bindMaxDt"
+    Kind="where"
+    Type="java.sql.Timestamp"/>
+  <Variable
+    Name="bindFyId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BINDFLAG"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[SELECT
+A.CLD_ID,
+A.SLOC_ID,
+B.ORG_ID,
+B.FY_ID,
+B.WH_ID,
+A.ITM_ID,
+A.ITM_DESC,
+A.Serialized_Flg,
+Nvl(B.Op_Stk,0)  Op_Stk,
+Nvl(B.Tot_Stk,0) Tot_Stk,
+Nvl(B.Rej_Stk,0) Rej_Stk,
+NVL(B.REQ_STK,0) REQ_STK,
+NVL(AVL_STK,0) AVL_STK,
+Nvl(Scrp_Stk,0)Srcp_Stk,
+Nvl(B.Cum_Tot_Rcpt_Qty,0) Cum_Tot_Rcpt_Qty,
+Nvl(B.Cum_Tot_Issu_Qty,0) Cum_Tot_Issu_Qty,
+Nvl(B.Cum_Tot_Rej_Qty ,0)Cum_Tot_Rej_Qty,
+(Nvl(B.Tot_Stk,0) - Nvl(A.Reorder_Lvl,0)) Chk_Reorder_Lvl,
+(NVL(B.Tot_Stk,0) - NVL(A.Safe_Qty,0)) Chk_Safe_Qty,
+E.Period_Desc,E.Strt_Dt,E.End_Dt,B.BKUP_DT
+FROM APP.APP$ITM$PRF A, MM.MM$STK$SUMM$ITM$MNTH B, APP.APP$ITM$ORG C,
+FIN.FIN$YEAR_FRQNCY_VW E
+Where
+   B.Cld_Id = Nvl(:bindCldId,A.Cld_Id)
+And B.Sloc_Id = Nvl(:bindSlocId,A.Sloc_Id)
+AND B.ORG_ID = NVL(:bindOrgId, B.ORG_ID)
+And B.Wh_Id = :bindWhId
+And B.Fy_Id = NVL(:bindFyId,B.FY_ID)
+And E.Period_Desc = Nvl(:BINDFLAG,'Y')
+AND A.ITM_ID = NVL(:bindItmId, A.ITM_ID)
+And A.Grp_Id = Nvl(:bindGrpId, A.Grp_Id)
+AND NVL(A.WIP_ITM_FLG,'N') = DECODE(:bindChkSpwFlg,
+'Y',NVL(:bindWipItmFlg, 'N'), NVL(A.WIP_ITM_FLG,'N'))
+AND NVL(A.SLS_ITM_FLG,'N') = DECODE(:bindChkSpwFlg, 'Y',
+NVL(:bindSlsItmFlg, 'N'), NVL(A.SLS_ITM_FLG,'N'))
+AND NVL(A.PUR_ITM_FLG,'N') = DECODE(:bindChkSpwFlg, 'Y',
+NVL(:bindPurItmFlg, 'N'), NVL(A.PUR_ITM_FLG,'N'))
+AND TRUNC(NVL(A.USR_ID_MOD_DT, A.USR_ID_CREATE_DT)) >= NVL(:bindMinDt,
+  TRUNC(NVL(A.USR_ID_MOD_DT, A.USR_ID_CREATE_DT)))
+AND TRUNC(NVL(A.USR_ID_MOD_DT, A.USR_ID_CREATE_DT)) <= NVL(:bindMaxDt,
+TRUNC(NVL(A.USR_ID_MOD_DT, A.USR_ID_CREATE_DT)))
+AND A.CLD_ID = C.CLD_ID
+AND A.SLOC_ID = C.SLOC_ID
+AND A.HO_ORG_ID = C.HO_ORG_ID
+AND A.ITM_ID = C.ITM_ID
+AND B.CLD_ID =  C.CLD_ID
+AND B.SLOC_ID = C.SLOC_ID
+AND B.ORG_ID = C.ORG_ID
+AND B.ITM_ID = C.ITM_ID
+AND B.ORG_ID =E.ORG_ID
+AND B.CLD_ID =E.CLD_ID
+And B.Fy_Id =E.Org_Fy_Id
+And B.Bkup_Dt = (Select Max(Bkup_Dt) From Mm.Mm$stk$summ$itm$mnth F
+                Where B.Cld_Id =  F.Cld_Id
+                And B.Sloc_Id = F.Sloc_Id
+                And B.Org_Id = F.Org_Id
+                And B.Fy_Id =F.Fy_Id
+                And B.Wh_Id =F.Wh_Id
+                AND B.ITM_ID = F.ITM_ID)
+AND B.BKUP_DT BETWEEN E.STRT_DT AND E.END_DT]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="4"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="FyId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="FY_ID"
+    Expression="FY_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="WhId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="WH_ID"
+    Expression="WH_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="20"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ItmId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ITM_ID"
+    Expression="ITM_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ItmDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="100"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ITM_DESC"
+    Expression="ITM_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="100"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SerializedFlg"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="1"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="SERIALIZED_FLG"
+    Expression="SERIALIZED_FLG"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="1"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OpStk"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OP_STK"
+    Expression="OP_STK"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="TotStk"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="TOT_STK"
+    Expression="TOT_STK"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="RejStk"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="REJ_STK"
+    Expression="REJ_STK"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ReqStk"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="REQ_STK"
+    Expression="REQ_STK"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="AvlStk"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AVL_STK"
+    Expression="AVL_STK"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="SrcpStk"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="SRCP_STK"
+    Expression="SRCP_STK"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="CumTotRcptQty"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="CUM_TOT_RCPT_QTY"
+    Expression="CUM_TOT_RCPT_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="CumTotIssuQty"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="CUM_TOT_ISSU_QTY"
+    Expression="CUM_TOT_ISSU_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="CumTotRejQty"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="CUM_TOT_REJ_QTY"
+    Expression="CUM_TOT_REJ_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ChkReorderLvl"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="CHK_REORDER_LVL"
+    Expression="CHK_REORDER_LVL"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ChkSafeQty"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="CHK_SAFE_QTY"
+    Expression="CHK_SAFE_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="PeriodDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="3"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PERIOD_DESC"
+    Expression="PERIOD_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="3"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="StrtDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="STRT_DT"
+    Expression="STRT_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="EndDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="END_DT"
+    Expression="END_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="BkupDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="BKUP_DT"
+    Expression="BKUP_DT"
+    SQLType="DATE"/>
+  <ViewLinkAccessor
+    Name="Graph"
+    ViewLink="MMMtlMis.model.view.viewlink.MMMainGraphVL"
+    Type="oracle.jbo.RowIterator"
+    IsUpdateable="false"/>
+  <ViewLinkAccessor
+    Name="EoItm"
+    ViewLink="MMMtlMis.model.view.viewlink.MMtoEOVL"
+    Type="oracle.jbo.RowIterator"
+    IsUpdateable="false"/>
+  <ViewLinkAccessor
+    Name="PriceMov"
+    ViewLink="MMMtlMis.model.view.viewlink.PriceMovVL"
+    Type="oracle.jbo.RowIterator"
+    IsUpdateable="false"/>
+  <ViewLinkAccessor
+    Name="TopSupplier"
+    ViewLink="MMMtlMis.model.view.viewlink.ItmToTopSuppVL"
+    Type="oracle.jbo.RowIterator"
+    IsUpdateable="false"/>
+  <ViewLinkAccessor
+    Name="BottomSup"
+    ViewLink="MMMtlMis.model.view.viewlink.ItmToBottomSuppVL"
+    Type="oracle.jbo.RowIterator"
+    IsUpdateable="false"/>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="MMMtlMis.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>
