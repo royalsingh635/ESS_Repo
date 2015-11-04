@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="ViewQcDetailsVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="ebizsalestrackingapp.model.views.ViewQcDetailsVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSlocId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindHoOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSlsDocId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[SELECT  DISTINCT  A.QC_TXN_ID, A.QC_TXN_DT, A.QC_ITM_TYPE,  A.QC_CHK_TYPE,  DECODE(A.QC_COMPLETE,'Y','Yes'
+                                                                                                ,'N','No', A.QC_COMPLETE) QC_completed
+        ,A.REMARKS,   A.QC_NO
+        ,B.ITM_ID,   F.ITM_DESC ITM_DESC, B.ITM_UOM,    B.STD_VAL,    B.LOWER_LIMIT,    B.UPPER_LIMIT
+        ,DECODE(B.ACTUAL_VAL,1,'Pass'
+                            ,0,'Fail', B.ACTUAL_VAL)ACTUAL_VAL
+--        ,B.ACTUAL_VAL
+     --   ,    B.QC_RSLT
+     , CS.CHK_SRL_NO, CS.QC_TOT_QTY,CS.QC_OK_QTY, CS.QC_REJ_QTY, CS.QC_RWK_QTY
+        --PARAM DETAILS
+        ,B.PARAM_ID, E.PARAM_NM||'   '||' '||D.PARAM_SPEC PARAM_NM, E.PARAM_TYPE,   D.TLRNC_TYPE,  D.PARAM_SPEC
+        ,DECODE (D.TLRNC_TYPE, 'A', CASE WHEN D.UPPER_LIMIT = D.LOWER_LIMIT THEN D.STD_VAL||'   '||' +/-'||D.UPPER_LIMIT
+                                    WHEN D.UPPER_LIMIT > D.LOWER_LIMIT THEN D.STD_VAL||'   '||' +'||D.UPPER_LIMIT||'/-'||D.LOWER_LIMIT
+                                    END
+                           ,'P', CASE WHEN D.UPPER_LIMIT = D.LOWER_LIMIT THEN D.STD_VAL||'   '||' +/-'||D.UPPER_LIMIT||' %'
+                                    WHEN D.UPPER_LIMIT > D.LOWER_LIMIT THEN D.STD_VAL||'   '||' +'||D.UPPER_LIMIT||'/-'||D.LOWER_LIMIT||' %'
+                                    END )PARAM_VALUE
+ 
+        ,NVL(SUBSTR(J.SO_ID, 3),H.PDO_ID)ORDER_NO, NVL(J.DOC_DT,H.DOC_DT)ORD_DT,
+        (SELECT EO_NM FROM APP.APP$EO WHERE EO_CLD_ID = I.CLD_ID
+                                                                                                              AND   EO_SLOC_ID  = I.SLOC_ID
+                                                                                                              AND   EO_ORG_ID  =  I.ORG_ID
+                                                                                                              AND   EO_HO_ORG_ID  = I.HO_ORG_ID
+                                                                                                              AND   EO_ID     = I.EO_ID)EO_NM
+FROM MM.MM$MTL$QC A,   MM.MM$MTL$QC$DTL B,    MM.MM$MTL$QC$RSLT C,   MM.MM$MTL$QC$CSN  CS, MM.MM$QC$PARAM$ITM D, MM.MM$QC$PARAM E
+    ,APP.APP$ITM$PRF F, MNF.MNF$PDO H,  MNF.MNF$PDO$SRC I, SLS.SLS$SO J
+WHERE A.CLD_ID    = B.CLD_ID
+AND   A.SLOC_ID   = B.SLOC_ID
+AND   A.ORG_ID    = B.ORG_ID
+AND   A.QC_TXN_ID = B.QC_TXN_ID
+AND   B.CLD_ID    = CS.CLD_ID
+AND   B.SLOC_ID   = CS.SLOC_ID
+AND   B.ORG_ID    = CS.ORG_ID
+AND   B.QC_TXN_ID = CS.QC_TXN_ID
+AND   B.DOC_ID_SRC  = CS.DOC_ID_SRC
+AND   B.DLV_SCHDL_NO = CS.DLV_SCHDL_NO
+AND   B.ITM_ID     = CS.ITM_ID
+AND   B.ITM_UOM   = CS.ITM_UOM
+AND   B.CHK_SRL_NO   = CS.CHK_SRL_NO
+AND   B.CLD_ID    = C.CLD_ID
+AND   B.SLOC_ID   = C.SLOC_ID
+AND   B.ORG_ID    = C.ORG_ID
+AND   B.QC_TXN_ID = C.QC_TXN_ID
+AND   B.DOC_ID_SRC  = C.DOC_ID_SRC
+AND   B.DLV_SCHDL_NO = C.DLV_SCHDL_NO
+AND   B.ITM_ID     = C.ITM_ID
+AND   B.ITM_UOM   = C.ITM_UOM
+AND   B.CLD_ID    = D.CLD_ID
+AND   B.SLOC_ID   = D.SLOC_ID
+AND   B.ORG_ID    = D.ORG_ID
+AND   B.PARAM_ID  = D.PARAM_ID
+AND   B.ITM_ID    = D.ITM_ID
+AND   D.CLD_ID    = E.CLD_ID
+AND   D.SLOC_ID   = E.SLOC_ID
+AND   D.ORG_ID    = E.ORG_ID
+AND   D.PARAM_ID  = E.PARAM_ID
+AND   B.CLD_ID    = F.CLD_ID
+AND   B.SLOC_ID   = F.SLOC_ID
+AND   MM.MM_GET_HO_ORG(B.CLD_ID,  B.SLOC_ID , B.ORG_ID) = F.HO_ORG_ID
+AND   B.ITM_ID    = F.ITM_ID
+AND   C.SLOC_ID   = H.SLOC_ID
+AND   C.CLD_ID    = H.CLD_ID
+AND   C.ORG_ID    = H.ORG_ID
+AND   C.DOC_ID_PDO  = H.DOC_ID
+AND   H.CLD_ID    = I.CLD_ID(+)
+AND   H.SLOC_ID   = I.SLOC_ID(+)
+AND   H.ORG_ID    = I.ORG_ID(+)
+AND   H.HO_ORG_ID = I.HO_ORG_ID(+)
+AND   H.DOC_ID    = I.DOC_ID(+)
+AND   I.CLD_ID    = J.CLD_ID(+)
+AND   I.SLOC_ID   = J.SLOC_ID(+)
+AND   I.ORG_ID    = J.ORG_ID(+)
+AND   I.HO_ORG_ID = J.HO_ORG_ID(+)
+AND   I.SRC_DOC_ID = J.DOC_ID(+)
+and   a.QC_COMPLETE = 'Y'
+AND   j.CLD_ID = :BindCldId
+AND    j.SLOC_ID    =:BindSlocId
+AND     j.ORG_ID =:BindOrgId
+and   j.ho_org_id =:BindHoOrgId
+and j.doc_id =NVL(:BindSlsDocId, j.doc_id)
+order by itm_desc]]></SQLQuery>
+  <ViewAttribute
+    Name="QcTxnId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="QC_TXN_ID"
+    Expression="QC_TXN_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="QcTxnDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="QC_TXN_DT"
+    Expression="QC_TXN_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="QcItmType"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="QC_ITM_TYPE"
+    Expression="QC_ITM_TYPE"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="QcChkType"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="QC_CHK_TYPE"
+    Expression="QC_CHK_TYPE"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="QcCompleted"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="3"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="QC_COMPLETED"
+    Expression="QC_COMPLETED"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="3"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Remarks"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="300"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="REMARKS"
+    Expression="REMARKS"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="300"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="QcNo"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="QC_NO"
+    Expression="QC_NO"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="20"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ItmId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ITM_ID"
+    Expression="ITM_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ItmDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="100"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ITM_DESC"
+    Expression="ITM_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="100"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ItmUom"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ITM_UOM"
+    Expression="ITM_UOM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="20"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="StdVal"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="STD_VAL"
+    Expression="STD_VAL"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="LowerLimit"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="LOWER_LIMIT"
+    Expression="LOWER_LIMIT"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="UpperLimit"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="UPPER_LIMIT"
+    Expression="UPPER_LIMIT"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ActualVal"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ACTUAL_VAL"
+    Expression="ACTUAL_VAL"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ChkSrlNo"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.math.BigInteger"
+    ColumnType="NUMBER"
+    AliasName="CHK_SRL_NO"
+    Expression="CHK_SRL_NO"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="QcTotQty"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="QC_TOT_QTY"
+    Expression="QC_TOT_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="QcOkQty"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="QC_OK_QTY"
+    Expression="QC_OK_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="QcRejQty"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="QC_REJ_QTY"
+    Expression="QC_REJ_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="QcRwkQty"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="QC_RWK_QTY"
+    Expression="QC_RWK_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ParamId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PARAM_ID"
+    Expression="PARAM_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="20"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ParamNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="204"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PARAM_NM"
+    Expression="PARAM_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="204"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ParamType"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="PARAM_TYPE"
+    Expression="PARAM_TYPE"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="TlrncType"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="1"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="TLRNC_TYPE"
+    Expression="TLRNC_TYPE"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="1"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ParamSpec"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="100"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PARAM_SPEC"
+    Expression="PARAM_SPEC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="100"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ParamValue"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="129"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PARAM_VALUE"
+    Expression="PARAM_VALUE"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="129"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrderNo"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORDER_NO"
+    Expression="ORDER_NO"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="20"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrdDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="ORD_DT"
+    Expression="ORD_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="EoNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="EO_NM"
+    Expression="EO_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="ebizsalestrackingapp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

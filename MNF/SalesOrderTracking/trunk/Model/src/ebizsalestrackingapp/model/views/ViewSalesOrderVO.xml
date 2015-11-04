@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="ViewSalesOrderVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="ebizsalestrackingapp.model.views.ViewSalesOrderVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSlocId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindHoOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSlsDocId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindCustmerId"
+    Kind="where"
+    Type="oracle.jbo.domain.Number"/>
+  <Variable
+    Name="BindProductId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindStrtDt"
+    Kind="where"
+    Type="oracle.jbo.domain.Timestamp"/>
+  <Variable
+    Name="BindEndDt"
+    Kind="where"
+    Type="oracle.jbo.domain.Timestamp"/>
+  <SQLQuery><![CDATA[SELECT  distinct so.cld_id cld_id, so.sloc_id sloc_id, so.ho_org_id, so.org_id org_id, so.doc_id doc_id,
+       SUBSTR (so.so_id, 3) disp_doc_id, so.doc_dt so_dt, so.eo_id eo_id,
+       so.order_stat,
+            (DECODE (so.order_stat,
+                     217, 'OPEN',
+                     218, 'CLOSE',
+                     219, 'SHORT CLOSE',
+                     220, 'CANCELLED'
+                    )
+            ) order_stat_desc, so_itm.itm_id, c.itm_desc, uom.uom_id, uom.uom_nm, uom.uom_desc,
+            dlv.dlv_dt dtv_dt, dlv.DLV_QTY,
+            eo.eo_nm, so.doc_dt doc_dt, d.tot_ord_qty tot_ord_qty,
+            so.tot_amt_sp tot_ord_amt, NVL (d.no_of_items, 0) no_of_items,
+            so.so_vldt_dt,
+            so.so_mode,
+            (DECODE (so.so_mode,
+                     313, 'INCOMPLETE',
+                     314, 'APPROVED',
+                     315, 'AMENDED',
+                     316, 'HOLD',
+                     317, 'FORWARDED',
+                     'INCOMPLETE'
+                    )
+            ) so_mode_desc
+       FROM sls.sls$so so,        app.app$eo eo,  app.app$sec$usr usr,  app.app$ds$att att,
+            sls.sls$so$itm so_itm,   sls.sls$so$dlv$schdl dlv,      app.app$uom$conv$std uom, app.APP$ITM$PRF C,
+            (SELECT   sloc_id, ho_org_id, org_id, doc_id, cld_id,
+                      SUM (NVL (itm_qty, 0)) tot_ord_qty,
+                      COUNT (NVL (itm_id, 0)) no_of_items
+                 FROM sls.sls$so$itm so_itm
+             GROUP BY sloc_id, ho_org_id, org_id, doc_id, cld_id) d
+      WHERE so.usr_id_create = usr.usr_id
+        and so.cld_id = eo.eo_cld_id
+        and so.sloc_id  = eo.eo_sloc_id
+        and  so.ho_org_id = eo.eo_ho_org_id
+        AND so.eo_id = eo.eo_id
+        and so_itm.cld_id = c.cld_id
+        and so_itm.sloc_id = c.sloc_id
+        and so_itm.ho_org_id  = c.ho_org_id
+        and so_itm.ITM_ID =C.ITM_ID
+        and so_itm.cld_id = uom.CLD_ID
+        and so_itm.sloc_id = uom.sloc_id
+        AND so_itm.itm_uom = uom.uom_id
+        and so.cld_id = so_itm.cld_id
+        and so.sloc_id  = so_itm.sloc_id
+        and so.org_id   = so_itm.org_id
+        and so.ho_org_id  = so_itm.ho_org_id
+        AND so.doc_id = so_itm.doc_id
+        and so_itm.cld_id = dlv.cld_id
+        and so_itm.sloc_id = dlv.sloc_id
+        and so_itm.org_id   = dlv.org_id
+        and so_itm.ho_org_id  = dlv.ho_org_id
+        and so_itm.itm_id = dlv.itm_id
+        AND so_itm.doc_id = dlv.doc_id
+        AND so.order_type = att.att_id
+        AND so.org_id = d.org_id(+)
+        AND so.cld_id = d.cld_id(+)
+        AND so.ho_org_id = d.ho_org_id(+)
+        AND so.doc_id = d.doc_id(+)
+        And so.cld_id = :BindCldId
+        and so.sloc_id = :BindSlocId
+        and so.Ho_org_id = :BindHoOrgId
+        and so.Org_id = :BindOrgId
+        and so.doc_id = NVL(:BindSlsDocId, so.doc_id)
+        and so.eo_id = NVL(:BindCustmerId, so.eo_id)
+        and so_itm.itm_id = NVL(:BindProductId, so_itm.Itm_id)
+        and Trunc(dlv.DLV_DT) Between NVL(:BindStrtDt, To_Date ('01-JAN-1900') ) and NVL(:BindEndDt, Trunc(SYSDATE))
+   ORDER BY doc_dt DESC]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="DOC_ID"
+    Expression="DOC_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DispDocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="18"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="DISP_DOC_ID"
+    Expression="DISP_DOC_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="18"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SoDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="SO_DT"
+    Expression="SO_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="EoId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.math.BigInteger"
+    ColumnType="NUMBER"
+    AliasName="EO_ID"
+    Expression="EO_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="OrderStat"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="10"
+    Scale="0"
+    Type="java.lang.Long"
+    ColumnType="NUMBER"
+    AliasName="ORDER_STAT"
+    Expression="ORDER_STAT"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="OrderStatDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="11"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORDER_STAT_DESC"
+    Expression="ORDER_STAT_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="11"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ItmId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ITM_ID"
+    Expression="ITM_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ItmDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="100"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ITM_DESC"
+    Expression="ITM_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="100"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="UomId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="UOM_ID"
+    Expression="UOM_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="20"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="UomNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="UOM_NM"
+    Expression="UOM_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="5"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="UomDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="UOM_DESC"
+    Expression="UOM_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DtvDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="DTV_DT"
+    Expression="DTV_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="DlvQty"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="DLV_QTY"
+    Expression="DLV_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="EoNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="EO_NM"
+    Expression="EO_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DocDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="DOC_DT"
+    Expression="DOC_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="TotOrdQty"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="TOT_ORD_QTY"
+    Expression="TOT_ORD_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="TotOrdAmt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="TOT_ORD_AMT"
+    Expression="TOT_ORD_AMT"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="NoOfItems"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="NO_OF_ITEMS"
+    Expression="NO_OF_ITEMS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="SoVldtDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="SO_VLDT_DT"
+    Expression="SO_VLDT_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="SoMode"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="10"
+    Scale="0"
+    Type="java.lang.Long"
+    ColumnType="NUMBER"
+    AliasName="SO_MODE"
+    Expression="SO_MODE"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="SoModeDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="10"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="SO_MODE_DESC"
+    Expression="SO_MODE_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="10"/>
+    </DesignTime>
+  </ViewAttribute>
+  <AttrArray Name="KeyAttributes">
+    <Item Value="CldId"/>
+    <Item Value="SlocId"/>
+    <Item Value="HoOrgId"/>
+    <Item Value="OrgId"/>
+    <Item Value="DocId"/>
+    <Item Value="ItmId"/>
+    <Item Value="DtvDt"/>
+  </AttrArray>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="ebizsalestrackingapp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

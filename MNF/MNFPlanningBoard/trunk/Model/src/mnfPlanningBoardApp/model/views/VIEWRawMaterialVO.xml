@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="VIEWRawMaterialVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  FetchMode="FETCH_AS_NEEDED">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="mnfPlanningBoardApp.model.views.VIEWRawMaterialVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSlocId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindHoOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindDlvDt"
+    Kind="where"
+    Type="oracle.jbo.domain.Timestamp"/>
+  <Variable
+    Name="BindItmId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOutItmId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindPlnId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSrcDocId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[SELECT distinct 
+  d.PLN_DOC_DISP_ID,
+  d.PLN_DOC_DT,
+  g.att_nm Prd_status,
+  d.DISP_DOC_ID_SRC,
+  d.doc_dt_src,
+  f.itm_desc Product,
+  a.OUTPT_ITM_DLV_QTY,
+  a.TXN_DOC_DLV_DT,
+  B.ITM_DESC,
+  sum(a.INPT_ITM_REQ_QTY) req_qty,
+  max(a.INPT_ITM_AVL_QTY) Available_Qty,
+  sum(a.INPT_ITM_RESV_QTY) reserve_qty,
+  c.UOM_DESC UOM_DESC,
+  a.INPT_ITM_REQ_DT,
+  e.eo_nm supplier,
+  a.INPT_ITM_PRICE,
+  a.ITM_SUPP_LEAD_TM,
+  a.cld_id,
+  a.sloc_id,
+  a.ho_org_id,
+  a.org_id,
+  a.bom_id,
+  a.outpt_itm_id,
+  a.doc_id_src,
+  a.pln_doc_id,
+  a.inpt_itm_id
+  
+  
+FROM MNF$PLN$ITM a,
+   MNF$PLN$TXN d,
+  app.app$itm$prf b,
+   app.app$itm$prf f,
+  APP.APP$UOM$CONV$STD c,
+  app.app$eo e,
+  MNF$DS$ATT_VW g
+  
+WHERE a.cld_id       = :BindCldId
+AND a.sloc_id        = :BindSlocId
+AND a.HO_ORG_ID      = :BindHoOrgId
+AND a.ORG_ID         = :BindOrgId
+AND a.inpt_itm_id  = NVL(:BindItmId, a.inpt_itm_id)
+AND a.outpt_itm_id = NVL(:BindOutItmId, a.outpt_itm_id) 
+AND a.txn_doc_dlv_dt =NVL(:BindDlvDt, a.txn_doc_dlv_dt)
+AND a.PLN_DOC_ID     = NVL(:BindPlnId, a.PLN_DOC_ID)
+AND a.DOC_ID_SRC     = NVL(:BindSrcDocId, a.DOC_ID_SRC)
+AND A.CLD_ID         = B.CLD_ID
+AND A.SLOC_ID        = B.SLOC_ID
+AND A.HO_ORG_ID      = B.HO_ORG_ID
+AND A.INPT_ITM_ID   = B.ITM_ID
+AND A.CLD_ID         = f.CLD_ID
+AND A.SLOC_ID        = f.SLOC_ID
+AND A.HO_ORG_ID      = f.HO_ORG_ID
+AND a.outpt_itm_id   = f.ITM_ID
+AND a.cld_id         =c.cld_id
+AND a.sloc_id        =c.sloc_id
+AND a.itm_UOM        =c.UOM_ID
+AND a.CLD_ID       = e.eo_cld_id
+AND a.SLOC_ID      = e.eo_sloc_id
+AND a.HO_ORG_ID    = e.eo_ho_org_id
+AND A.SUPP_EO_ID   = e.eo_id
+AND a.CLD_id       = d.cld_id
+AND a.SLOC_ID      = d.SLOC_ID
+AND a.HO_ORG_ID    =d.HO_ORG_ID
+AND a.ORG_ID       = d.ORG_ID
+AND a.PLN_DOC_ID   = d.PLN_DOC_ID
+AND a.OUTPT_ITM_ID = d.OUTPT_ITM_ID
+and a.TXN_DOC_DLV_DT = d.TXN_DOC_DLV_DT
+and a.DOC_ID_SRC = d.DOC_ID_SRC
+and a.eo_prd_stat = g.att_id group by d.PLN_DOC_DISP_ID, d.PLN_DOC_DT, g.att_nm, d.DISP_DOC_ID_SRC, d.doc_dt_src, 
+f.itm_desc, a.OUTPT_ITM_DLV_QTY, a.TXN_DOC_DLV_DT, B.ITM_DESC, c.UOM_DESC, 
+a.INPT_ITM_REQ_DT, e.eo_nm, a.INPT_ITM_PRICE, a.ITM_SUPP_LEAD_TM, a.cld_id, 
+a.sloc_id, a.ho_org_id, a.org_id, a.bom_id, a.outpt_itm_id, 
+a.doc_id_src, a.pln_doc_id, a.inpt_itm_id
+order by a.txn_doc_dlv_dt, a.outpt_itm_dlv_qty]]></SQLQuery>
+  <ViewAttribute
+    Name="PlnDocDispId"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PLN_DOC_DISP_ID"
+    Expression="PLN_DOC_DISP_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="PlnDocDt"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Timestamp"
+    ColumnType="DATE"
+    AliasName="PLN_DOC_DT"
+    Expression="PLN_DOC_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdStatus"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PRD_STATUS"
+    Expression="PRD_STATUS"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DispDocIdSrc"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="DISP_DOC_ID_SRC"
+    Expression="DISP_DOC_ID_SRC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DocDtSrc"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Timestamp"
+    ColumnType="DATE"
+    AliasName="DOC_DT_SRC"
+    Expression="DOC_DT_SRC"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="Product"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="100"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PRODUCT"
+    Expression="PRODUCT"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="100"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OutptItmDlvQty"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="OUTPT_ITM_DLV_QTY"
+    Expression="OUTPT_ITM_DLV_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="TxnDocDlvDt"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Timestamp"
+    ColumnType="DATE"
+    AliasName="TXN_DOC_DLV_DT"
+    Expression="TXN_DOC_DLV_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="ItmDesc"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="100"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ITM_DESC"
+    Expression="ITM_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="100"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ReqQty"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="REQ_QTY"
+    Expression="REQ_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="AvailableQty"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="AVAILABLE_QTY"
+    Expression="AVAILABLE_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ReserveQty"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="RESERVE_QTY"
+    Expression="RESERVE_QTY"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="UomDesc"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="UOM_DESC"
+    Expression="UOM_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="InptItmReqDt"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Timestamp"
+    ColumnType="DATE"
+    AliasName="INPT_ITM_REQ_DT"
+    Expression="INPT_ITM_REQ_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="Supplier"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="SUPPLIER"
+    Expression="SUPPLIER"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="InptItmPrice"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="INPT_ITM_PRICE"
+    Expression="INPT_ITM_PRICE"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ItmSuppLeadTm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="ITM_SUPP_LEAD_TM"
+    Expression="ITM_SUPP_LEAD_TM"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR"/>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR"/>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR"/>
+  <ViewAttribute
+    Name="BomId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="BOM_ID"
+    Expression="BOM_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OutptItmId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="OUTPT_ITM_ID"
+    Expression="OUTPT_ITM_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DocIdSrc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="DOC_ID_SRC"
+    Expression="DOC_ID_SRC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="PlnDocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PLN_DOC_ID"
+    Expression="PLN_DOC_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="InptItmId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="INPT_ITM_ID"
+    Expression="INPT_ITM_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="mnfPlanningBoardApp.model.ModelBundle"/>
+  </ResourceBundle>
+  <AttrArray Name="KeyAttributes">
+    <Item Value="TxnDocDlvDt"/>
+    <Item Value="InptItmReqDt"/>
+    <Item Value="CldId"/>
+    <Item Value="SlocId"/>
+    <Item Value="HoOrgId"/>
+    <Item Value="OrgId"/>
+    <Item Value="BomId"/>
+    <Item Value="OutptItmId"/>
+    <Item Value="DocIdSrc"/>
+    <Item Value="PlnDocId"/>
+    <Item Value="InptItmId"/>
+  </AttrArray>
+</ViewObject>
