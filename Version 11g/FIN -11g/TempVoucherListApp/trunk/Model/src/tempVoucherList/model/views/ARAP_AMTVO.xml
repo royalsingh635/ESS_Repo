@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="ARAP_AMTVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full"
+  UseGlueCode="false"
+  ComponentClass="tempVoucherList.model.views.ARAP_AMTVOImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Coll|VarAccess"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="tempVoucherList.model.views.ARAP_AMTVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSlcId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindHoOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindCoaId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindArapFlg"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindMstSlNo"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindMstVouId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[SELECT 
+    a.GL_CLD_ID GL_CLD_ID, 
+    a.ARAP_SLOC_ID ARAP_SLOC_ID, 
+    a.ARAP_APPL_INST_ID ARAP_APPL_INST_ID, 
+    a.GL_HO_ORG_ID GL_HO_ORG_ID,
+    a.ARAP_ORG_ID ARAP_ORG_ID, 
+    a.ARAP_FLG ARAP_FLG, 
+    a.ARAP_COA_ID ARAP_COA_ID, 
+    a.ARAP_VOU_ID ARAP_VOU_ID, 
+    a.ARAP_GL_SL_NO ARAP_GL_SL_NO, 
+    a.ARAPSL_NO ARAPSL_NO, 
+    a.ARAP_AMT_SP ARAP_AMT_SP, 
+    a.ARAP_CURR_ID_SP ARAP_CURR_ID_SP, 
+    a.ARAP_AMT_TYP ARAP_AMT_TYP, 
+    a.ARAP_AMT_ADJ ARAP_AMT_ADJ, 
+    a.ARAP_AMT_ADJ_TMP - nvl(amt,0) ARAP_AMT_ADJ_TMP, 
+    a.ARAP_NET_AMT_OT ARAP_NET_AMT_OT
+FROM 
+    ARAP_OS_VW a,
+    (select TVOU_CLD_ID,TVOU_ADJ_SLOC_ID,
+               TVOU_HO_ORG_ID,TVOU_ADJ_ORG_ID,
+               TVOU_ADJ_APPL_INST_ID,
+               TVOU_ADJ_COA_ID,
+               link_vou,link_vou_slno,link_vou_arap_slno,
+               sum(amt) amt
+      from     (
+               select
+               TVOU_CLD_ID,TVOU_ADJ_SLOC_ID,
+               TVOU_HO_ORG_ID,TVOU_ADJ_ORG_ID,
+               TVOU_ADJ_APPL_INST_ID,
+               TVOU_ADJ_COA_ID,
+               TVOU_RADJ_VOU_ID link_vou,TVOU_RADJ_SL_NO link_vou_slno,TVOU_RADJ_ARAP_SL_NO link_vou_arap_slno,
+               TVOU_ADJ_AMT_ADJ_THS/nvl(TVOU_CC_CURR,1) amt
+               from tvou_Adj
+               where TVOU_MST_VOU_ID = :BindMstVouId
+               and TVOU_ADJ_VOU_ID =  TVOU_MST_VOU_ID
+               and TVOU_MST_SL_NO = :BindMstSlNo
+               union
+               select
+               TVOU_CLD_ID,TVOU_ADJ_SLOC_ID,
+               TVOU_HO_ORG_ID,TVOU_ADJ_ORG_ID,
+               TVOU_ADJ_APPL_INST_ID,
+               TVOU_ADJ_COA_ID,
+               TVOU_ADJ_VOU_ID link_vou,TVOU_ADJ_SL_NO link_vou_slno,TVOU_ADJ_ARAP_SL_NO link_vou_arap_slno,
+               TVOU_ADJ_AMT_ADJ amt
+               from tvou_Adj_dtl
+               where TVOU_MST_VOU_ID = :BindMstVouId
+               and TVOU_MST_SL_NO = :BindMstSlNo
+               )
+      group by TVOU_CLD_ID,TVOU_ADJ_SLOC_ID,
+               TVOU_HO_ORG_ID,TVOU_ADJ_ORG_ID,
+               TVOU_ADJ_APPL_INST_ID,
+               TVOU_ADJ_COA_ID,
+               link_vou,link_vou_slno,link_vou_arap_slno
+     ) b
+where a.GL_CLD_ID = :BindCldId
+and   a.ARAP_SLOC_ID =:BindSlcId
+and   a.ARAP_FLG = NVL(:BindArapFlg, a.ARAP_FLG)
+and   a.ARAP_ORG_ID = :BindOrgId
+and   a.GL_HO_ORG_ID = :BindHoOrgId
+and   a.ARAP_COA_ID = NVL(:BindCoaId, a.ARAP_COA_ID)
+
+and   a.GL_CLD_ID = b.TVOU_CLD_ID(+)
+and   a.ARAP_SLOC_ID = b.TVOU_ADJ_SLOC_ID(+)
+and   a.ARAP_APPL_INST_ID = b.TVOU_ADJ_APPL_INST_ID(+)
+and   a.GL_HO_ORG_ID = b.TVOU_HO_ORG_ID(+)
+and   a.ARAP_ORG_ID = b.TVOU_ADJ_ORG_ID(+)
+and   a.ARAP_COA_ID = b.TVOU_ADJ_COA_ID(+)
+and a.ARAP_VOU_ID = b.link_VOU(+)
+and a.ARAP_GL_SL_NO = b.link_vou_slno(+)
+and a.ARAPSL_NO = b.link_vou_arap_slno(+)]]></SQLQuery>
+  <ViewAttribute
+    Name="GlCldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_CLD_ID"
+    Expression="GL_CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ArapSlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="ARAP_SLOC_ID"
+    Expression="ARAP_SLOC_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ArapApplInstId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="1"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="ARAP_APPL_INST_ID"
+    Expression="ARAP_APPL_INST_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="GlHoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_HO_ORG_ID"
+    Expression="GL_HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ArapOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ARAP_ORG_ID"
+    Expression="ARAP_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ArapFlg"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="CHAR"
+    AliasName="ARAP_FLG"
+    Expression="ARAP_FLG"
+    SQLType="CHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ArapCoaId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.math.BigInteger"
+    ColumnType="NUMBER"
+    AliasName="ARAP_COA_ID"
+    Expression="ARAP_COA_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ArapVouId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ARAP_VOU_ID"
+    Expression="ARAP_VOU_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ArapGlSlNo"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="ARAP_GL_SL_NO"
+    Expression="ARAP_GL_SL_NO"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ArapslNo"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="ARAPSL_NO"
+    Expression="ARAPSL_NO"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ArapAmtSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="ARAP_AMT_SP"
+    Expression="ARAP_AMT_SP"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ArapCurrIdSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.math.BigInteger"
+    ColumnType="NUMBER"
+    AliasName="ARAP_CURR_ID_SP"
+    Expression="ARAP_CURR_ID_SP"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ArapAmtTyp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ARAP_AMT_TYP"
+    Expression="ARAP_AMT_TYP"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ArapAmtAdj"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="ARAP_AMT_ADJ"
+    Expression="ARAP_AMT_ADJ"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ArapAmtAdjTmp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="ARAP_AMT_ADJ_TMP"
+    Expression="ARAP_AMT_ADJ_TMP"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ArapNetAmtOt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="ARAP_NET_AMT_OT"
+    Expression="ARAP_NET_AMT_OT"
+    SQLType="NUMERIC"/>
+  <AttrArray Name="KeyAttributes">
+    <Item Value="GlCldId"/>
+    <Item Value="ArapSlocId"/>
+    <Item Value="ArapApplInstId"/>
+    <Item Value="GlHoOrgId"/>
+    <Item Value="ArapOrgId"/>
+    <Item Value="ArapCoaId"/>
+    <Item Value="ArapVouId"/>
+    <Item Value="ArapGlSlNo"/>
+    <Item Value="ArapslNo"/>
+  </AttrArray>
+  <ResourceBundle>
+    <JavaResourceBundle
+      MsgBundleClass="tempVoucherList.view.bundle.Resource"/>
+  </ResourceBundle>
+</ViewObject>

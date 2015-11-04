@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AR_BillKnockOff_subreport" language="groovy" pageWidth="197" pageHeight="17" orientation="Landscape" columnWidth="197" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Coa_ID" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Org_ID" class="java.lang.String"/>
+	<parameter name="Amount" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Amount-X1" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Amount-X2" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CurrencyID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FromDate" class="java.lang.String"/>
+	<parameter name="ToDate" class="java.lang.String"/>
+	<parameter name="cld_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="DocTxnId" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mainrepDate" class="java.util.Date"/>
+	<parameter name="mainrepNo" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select substr(e.doc_txn_id_disp,3) invoicedocno,
+         substr(f.doc_txn_id_disp,3) adjvou,
+         b.adj_vou_dt adjvoudt,
+         nvl(b.amt_adj,0) paidamount
+FROM ar a,
+    (SELECT ADJ_CLD_ID CLD_ID,  ADJ_SLOC_ID SLOC_ID,  ADJ_HO_ORG_ID HO_ORG_ID,  ADJ_ORG_ID ORG_ID,  ADJ_APPL_INST_ID APPL_INST_ID,  56 DOC_ID,  ADJ_COA_ID COA_ID,
+                    ADJ_MST_VOU_ID MST_VOU_ID,
+                    ADJ_MST_VOU_DT MST_VOU_DT,
+                    ADJ_MST_SL_NO MST_SL_NO,
+                    ADJ_TAB,
+                    ADJ_VOU_ID,
+                    ADJ_VOU_DT,
+                    ADJ_ARAP_SL_NO,
+                    ADJ_SL_NO,
+                    ADJ_AMT_SP,
+                    RADJ_TAB RADJ_TAB,
+                    RADJ_VOU_ID,
+                    RADJ_VOU_DT,
+                    RADJ_ARAP_SL_NO,
+                    RADJ_SL_NO,
+                    RADJ_AMT_ADJ*CURR_CC_TRX AMT_ADJ,
+                    ADJ_AMT_TYP AMT_TYP,ADV_INV_FLG
+          FROM GL_ADJ
+         where ADJ_CLD_ID=nvl($P{cld_id},ADJ_CLD_ID)
+           and ADJ_COA_ID =nvl($P{Coa_ID},ADJ_COA_ID)
+        )  b,
+        app.app$doc$txn e,
+        app.app$doc$txn f
+WHERE    a.GL_CLD_ID =$P{cld_id}
+and      a.AR_ORG_ID = nvl($P{Org_ID},a.AR_ORG_ID)
+and      TRUNC(a.Ar_VOU_DT) >= to_date(NVL($P{FromDate},'1000-01-01'),'YYYY-MM-DD')
+and 	 TRUNC(a.Ar_VOU_DT) <= to_date(NVL($P{ToDate},SYSDATE),'YYYY-MM-DD')
+and      a.ar_amt_BS_orig >= nvl($P{Amount-X1},0)
+AND      a.ar_amt_BS_orig <= nvl($P{Amount-X2},999999999999999999)
+and      f.doc_txn_id =$P{DocTxnId}
+and      a.Ar_CURR_ID_SP = nvl($P{CurrencyID},a.Ar_CURR_ID_SP)
+and      A.AR_COA_ID =nvl($P{Coa_ID},A.AR_COA_ID)
+AND      A.Ar_VOU_ID = B.ADJ_VOU_ID
+AND      A.Ar_COA_ID = B.COA_ID
+AND      a.ar_gl_sl_no = B.ADJ_SL_NO
+AND      a.ar_sl_no = B.ADJ_ARAP_SL_NO
+AND      E.DOC_CLD_ID = A.GL_CLD_ID
+AND      E.DOC_SLOC_ID = A.AR_SLOC_ID
+AND      E.DOC_ORG_ID = A.AR_ORG_ID
+AND      E.DOC_ID = 56
+AND      E.DOC_TXN_ID = A.AR_VOU_ID
+AND      b.CLD_ID = f.DOC_CLD_ID
+and      b.SLOC_ID = f.DOC_SLOC_ID
+and      b.ORG_ID = f.DOC_ORG_ID
+and      b.DOC_ID = f.DOC_ID
+and      b.RADJ_VOU_ID = f.DOC_TXN_ID
+and      a.ar_amt_typ='Cr']]>
+	</queryString>
+	<field name="INVOICEDOCNO" class="java.lang.String"/>
+	<field name="ADJVOU" class="java.lang.String"/>
+	<field name="ADJVOUDT" class="java.sql.Timestamp"/>
+	<field name="PAIDAMOUNT" class="java.math.BigDecimal"/>
+	<variable name="TotalAmount" class="java.math.BigDecimal" resetType="Group" resetGroup="COA" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="TotalPaidAmount" class="java.math.BigDecimal" resetType="Group" resetGroup="Inv No" calculation="Sum">
+		<variableExpression><![CDATA[$F{PAIDAMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="TotalPendingAmount" class="java.math.BigDecimal" resetType="Group" resetGroup="Inv No" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="Organizayion_Inovice" class="java.math.BigDecimal" resetType="Group" resetGroup="ORG" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="Organization_Paid" class="java.math.BigDecimal" resetType="Group" resetGroup="ORG" calculation="Sum">
+		<variableExpression><![CDATA[$F{PAIDAMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="Organization_Pending" class="java.math.BigDecimal" resetType="Group" resetGroup="ORG" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="All_Invoice" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="All_Paid" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{PAIDAMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="All_Pnding" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="V_group" class="java.lang.Integer">
+		<initialValueExpression><![CDATA[1]]></initialValueExpression>
+	</variable>
+	<variable name="TotPaidAmtCoaNameWise" class="java.math.BigDecimal" resetType="Group" resetGroup="COA" calculation="Sum">
+		<variableExpression><![CDATA[$F{PAIDAMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="TotalPendingAmtCoaWise" class="java.math.BigDecimal" resetType="Group" resetGroup="COA" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<group name="ORG" isStartNewPage="true">
+		<groupExpression><![CDATA[]]></groupExpression>
+	</group>
+	<group name="COA">
+		<groupExpression><![CDATA[]]></groupExpression>
+	</group>
+	<group name="Inv No">
+		<groupExpression><![CDATA[$F{ADJVOU}]]></groupExpression>
+	</group>
+	<detail>
+		<band height="17">
+			<printWhenExpression><![CDATA[(($P{mainrepDate}==null && $P{mainrepNo})==null ? false : true)]]></printWhenExpression>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="120" y="1" width="77" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{PAIDAMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="8" y="1" width="63" height="15"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{INVOICEDOCNO}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+				<reportElement x="72" y="1" width="61" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[$F{ADJVOUDT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="133" y="0" width="64" height="17"/>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Dashed"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="76" y="0" width="77" height="17"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="75" height="17"/>
+				<box>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</detail>
+</jasperReport>

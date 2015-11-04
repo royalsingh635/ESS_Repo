@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="CurrencyWiseOutstandingVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  UseGlueCode="false">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="misARAPAnalysis.model.view.CurrencyWiseOutstandingVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindCoaId"
+    Kind="where"
+    Type="oracle.jbo.domain.Number"/>
+  <Variable
+    Name="BindUsrId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <SQLQuery><![CDATA[select cld_id,
+       org_id,
+       org_desc ,
+       curr_id,
+       curr_nm CURRENCY,
+       sum(ap_amt_sp_signed) AS "SPECIFIC AMOUNT",
+       sum(ap_amt_adj_signed) "ADJUSTED AMOUNT",
+       sum(ap_amt_os_signed) "OUTSTANDING AMOUNT",
+       sum(os_30_days) BUCKET_1,
+       sum(os_60_days) BUCKET_2,
+       sum(os_90_days) BUCKET_3,
+       sum(os_120_days) BUCKET_4,
+       sum(os_greater_1_yr) BUCKET_5
+  from (select a.gl_cld_id cld_id,
+               a.ap_org_id org_id,
+               DECODE(:BindCoaId,NULL,b.org_desc,C.COA_NM) ORG_DESC,  
+               a.ap_coa_id coa_id,
+               c.coa_nm,
+               a.curr_id_sp curr_id,
+               e.glbl_curr_desc curr_nm,
+               a.ap_vou_id,
+               a.ap_vou_dt,
+               a.ap_amt_sp,
+               a.ap_amt_sp_signed,
+               a.ap_amt_adj,
+               a.ap_amt_adj_signed,
+               ap_amt_os,
+               ap_amt_os_signed,
+               os_days,
+               decode(sign(OAB.BKT_RANGE1 - os_days), -1, 0,ap_amt_os_signed) os_30_days,
+               decode(sign(OAB.BKT_RANGE2 - os_days) * sign(os_days -(OAB.BKT_RANGE1+1)),-1,0,ap_amt_os_signed) os_60_days,
+               decode(sign(OAB.BKT_RANGE3 - os_days) * sign(os_days -(OAB.BKT_RANGE2+1)),-1,0,ap_amt_os_signed) os_90_days,
+               decode(sign(OAB.BKT_RANGE4 - os_days) * sign(os_days -(OAB.BKT_RANGE3+1)),-1,0,ap_amt_os_signed) os_120_days,
+               decode(sign(os_days - OAB.BKT_RANGE4), -1, 0,ap_amt_os_signed) os_greater_1_yr
+          from (select gl_cld_id,
+                       ap_org_id,
+                       ap_sloc_id,
+                       ap_coa_id,
+                       ap_curr_id_sp curr_id_sp,
+                       ap_vou_id,
+                       ap_vou_dt,
+                       ap_amt_sp,
+                       ap_amt_typ,
+                       decode(ap_amt_typ, 'Cr', nvl(ap_amt_sp, 0),'Dr', -nvl(ap_amt_sp, 0),nvl(ap_amt_sp, 0)) ap_amt_sp_signed,
+                       nvl(ap_amt_adj, 0) ap_amt_adj,decode(ap_amt_typ,'Cr',nvl(ap_amt_adj, 0),'Dr',-nvl(ap_amt_adj, 0),nvl(ap_amt_adj, 0)) ap_amt_adj_signed,
+                       nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0) ap_amt_os,
+                       decode(ap_amt_typ,'Cr',nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0),'Dr',- (nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0)),
+                              nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0)) ap_amt_os_signed,
+                       (trunc(sysdate) - ap_vou_dt) os_days
+                  from ap 
+                 where nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0) > 0
+                   and ap_txn_typ_adv = 'N'
+                  and ap_type_id in (8, 14) 
+                  and ap.gl_cld_id=:BindCldId  
+                  and ap.ap_org_id=:BindOrgId   
+                  AND AP.AP_COA_ID=NVL(:BindCoaId, AP.AP_COA_ID)) a,
+               app.org b,
+               fin$coa c,
+               app.app$doc$txn d,
+               app.app$glbl$curr e,
+               ORG$USR$AGEING_BKT OAB
+         where a.os_days > 0
+           and d.doc_cld_id = a.gl_cld_id
+           and d.doc_org_id = a.ap_org_id
+           and d.doc_sloc_id = a.ap_sloc_id
+           and d.doc_txn_id = a.ap_vou_id
+           and b.org_cld_id = a.gl_cld_id
+           and b.org_id = a.ap_org_id
+           and c.coa_cld_id = a.gl_cld_id
+           and c.coa_sloc_id = a.ap_sloc_id
+           and c.coa_id = a.ap_coa_id
+           and e.glbl_curr_id = a.curr_id_sp
+           AND A.GL_CLD_ID=OAB.BKT_CLD_ID
+           AND A.AP_ORG_ID=OAB.BKT_ORG_ID
+           AND OAB.BKT_ACTIVE='Y'
+           AND OAB.BKT_DEFAULT='Y'
+           and OAB.BKT_USER_ID=:BindUsrId
+           AND OAB.BKT_CLD_ID=:BindCldId
+           AND OAB.BKT_ORG_ID=:BindOrgId
+           AND C.COA_ID=NVL(:BindCoaId, C.COA_ID)
+          )
+group by cld_id, org_id, org_desc,  curr_id, curr_nm
+  order by  cld_id, org_id, org_desc, "OUTSTANDING AMOUNT" desc]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="4"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_DESC"
+    Expression="ORG_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CurrId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.math.BigInteger"
+    ColumnType="NUMBER"
+    AliasName="CURR_ID"
+    Expression="CURR_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Currency"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CURRENCY"
+    Expression="CURRENCY"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SpecificAmount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName='"SPECIFIC AMOUNT"'
+    Expression='"SPECIFIC AMOUNT"'
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="AdjustedAmount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName='"ADJUSTED AMOUNT"'
+    Expression='"ADJUSTED AMOUNT"'
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="OutstandingAmount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName='"OUTSTANDING AMOUNT"'
+    Expression='"OUTSTANDING AMOUNT"'
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Bucket1"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="BUCKET_1"
+    Expression="BUCKET_1"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Bucket2"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="BUCKET_2"
+    Expression="BUCKET_2"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Bucket3"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="BUCKET_3"
+    Expression="BUCKET_3"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Bucket4"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="BUCKET_4"
+    Expression="BUCKET_4"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Bucket5"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="BUCKET_5"
+    Expression="BUCKET_5"
+    SQLType="NUMERIC"/>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="misARAPAnalysis.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

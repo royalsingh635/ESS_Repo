@@ -1,0 +1,341 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<jsp:root xmlns:jsp="http://java.sun.com/JSP/Page" version="2.1" xmlns:af="http://xmlns.oracle.com/adf/faces/rich"
+          xmlns:f="http://java.sun.com/jsf/core">
+  <af:panelGroupLayout id="pgl1">
+    <af:panelHeader text="#{bundle['LBL.1460']}" id="ph1" inlineStyle="background-color:White;">
+      <f:facet name="menuBar"/>
+      <f:facet name="toolbar">
+        <af:toolbar id="t2">
+          <af:commandImageLink id="cil6" partialTriggers="sor1"
+                               binding="#{SuggestedOrderView.rfqgenbtn}" visible="false"
+                               action="#{SuggestedOrderView.createRFQAction}"
+                               icon="#{resource['images:enable_group_blue.png']}"
+                               disabledIcon="#{resource['images:disable_group_blue.png']}"
+                               shortDesc="#{bundle['LBL.478']}"/>
+          <af:commandImageLink id="cil5"
+                               icon="#{resource['images:enable_group_blue.png']}" shortDesc="#{bundle['LBL.478']}"
+                               action="#{SuggestedOrderView.getSelectedItem}"
+                               disabledIcon="#{resource['images:disable_group_blue.png']}"
+                               binding="#{SuggestedOrderView.poRfqGrp}" partialTriggers="sor1" visible="false"/>
+          <af:spacer width="10" height="10" id="s14"/>
+          <af:commandImageLink id="cil1" icon="#{resource['images:enable_add_blue.png']}"
+                               disabledIcon="#{resource['images:disabled_add_white.png']}"
+                               shortDesc="#{bundle['LBL.256']}" action="#{SuggestedOrderView.createSuggestedOrd}"/>
+        </af:toolbar>
+      </f:facet>
+      <af:treeTable value="#{bindings.MmSo.collectionModel}" var="node" rowBandingInterval="0" id="tt1"
+                    styleClass="AFStretchWidth" columnStretching="last" rendered="false">
+        <f:facet name="nodeStamp">
+          <af:column sortable="false" id="c1" width="10"
+                     inlineStyle="#{node.SoId != null ? 'background-image:url(&quot;pahem.png&quot;);' : '' }"/>
+        </f:facet>
+        <af:column id="c10" width="350">
+          <af:panelGroupLayout id="pgl6">
+            <af:outputText value="#{node.SoId}" id="ot6"/>
+            <af:selectOneChoice value="#{node.ItmId}" shortDesc="#{bindings.ItmId.hints.tooltip}" id="soc5"
+                                readOnly="true">
+              <f:selectItems value="#{bindings.ItmId.items}" id="si5"/>
+            </af:selectOneChoice>
+          </af:panelGroupLayout>
+        </af:column>
+        <af:column id="c4">
+          <af:panelGroupLayout id="pgl7">
+            <af:outputText value="#{node.TranCountItem} Items" id="ot7"/>
+            <af:selectOneChoice value="#{node.ItmUom}"
+                                shortDesc="#{bindings.ItmUom.hints.tooltip}" id="soc7" readOnly="true">
+              <f:selectItems value="#{bindings.ItmUom.items}" id="si7"/>
+            </af:selectOneChoice>
+          </af:panelGroupLayout>
+        </af:column>
+        <af:column sortProperty="#{bindings.MmSoItm.hints.SoQty.name}" sortable="false" id="c8" width="40" frozen="true">
+          <af:inputText value="#{node.SoQty}"
+                        maximumLength="#{bindings.MmSoItm.hints.SoQty.precision}"
+                        shortDesc="#{bindings.MmSoItm.hints.SoQty.tooltip}" id="it4" readOnly="true">
+            <f:validator binding="#{row.bindings.SoQty.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.MmSoItm.hints.SoQty.format}"/>
+          </af:inputText>
+        </af:column>
+        <af:column id="c9" noWrap="true"
+                   inlineStyle="#{row.bindings.TranEoNm.inputValue == null ? ' '  :  ' background-color:Yellow;' }">
+          <af:panelGroupLayout id="pgl8" layout="horizontal">
+            <af:outputText value="#{node.TranEoNm}" id="ot8" partialTriggers="ilov1"
+                           inlineStyle="font-weight:bold;"/>
+            <af:outputText value='#{node.TranEoNm == null ? " No supplier selected" : "" }' id="ot9"
+                           partialTriggers="ilov1" inlineStyle="font-weight:bold;"/>
+            <af:inputText value="( #{node.TranEoScore} /100),"
+                          maximumLength="#{bindings.MmSoItm.hints.TranEoScore.precision}"
+                          shortDesc="#{bindings.MmSoItm.hints.TranEoScore.tooltip}" id="it5" readOnly="true"
+                          partialTriggers="ilov1" visible="#{node.TranEoNm != null}"
+                          contentStyle="font-weight:bold;">
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.MmSoItm.hints.TranEoScore.format}"/>
+            </af:inputText>
+            <af:inputListOfValues id="ilov1" popupTitle="Search and Select:" value="#{node.TranEoNm}"
+                                  columns="#{bindings.MmSoItm.hints.TranEoNm.displayWidth}" editMode="select"
+                                  contentStyle="#{row.bindings.TranEoNm.inputValue == null ? 'border-width:thin; border-color:White; outline-width:thin; outline-color:White;width:0px;'  :  ' border-color:Yellow; border-width:thin; outline-width:thin; outline-color:Yellow;background-color:Yellow;width:0px;' } "
+                                  autoSubmit="true" returnPopupListener="#{SuggestedOrderView.returnpopup}"
+                                  readOnly="#{node.TranSuppCount == 0}"/>
+            <af:spacer width="10" height="10" id="s17"/>
+            <af:inputText value="#{node.TranSuppCount} Supplier available" id="it6" readOnly="true"
+                          contentStyle="color:Blue; font-style:italic; ">
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.MmSoItm.hints.TranSuppCount.format}"/>
+            </af:inputText>
+          </af:panelGroupLayout>
+        </af:column>
+      </af:treeTable>
+    </af:panelHeader>
+    <af:spacer width="10" height="5" id="s13"/>
+    <af:panelFormLayout id="pfl1" rows="2" maxColumns="3" binding="#{SuggestedOrderView.searchPanel}" labelWidth="200"
+                        inlineStyle="background-color:rgb(235,241,249);">
+      <af:selectOneChoice value="#{bindings.BindSOBasis1.inputValue}"
+                          label="#{bundle['LBL.282']}"
+                          required="#{bindings.BindSOBasis1.hints.mandatory}"
+                          shortDesc="#{bindings.BindSOBasis1.hints.tooltip}" id="soc3"
+                          binding="#{SuggestedOrderView.soBasis}" labelStyle="font-weight:bold;color:black;">
+        <f:selectItems value="#{bindings.BindSOBasis1.items}" id="si3"/>
+      </af:selectOneChoice>
+      <af:spacer width="10" height="10" id="s8"/>
+      <af:spacer width="10" height="10" id="s10"/>
+      <af:inputDate value="#{bindings.BindFromDate.inputValue}" label="#{bundle['LBL.450']}"
+                    required="#{bindings.BindFromDate.hints.mandatory}"
+                    columns="#{bindings.BindFromDate.hints.displayWidth}"
+                    shortDesc="#{bindings.BindFromDate.hints.tooltip}" id="id1"
+                    binding="#{SuggestedOrderView.fromDate}" autoSubmit="true"
+                    valueChangeListener="#{SuggestedOrderView.fromDateVCE}" labelStyle="font-weight:bold;color:black;">
+        <f:validator binding="#{bindings.BindFromDate.validator}"/>
+        <af:convertDateTime pattern="dd/MM/yyyy"/>
+      </af:inputDate>
+      <af:spacer width="10" height="10" id="s11"/>
+      <af:panelGroupLayout id="pgl5">
+        <af:commandImageLink id="cil2" icon="#{resource['images:enable_search_blue.png']}"
+                             disabledIcon="#{resource['images:disabled_search_white.png']}"
+                             shortDesc="#{bundle['LBL.881']}" actionListener="#{SuggestedOrderView.executeWithParam}"
+                             disabled="#{!bindings.ExecuteWithParams.enabled}"/>
+        <af:spacer width="10" height="10" id="s16"/>
+        <af:commandImageLink id="cil3" actionListener="#{SuggestedOrderView.resetAction}"
+                             icon="#{resource['images:enable_reset_blue.png']}"
+                             disabledIcon="#{resource['images:disabled_reset_white.png']}"
+                             shortDesc="#{bundle['LBL.208']}" immediate="true"/>
+      </af:panelGroupLayout>
+      <af:inputDate value="#{bindings.BindToDate.inputValue}" label="#{bundle['LBL.1030']}"
+                    required="#{bindings.BindToDate.hints.mandatory}"
+                    columns="#{bindings.BindToDate.hints.displayWidth}" shortDesc="#{bindings.BindToDate.hints.tooltip}"
+                    id="id2" binding="#{SuggestedOrderView.toDate}" minValue="#{SuggestedOrderView.fromDate.value}"
+                    partialTriggers="id1" autoSubmit="true" labelStyle="font-weight:bold;color:black;">
+        <f:validator binding="#{bindings.BindToDate.validator}"/>
+        <af:convertDateTime pattern="dd/MM/yyyy"/>
+      </af:inputDate>
+      <af:selectBooleanCheckbox value="#{bindings.BindStatus.inputValue}"
+                                shortDesc="#{bindings.BindStatus.hints.tooltip}" id="sbc1" text="Close SO"
+                                autoSubmit="true" binding="#{SuggestedOrderView.soStatus}"/>
+    </af:panelFormLayout>
+    <af:spacer width="10" height="10" id="s12"/>
+    <af:panelFormLayout id="pfl2" rows="1" maxColumns="3">
+      <af:selectOneRadio id="sor1" valueChangeListener="#{SuggestedOrderView.onSelectionAction}"
+                         autoSubmit="true" binding="#{SuggestedOrderView.porfqradio}">
+        <af:selectItem label="#{bundle['LBL.3156']}" value="po" id="si12"/>
+        <af:selectItem label="#{bundle['LBL.460']}" value="rfq" id="si11"/>
+      </af:selectOneRadio>
+    </af:panelFormLayout>
+    <af:panelAccordion id="pa1" dimensionsFrom="auto" discloseMany="true">
+      <af:forEach items="#{bindings.MmSo.children}" var="rows">
+        <af:showDetailItem text="#{bundle['LBL.860']}    #{rows.SoId} " id="sdi1" inflexibleHeight="50" disclosed="true"
+                           inlineStyle="background-color:White;">
+          <af:spacer width="10" height="10" id="s1"/>
+          <af:table value="#{rows.children}" var="row"
+                    styleClass="AFStretchWidth" autoHeightRows="10" inlineStyle="background-color:White;"
+                    rowBandingInterval="0" columnStretching="last" rowSelection="single" partialTriggers="::sor1">
+            <af:column sortable="false" headerText="" id="c6" width="30"
+                       visible="#{SuggestedOrderView.porfqradio.value == 'po' or SuggestedOrderView.porfqradio.value== 'rfq' }">
+              <af:selectBooleanCheckbox value="#{row.bindings.TranCheck.inputValue}" id="ot3" autoSubmit="true"
+                                        disabled="#{row.TranEoNm == null &amp;&amp; SuggestedOrderView.porfqradio.value == 'po' }"/>
+            </af:column>
+            <af:column sortProperty="#{bindings.MmSoItm.hints.ItmId.name}" sortable="false" id="c2" width="170" frozen="true">
+              <af:spacer width="10" height="5" id="s3"/>
+              <af:selectOneChoice value="#{row.bindings.ItmId.inputValue}" label="#{row.bindings.ItmId.label}"
+                                  required="#{bindings.MmSoItm.hints.ItmId.mandatory}"
+                                  shortDesc="#{bindings.MmSoItm.hints.ItmId.tooltip}" id="soc1" readOnly="true"
+                                  contentStyle="color:Blue; font-weight:bold;">
+                <f:selectItems value="#{row.bindings.ItmId.items}" id="si1"/>
+              </af:selectOneChoice>
+              <af:spacer width="10" height="5" id="s2"/>
+            </af:column>
+            <af:column sortProperty="#{bindings.MmSoItm.hints.ItmUom.name}" sortable="false" id="c3" width="80" frozen="true">
+              <af:selectOneChoice value="#{row.bindings.ItmUom.inputValue}" label="#{row.bindings.ItmUom.label}"
+                                  required="#{bindings.MmSoItm.hints.ItmUom.mandatory}"
+                                  shortDesc="#{bindings.MmSoItm.hints.ItmUom.tooltip}" id="soc2" readOnly="true">
+                <f:selectItems value="#{row.bindings.ItmUom.items}" id="si2"/>
+              </af:selectOneChoice>
+            </af:column>
+            <af:column sortProperty="#{bindings.MmSoItm.hints.SoQty.name}" sortable="false" id="c5" width="80" frozen="true"
+                       align="right">
+              <af:inputText value="#{row.bindings.SoQty.inputValue}" label="#{bindings.MmSoItm.hints.SoQty.label}"
+                            required="#{bindings.MmSoItm.hints.SoQty.mandatory}"
+                            columns="#{bindings.MmSoItm.hints.SoQty.displayWidth}"
+                            maximumLength="#{bindings.MmSoItm.hints.SoQty.precision}"
+                            shortDesc="#{bindings.MmSoItm.hints.SoQty.tooltip}" id="it2" readOnly="true">
+                <f:validator binding="#{row.bindings.SoQty.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.MmSoItm.hints.SoQty.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:inputText>
+            </af:column>
+            <af:column id="c7" noWrap="true"
+                       inlineStyle="#{row.TranEoNm == null ? 'background-color:White;'   :  ' background-color:Yellow;' }">
+              <af:panelGroupLayout id="pgl4" layout="horizontal">
+                <af:spacer width="30" height="10" id="s15"/>
+                <af:outputText value="#{row.bindings.TranEoNm.inputValue}" id="ot4" partialTriggers="tranEoNmId"
+                               inlineStyle="font-weight:bold;"/>
+                <af:outputText value="#{row.TranEoNm == null ? &quot; No supplier selected&quot; : &quot;&quot; }" id="ot5"
+                               partialTriggers="tranEoNmId" inlineStyle="font-weight:bold;"/>
+                <af:inputText value="( #{row.TranEoScore} /100),"
+                              label="#{bindings.MmSoItm.hints.TranEoScore.label}"
+                              required="#{bindings.MmSoItm.hints.TranEoScore.mandatory}"
+                              columns="#{bindings.MmSoItm.hints.TranEoScore.displayWidth}"
+                              maximumLength="#{bindings.MmSoItm.hints.TranEoScore.precision}"
+                              shortDesc="#{bindings.MmSoItm.hints.TranEoScore.tooltip}" id="it3" readOnly="true"
+                              partialTriggers="tranEoNmId" visible="#{row.TranEoNm != null}"
+                              contentStyle="font-weight:bold;">
+                  <f:validator binding="#{row.bindings.TranEoScore.validator}"/>
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MmSoItm.hints.TranEoScore.format}"
+                                    minIntegerDigits="2" maxIntegerDigits="2" minFractionDigits="2"
+                                    maxFractionDigits="2"/>
+                </af:inputText>
+                <af:inputListOfValues id="tranEoNmId"
+                                      popupTitle="Search and Select:#{bundle['LBL.1201']}"
+                                      value="#{row.bindings.TranEoNm.inputValue}"
+                                      model="#{row.bindings.TranEoNm.listOfValuesModel}"
+                                      required="#{bindings.MmSoItm.hints.TranEoNm.mandatory}"
+                                      columns="#{bindings.MmSoItm.hints.TranEoNm.displayWidth}" editMode="select"
+                                      autoSubmit="true" returnPopupListener="#{SuggestedOrderView.returnpopup}"
+                                      readOnly="#{row.TranSuppCount == 0}"
+                                      contentStyle="#{row.TranEoNm == null ? 'border-width:thin; border-color:White; outline-width:thin; outline-color:White;width:0px;'  :  ' border-color:Yellow; border-width:thin; outline-width:thin; outline-color:Yellow;background-color:Yellow;width:0px;' } ">
+                  <f:validator binding="#{row.bindings.TranEoNm.validator}"/>
+                </af:inputListOfValues>
+                <af:spacer width="10" height="10" id="s6"/>
+                <af:inputText value="#{row.TranSuppCount} #{row.bindings.TranSuppCount.inputValue > 1? bundle['LBL.3149'] : bundle['LBL.3148'] }" id="it1"
+                              readOnly="true" contentStyle="color:Blue; font-style:italic; ">
+                  <f:validator binding="#{row.bindings.TranSuppCount.validator}"/>
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MmSoItm.hints.TranSuppCount.format}"/>
+                </af:inputText>
+                <af:commandImageLink id="cil4"
+                                     actionListener="#{SuggestedOrderView.getItemHistory}" rendered="true"/>
+              </af:panelGroupLayout>
+            </af:column>
+          </af:table>
+          <f:facet name="toolbar">
+            <af:panelGroupLayout id="pgl2" layout="horizontal" halign="left">
+              <af:commandImageLink id="cl1" actionListener="#{SuggestedOrderView.viewSO}"
+                                   icon="#{resource['images:iconeye.png']}" shortDesc="#{bundle['LBL.3150']}"/>
+              <af:spacer width="10" height="10" id="s19"/>
+              <af:outputText id="ot1"
+                             inlineStyle="font-weight:bold; font-size:small;"
+                             value="#{rows.TranCountItem}  #{rows.TranCountItem >1 ?bundle['LBL.524'] : bundle['LBL.1396']}">
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.TranCountItem.format}"/>
+              </af:outputText>
+              <af:spacer width="20" height="10" id="s4"/>
+              <af:outputText value="#{bundle['LBL.130']} :" id="ot2" inlineStyle="font-weight:bold; font-size:small;"/>
+              <af:selectOneChoice value="#{rows.bindings.SoBasis.inputValue}"
+                                  required="#{bindings.MmSo.hints.SoBasis.mandatory}"
+                                  shortDesc="#{bindings.MmSo.hints.SoBasis.tooltip}" id="soc6" readOnly="true"
+                                  contentStyle="font-weight:bold; font-size:small;">
+                <f:selectItems value="#{rows.bindings.SoBasis.items}" id="si6"/>
+              </af:selectOneChoice>
+              <af:spacer width="20" height="10" id="s5"/>
+              <af:outputText value="#{bundle['LBL.573']} :" id="ot11"
+                             inlineStyle="font-weight:bold; font-size:small;"/>
+              <af:selectOneChoice value="#{rows.bindings.UsrIdMod.inputValue}"
+                                  required="#{bindings.UsrIdMod.hints.mandatory}"
+                                  shortDesc="#{bindings.UsrIdMod.hints.tooltip}" id="soc4" readOnly="true"
+                                  contentStyle="font-weight:bold; font-size:small;">
+                <f:selectItems value="#{rows.bindings.UsrIdMod.items}" id="si4"/>
+              </af:selectOneChoice>
+              <af:spacer width="10" height="10" id="s18"/>
+              <af:outputText value="#{bundle['LBL.1185']} :" id="ot10" inlineStyle="font-weight:bold; font-size:small;"/>
+              <af:inputDate id="id3" value="#{rows.bindings.UsrIdModDt.inputValue}" readOnly="true"
+                            contentStyle="font-weight:bold; font-size:small;">
+                <af:convertDateTime pattern="dd/MM/yyyy"/>
+              </af:inputDate>
+            </af:panelGroupLayout>
+          </f:facet>
+        </af:showDetailItem>
+        <af:popup childCreation="deferred" autoCancel="disabled" id="p4" binding="#{SuggestedOrderView.itemStkPopup}">
+          <af:dialog id="d4" title="#{bindings.TranItmName.inputValue} #{bundle['LBL.1458']}">
+            <f:facet name="buttonBar"/>
+            <af:panelGroupLayout id="pgl9" layout="vertical">
+              <af:panelFormLayout id="pfl5" rows="1">
+                <af:panelBox text="#{bundle['LBL.101']}" id="pb2" showDisclosure="false">
+                  <f:facet name="toolbar"/>
+                  <af:panelGroupLayout id="pgl10" layout="horizontal">
+                    <af:inputText value="#{SuggestedOrderView.avlStk}" id="it7" label="Label 2" simple="true"
+                                  readOnly="true"/>
+                    <af:spacer width="10" height="10" id="s20"/>
+                    <af:selectOneChoice value="#{bindings.ItmUom.inputValue}" label="#{bindings.ItmUom.label}"
+                                        required="#{bindings.ItmUom.hints.mandatory}"
+                                        shortDesc="#{bindings.ItmUom.hints.tooltip}" id="soc8" readOnly="true"
+                                        simple="true">
+                      <f:selectItems value="#{bindings.ItmUom.items}" id="si8"/>
+                    </af:selectOneChoice>
+                  </af:panelGroupLayout>
+                </af:panelBox>
+                <af:panelBox text="#{bundle['LBL.656']}" id="pb3" showDisclosure="false">
+                  <f:facet name="toolbar"/>
+                  <af:panelGroupLayout id="pgl11" layout="horizontal">
+                    <af:inputText value="#{SuggestedOrderView.ordStk}" id="it8" label="Label 3" readOnly="true"
+                                  simple="true"/>
+                    <af:spacer width="10" height="10" id="s21"/>
+                    <af:selectOneChoice value="#{bindings.ItmUom.inputValue}" label="#{bindings.ItmUom.label}"
+                                        required="#{bindings.ItmUom.hints.mandatory}"
+                                        shortDesc="#{bindings.ItmUom.hints.tooltip}" id="soc9" readOnly="true"
+                                        simple="true">
+                      <f:selectItems value="#{bindings.ItmUom.items}" id="si9"/>
+                    </af:selectOneChoice>
+                  </af:panelGroupLayout>
+                </af:panelBox>
+                <af:panelBox text="#{bundle['LBL.831']}" id="pb1" showDisclosure="false">
+                  <f:facet name="toolbar"/>
+                  <af:panelGroupLayout id="pgl12" layout="horizontal">
+                    <af:inputText value="#{SuggestedOrderView.reqStk}" id="it9" label="Label 4" simple="true"
+                                  readOnly="true"/>
+                    <af:spacer width="10" height="10" id="s22"/>
+                    <af:selectOneChoice value="#{bindings.ItmUom.inputValue}" label="#{bindings.ItmUom.label}"
+                                        required="#{bindings.ItmUom.hints.mandatory}"
+                                        shortDesc="#{bindings.ItmUom.hints.tooltip}" id="soc10" readOnly="true"
+                                        simple="true">
+                      <f:selectItems value="#{bindings.ItmUom.items}" id="si10"/>
+                    </af:selectOneChoice>
+                  </af:panelGroupLayout>
+                </af:panelBox>
+              </af:panelFormLayout>
+              <af:table value="#{bindings.ViewPendPurOrdVO.collectionModel}" var="row"
+                        rows="#{bindings.ViewPendPurOrdVO.rangeSize}"
+                        emptyText="#{bindings.ViewPendPurOrdVO.viewable ? 'No data to display.' : 'Access Denied.'}"
+                        fetchSize="#{bindings.ViewPendPurOrdVO.rangeSize}" rowBandingInterval="0"
+                        selectedRowKeys="#{bindings.ViewPendPurOrdVO.collectionModel.selectedRow}"
+                        selectionListener="#{bindings.ViewPendPurOrdVO.collectionModel.makeCurrent}"
+                        rowSelection="single" id="t1" width="777">
+                <af:column sortProperty="#{bindings.ViewPendPurOrdVO.hints.PoId.name}" sortable="false"
+                           headerText="#{bindings.ViewPendPurOrdVO.hints.PoId.label}" id="c11">
+                  <af:outputText value="#{row.PoId}" shortDesc="#{bindings.ViewPendPurOrdVO.hints.PoId.tooltip}"
+                                 id="ot12"/>
+                </af:column>
+                <af:column sortProperty="#{bindings.ViewPendPurOrdVO.hints.PoDt.name}" sortable="false"
+                           headerText="#{bindings.ViewPendPurOrdVO.hints.PoDt.label}" id="c12">
+                  <af:outputText value="#{row.PoDt}" shortDesc="#{bindings.ViewPendPurOrdVO.hints.PoDt.tooltip}"
+                                 id="ot13">
+                    <af:convertDateTime pattern="#{bindings.ViewPendPurOrdVO.hints.PoDt.format}"/>
+                  </af:outputText>
+                </af:column>
+                <af:column sortProperty="#{bindings.ViewPendPurOrdVO.hints.PendQty.name}" sortable="false"
+                           headerText="#{bindings.ViewPendPurOrdVO.hints.PendQty.label}" id="c13">
+                  <af:outputText value="#{row.PendQty}" shortDesc="#{bindings.ViewPendPurOrdVO.hints.PendQty.tooltip}"
+                                 id="ot14"/>
+                </af:column>
+              </af:table>
+            </af:panelGroupLayout>
+          </af:dialog>
+        </af:popup>
+      </af:forEach>
+    </af:panelAccordion>
+  
+  </af:panelGroupLayout>
+</jsp:root>

@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="apRangeVO"
+  Version="11.1.2.64.36"
+  BindingStyle="JDBC"
+  CustomQuery="true"
+  PageIterMode="Full"
+  UseGlueCode="false">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="misARAPAnalysis.model.view.apRangeVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String">
+    <AttrArray Name="ExtendedDataInts">
+      <Item Value="2"/>
+    </AttrArray>
+  </Variable>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String">
+    <AttrArray Name="ExtendedDataInts">
+      <Item Value="3"/>
+    </AttrArray>
+  </Variable>
+  <Variable
+    Name="BindRange1"
+    Kind="where"
+    Type="oracle.jbo.domain.Number">
+    <AttrArray Name="ExtendedDataInts">
+      <Item Value="0"/>
+    </AttrArray>
+  </Variable>
+  <Variable
+    Name="BindRange2"
+    Kind="where"
+    Type="oracle.jbo.domain.Number">
+    <AttrArray Name="ExtendedDataInts">
+      <Item Value="1"/>
+    </AttrArray>
+  </Variable>
+  <SQLQuery><![CDATA[select AP_SLOC_ID,
+       AP_APPL_INST_ID,
+       AP_ORG_ID,
+       AP_COA_ID,
+      CURR_DESC CURRENCY,
+       CURR_NOTATION_ALIAS CURRENCY_NOTATATION,
+       TRIM(INITCAP(COA_NM)) COA_NM,
+       SUM(AP_AMT_SP) AP_AMT_SP,
+       Sum(Ap_Amt_Adj) Ap_Amt_Adj,
+       SUM(RANGE_OS) RANGE_OS,
+       Sum(Decode(Ap_Amt_Typ,'Dr',Ap_Amt_Sp_Orig,'Cr',-Ap_Amt_Sp_Orig))
+       BASE_AMOUNT
+  from (SELECT AP_SLOC_ID,
+               AP_APPL_INST_ID,
+               AP_ORG_ID,
+               AP_COA_ID,
+               ap_amt_typ,
+               FC.COA_NM,
+               CURR_DESC,
+               CURR_NOTATION_ALIAS,
+               NVL(ap_amt_sp_orig, 0) ap_amt_sp_orig,
+               NVL(AP_AMT_SP, 0) AP_AMT_SP,
+               NVL(AP_AMT_ADJ, 0) AP_AMT_ADJ,
+               NVL(AP_AMT_SP, 0) - NVL(AP_AMT_ADJ, 0) AP_AMT_OS,
+               ((Trunc(Sysdate)) - Nvl(Ap_Ext_Doc_Dt, Ap_Vou_Dt))
+              OS_DAYS,
+               Case
+                 WHEN (TRUNC(sysdate) ) - AP_VOU_DT BETWEEN nvl(:BindRange1, 100) AND  nvl(:BindRange2, 280)
+                 Then
+                   nvl(NVL(AP_AMT_SP, 0) - NVL(AP_AMT_ADJ, 0), 0)
+                 Else
+                    0
+               END as RANGE_OS,
+               AP_EXT_DOC_TYP,
+               AP_EXT_DOC_NO,
+               AP_EXT_DOC_DT
+          FROM AP, FIN.FIN$COA FC, APP.APP$CURR_VW AC
+         Where Nvl(Ap_Amt_Sp, 0) - Nvl(Ap_Amt_Adj, 0) > 0
+           AND AP.GL_HO_ORG_ID=FC.COA_HO_ORG_ID
+           AND AP.AP_COA_ID = FC.COA_ID
+           AND AP.AP_SLOC_ID = FC.COA_SLOC_ID
+           AND AP.GL_CLD_ID = FC.COA_CLD_ID
+           And Ac.Curr_Id = Ap.Ap_Curr_Id_Sp
+           And Ap.Ap_Org_Id = :BindOrgid
+           And Ap.Gl_Cld_Id = :BindCldid
+           --and ap.ap_sloc_id=:BindSlocId
+           --AND AP.GL_HO_ORG_ID=:BindHoOrgId
+         )
+WHERE RANGE_OS > 0
+GROUP BY AP_SLOC_ID,
+          AP_APPL_INST_ID,
+          AP_ORG_ID,
+          AP_COA_ID,
+          COA_NM,
+          CURR_DESC,
+          Curr_Notation_Alias
+ORDER BY RANGE_OS DESC]]></SQLQuery>
+  <ViewAttribute
+    Name="ApSlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="INTEGER"
+    AliasName="AP_SLOC_ID"
+    Expression="AP_SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="ApApplInstId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="1"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="AP_APPL_INST_ID"
+    Expression="AP_APPL_INST_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="ApOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="AP_ORG_ID"
+    Expression="AP_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApCoaId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="INTEGER"
+    AliasName="AP_COA_ID"
+    Expression="AP_COA_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="Currency"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CURRENCY"
+    Expression="CURRENCY"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CurrencyNotatation"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CURRENCY_NOTATATION"
+    Expression="CURRENCY_NOTATATION"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="5"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_NM"
+    Expression="COA_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApAmtSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_SP"
+    Expression="AP_AMT_SP"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtAdj"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_ADJ"
+    Expression="AP_AMT_ADJ"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="RangeOs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="RANGE_OS"
+    Expression="RANGE_OS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="BaseAmount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="BASE_AMOUNT"
+    Expression="BASE_AMOUNT"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="TransTotalBaseAmount"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC">
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <TransientExpression><![CDATA[object.getRowSet().sum("BaseAmount") == null ? 0.00 : object.getRowSet().sum("BaseAmount")]]></TransientExpression>
+    <Dependencies>
+      <Item
+        Value="BaseAmount"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewCriteria
+    Name="apRangeVOCriteria"
+    ViewObjectName="misARAPAnalysis.model.view.apRangeVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="InAdvancedMode"/>
+        <Property
+          Name="autoExecute"
+          Value="false"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="apRangeVOCriteria_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="RangeOs"
+        ViewAttribute="RangeOs"
+        Operator="BETWEEN"
+        Conjunction="AND"
+        Required="Optional">
+        <ViewCriteriaItemValue
+          Name="apRangeVOCriteria_apRangeVOCriteria_row_0_RangeOs_vcval0"
+          Value=":BindRange1"
+          IsBindVarValue="true"/>
+        <ViewCriteriaItemValue
+          Name="apRangeVOCriteria_apRangeVOCriteria_row_0_RangeOs_vcval1"
+          Value=":BindRange2"
+          IsBindVarValue="true"/>
+      </ViewCriteriaItem>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="misARAPAnalysis.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

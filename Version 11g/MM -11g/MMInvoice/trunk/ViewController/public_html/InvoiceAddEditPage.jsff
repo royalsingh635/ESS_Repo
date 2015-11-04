@@ -1,0 +1,2043 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<jsp:root xmlns:jsp="http://java.sun.com/JSP/Page" version="2.1" xmlns:af="http://xmlns.oracle.com/adf/faces/rich"
+          xmlns:f="http://java.sun.com/jsf/core" xmlns:c="http://java.sun.com/jsp/jstl/core"
+          xmlns:h="http://java.sun.com/jsf/html">
+  <c:set var="viewcontrollerBundle" value="#{adfBundle['mminvoice.view.bundle.Resource']}"/>
+  <af:panelGroupLayout id="pgl18">
+    <af:panelHeader text="#{bindings.InvcType.inputValue==455 ? bundle['LBL.3001'] : (bindings.InvcType.inputValue==456 ? 'Material Transfer Invoice' : (bindings.InvcType.inputValue==457 ? 'Cash Purchase Invoice':(bindings.InvcType.inputValue==492 ? 'Supplementary Invoice' : 'Invoice'))) }"
+                    id="ph1" size="1" inlineStyle="height:32px;" partialTriggers="soc3">
+      <f:facet name="menuBar">
+        <af:group id="g1">
+          <af:statusIndicator id="si14"/>
+        </af:group>
+      </f:facet>
+      <f:facet name="toolbar">
+        <af:toolbar id="t1">
+          <af:commandImageLink id="cil1" icon="#{resource['images:enable_add_blue.png']}"
+                               shortDesc="#{bundle['LBL.256']}(Alt+Shift+N)"
+                               disabledIcon="#{resource['images:disabled_add_white.png']}"
+                               disabled="#{pageFlowScope.ADD_EDIT_MODE=='A' || pageFlowScope.ADD_EDIT_MODE=='E'}"
+                               action="#{pageFlowScope.PurInvoiceBean.createNewInvc}" accessKey="N"/>
+          <af:commandImageLink id="cil2" icon="#{resource['images:enable_edit_blue.png']}"
+                               disabled="#{pageFlowScope.ADD_EDIT_MODE=='A' || pageFlowScope.ADD_EDIT_MODE=='E' || bindings.AuthStat.inputValue == 'Y'}"
+                               disabledIcon="#{resource['images:disabled_edit_white.png']}"
+                               actionListener="#{pageFlowScope.PurInvoiceBean.editActionListener}"
+                               shortDesc="#{bundle['LBL.399']}(Alt+Shift+E)" accessKey="E"/>
+          <af:commandImageLink id="cil3" icon="#{resource['images:enable_save_blue.png']}"
+                               action="#{pageFlowScope.PurInvoiceBean.saveInvAction}"
+                               disabledIcon="#{resource['images:disabled_save_white.png']}"
+                               disabled="#{pageFlowScope.ADD_EDIT_MODE=='V' || bindings.MmInvcDtl.estimatedRowCount ==0}"
+                               shortDesc="#{bundle['LBL.869']}(Alt+Shift+S)" accessKey="S"/>
+          <af:commandImageLink id="cil4" icon="#{resource['images:enable_cancel_blue.png']}" immediate="true"
+                               action="cancel" shortDesc="#{bundle['LBL.184']}(Alt+Shift+C)" accessKey="C">
+            <af:resetActionListener/>
+          </af:commandImageLink>
+          <af:commandImageLink id="cil16" icon="#{resource['images:enable_save_and_forward_blue.png']}"
+                               disabledIcon="#{resource['images:disable_save_and_forward_blue.png']}"
+                               action="#{pageFlowScope.PurInvoiceBean.wFAction}"
+                               disabled="#{bindings.MmInvcDtl.estimatedRowCount ==0 || bindings.AuthStat.inputValue == 'Y'}"
+                               partialTriggers="pc9:t18 pc8:t15 pc8:p9"
+                               binding="#{pageFlowScope.PurInvoiceBean.saveForwardBtn}"
+                               shortDesc="#{bundle['LBL.1983']}(Alt+Shift+F)" accessKey="F"/>
+          <af:commandImageLink text="Command Button" id="cil17"
+                               action="#{pageFlowScope.PurInvoiceBean.printReportAction}" rendered="false"/>
+          <af:goLink text="Print" id="gl1"
+                     destination="/mminvoicereportservlet?cldId=#{pageFlowScope.GLBL_APP_CLD_ID}&amp;slocId=#{pageFlowScope.GLBL_APP_SERV_LOC}&amp;orgId=#{pageFlowScope.GLBL_APP_USR_ORG}&amp;docId=#{bindings.DocId.inputValue}&amp;fyId=#{bindings.FyId.inputValue}&amp;InvcNo=#{bindings.InvcNo.inputValue}&amp;InvcType=#{bindings.InvcType.inputValue}"
+                     disabled="#{bindings.AuthStat.inputValue != 'Y'}" shortDesc="Print Invoice(Alt+Shift+P)"
+                     inlineStyle="color:#4F82D6; font-weight:bold; font-size:110%;" accessKey="P"/>
+        </af:toolbar>
+      </f:facet>
+      <f:facet name="context">
+        <af:group id="g2">
+          <af:spacer width="10" height="10" id="s19"/>
+          <af:outputText value="#{bindings.AuthStat.inputValue == 'Y'? bundle['LBL.3136'] : bundle['LBL.2666']}"
+                         id="ot9" inlineStyle="font-size:xx-small;color:red;" noWrap="true"/>
+        </af:group>
+      </f:facet>
+    </af:panelHeader>
+    <af:panelGroupLayout layout="vertical" id="pgl3" styleClass="AFStretchWidth">
+      <af:panelGroupLayout id="pgl1" layout="vertical" styleClass="AFStretchWidth"
+                           inlineStyle="background-color:#F3FFD5;">
+        <af:panelGroupLayout id="pgl2" inlineStyle="background-color:Gray;" halign="center" styleClass="AFStrechWidth">
+          <af:panelFormLayout id="pfl1" fieldWidth="120" labelWidth="120" rows="1" maxColumns="5"
+                              inlineStyle="background-color:Gray;" styleClass="AFStretchWidth">
+            <af:selectOneChoice value="#{bindings.OrgId.inputValue}" label="#{bundle['LBL.658']}"
+                                required="#{bindings.OrgId.hints.mandatory}" shortDesc="#{bindings.OrgId.hints.tooltip}"
+                                id="soc1" readOnly="true" labelStyle="color:Yellow;font-weight:bold;"
+                                contentStyle="width:140px;color:white">
+              <f:selectItems value="#{bindings.OrgId.items}" id="si1"/>
+            </af:selectOneChoice>
+            <af:inputText value="#{bindings.InvcNo.inputValue}" label="#{bundle['LBL.522']}"
+                          required="#{bindings.InvcNo.hints.mandatory}" columns="#{bindings.InvcNo.hints.displayWidth}"
+                          maximumLength="#{bindings.InvcNo.hints.precision}"
+                          shortDesc="#{bindings.InvcNo.hints.tooltip}" id="it1" readOnly="true"
+                          labelStyle="color:Yellow;font-weight:bold;" contentStyle="width:135px;color:white">
+              <f:validator binding="#{bindings.InvcNo.validator}"/>
+            </af:inputText>
+            <af:inputDate value="#{bindings.InvcDt.inputValue}" label="#{bundle['LBL.521']}"
+                          required="#{bindings.InvcDt.hints.mandatory}" columns="#{bindings.InvcDt.hints.displayWidth}"
+                          shortDesc="#{bindings.InvcDt.hints.tooltip}" id="id1" readOnly="true"
+                          labelStyle="color:Yellow;font-weight:bold;" contentStyle="width:140px;color:white">
+              <f:validator binding="#{bindings.InvcDt.validator}"/>
+              <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+            </af:inputDate>
+            <af:selectOneChoice value="#{bindings.UsrIdCreate.inputValue}" label="#{bundle['LBL.276']}"
+                                required="#{bindings.UsrIdCreate.hints.mandatory}"
+                                shortDesc="#{bindings.UsrIdCreate.hints.tooltip}" id="soc2" readOnly="true"
+                                labelStyle="color:Yellow;font-weight:bold;" contentStyle="width:140px;color:white">
+              <f:selectItems value="#{bindings.UsrIdCreate.items}" id="si2"/>
+            </af:selectOneChoice>
+            <af:panelLabelAndMessage label="#{bundle['LBL.1977']}" id="plam3"
+                                     labelStyle="color:Yellow;font-weight:bold;">
+              <af:outputText value="#{bindings.AuthStat.inputValue == 'Y'? bundle['LBL.3136'] : bundle['LBL.2666']}"
+                             shortDesc="#{bindings.AuthStat.hints.tooltip}" id="ot10"
+                             inlineStyle="width:140px;color:white"/>
+            </af:panelLabelAndMessage>
+          </af:panelFormLayout>
+        </af:panelGroupLayout>
+        <af:panelGroupLayout id="pgl14" styleClass="AFStrechWidth"
+                             inlineStyle="background-color:#F3FFD5; height:70px;"
+                             layout="horizontal" valign="top">
+          <af:panelFormLayout id="pfl2" rows="1" maxColumns="1" inlineStyle="background-color:#F3FFD5;"
+                              labelWidth="100" fieldWidth="200">
+            <af:selectOneChoice value="#{bindings.InvcType.inputValue}" label="#{bundle['LBL.523']}"
+                                required="#{bindings.InvcType.hints.mandatory}"
+                                shortDesc="#{bindings.InvcType.hints.tooltip}" id="soc3" contentStyle="width:160px;"
+                                disabled="#{bindings.MmInvcDtlIterator.estimatedRowCount==0 ? false : true}"
+                                binding="#{pageFlowScope.PurInvoiceBean.invcTypeBindVar}" autoSubmit="true"
+                                valueChangeListener="#{pageFlowScope.PurInvoiceBean.cleanUpAction}"
+                                partialTriggers="pc11:ctb1">
+              <f:selectItems value="#{bindings.InvcType.items}" id="si3"/>
+            </af:selectOneChoice>
+            <af:inputText value="#{bindings.CoaId.inputValue}" required="#{bindings.CoaId.hints.mandatory}"
+                          columns="#{bindings.CoaId.hints.displayWidth}"
+                          maximumLength="#{bindings.CoaId.hints.precision}" shortDesc="#{bindings.CoaId.hints.tooltip}"
+                          id="it35" partialTriggers="ilov1" readOnly="true" visible="false">
+              <f:validator binding="#{bindings.CoaId.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.CoaId.format}"/>
+            </af:inputText>
+            <af:inputListOfValues id="ilov1" popupTitle="#{bundle['LBL.1324']}:#{bundle['LBL.951']}"
+                                  value="#{bindings.TransEoName.inputValue}" label="#{bundle['LBL.951']}"
+                                  model="#{bindings.TransEoName.listOfValuesModel}"
+                                  required="#{bindings.TransEoName.hints.mandatory}"
+                                  columns="#{bindings.TransEoName.hints.displayWidth}"
+                                  shortDesc="#{bindings.TransEoName.hints.tooltip}"
+                                  binding="#{pageFlowScope.PurInvoiceBean.invcSuppBindVar1}" autoSubmit="true"
+                                  disabled="#{bindings.MmInvcDtlIterator.estimatedRowCount==0 ? false : true}"
+                                  validator="#{pageFlowScope.PurInvoiceBean.supplierValidator}"
+                                  valueChangeListener="#{pageFlowScope.PurInvoiceBean.supplierVCE}"
+                                  visible="#{bindings.InvcType.inputValue == 455 || bindings.InvcType.inputValue == 492 || bindings.InvcType.inputValue == 737 || bindings.InvcType.inputValue == 739}"
+                                  partialTriggers="soc3"
+                                  contentStyle="width:200px;">
+              <f:validator binding="#{bindings.TransEoName.validator}"/>
+              <af:autoSuggestBehavior suggestedItems="#{bindings.TransEoName.suggestedItems}"/>
+            </af:inputListOfValues>
+            <af:spacer width="10" height="37" id="s1"
+                       visible="#{bindings.InvcType.inputValue == 455 || bindings.InvcType.inputValue == 492 || bindings.InvcType.inputValue == 737 || bindings.InvcType.inputValue == 739}"
+                       partialTriggers="soc3"/>
+            <af:selectOneChoice value="#{bindings.OrgIdSrc.inputValue}" label="#{bundle['LBL.2974']}"
+                                required="#{bindings.OrgIdSrc.hints.mandatory}"
+                                shortDesc="#{bindings.OrgIdSrc.hints.tooltip}" id="soc16" autoSubmit="true"
+                                visible="#{bindings.InvcType.inputValue==456 || bindings.InvcType.inputValue==716}" partialTriggers="soc3"
+                                validator="#{pageFlowScope.PurInvoiceBean.setOrganisationCurrFact}"
+                                disabled="#{bindings.MmInvcDtlIterator.estimatedRowCount==0 ? false : true}"
+                                contentStyle="width:150px;" binding="#{pageFlowScope.PurInvoiceBean.srcOrgBindVar}">
+              <f:selectItems value="#{bindings.OrgIdSrc.items}" id="si17"/>
+            </af:selectOneChoice>
+            <af:inputText value="#{bindings.ExtDocNo.inputValue}" label="#{bundle['LBL.3140']}"
+                          required="#{bindings.ExtDocNo.hints.mandatory}"
+                          columns="#{bindings.ExtDocNo.hints.displayWidth}"
+                          maximumLength="#{bindings.ExtDocNo.hints.precision}"
+                          shortDesc="#{bindings.ExtDocNo.hints.tooltip}" id="it42" autoSubmit="true"
+                          disabled="#{pageFlowScope.ADD_EDIT_MODE=='V'}" inlineStyle="width:100px;"
+                          contentStyle="width:150px;">
+              <f:validator binding="#{bindings.ExtDocNo.validator}"/>
+            </af:inputText>
+          </af:panelFormLayout>
+          <af:panelFormLayout id="pfl13" rows="1" labelAlignment="start" labelWidth="100" maxColumns="1"
+                              fieldWidth="200">
+            <af:inputComboboxListOfValues id="transCurrNameId"
+                                          popupTitle="Search and Select: #{bindings.TransCurrName.hints.label}"
+                                          value="#{bindings.TransCurrName.inputValue}" label="#{bundle['LBL.286']}"
+                                          model="#{bindings.TransCurrName.listOfValuesModel}"
+                                          required="#{bindings.TransCurrName.hints.mandatory}"
+                                          columns="#{bindings.TransCurrName.hints.displayWidth}"
+                                          shortDesc="#{bindings.TransCurrName.hints.tooltip}"
+                                          contentStyle="width:200px;" autoSubmit="true" partialTriggers="ilov1 soc16"
+                                          inlineStyle="width:150px;"
+                                          disabled="#{(bindings.MmInvcDtlIterator.estimatedRowCount==0 ? false : true)   ||  bindings.InvcType.inputValue == 456 ||  bindings.InvcType.inputValue == 716}"
+                                          valueChangeListener="#{pageFlowScope.PurInvoiceBean.currencyValueChangeListener}">
+              <f:validator binding="#{bindings.TransCurrName.validator}"/>
+              <af:autoSuggestBehavior suggestedItems="#{bindings.TransCurrName.suggestedItems}"/>
+            </af:inputComboboxListOfValues>
+            <af:panelLabelAndMessage label="#{bundle['LBL.41']}" id="plam5"
+                                     visible="#{bindings.InvcType.inputValue == 455 || bindings.InvcType.inputValue == 492 || bindings.InvcType.inputValue == 737 ||  bindings.InvcType.inputValue == 739}"
+                                     partialTriggers="soc3">
+              <af:panelGroupLayout id="pgl21" layout="horizontal">
+                <af:inputText value="#{bindings.TransSupAdd.inputValue}"
+                              required="#{bindings.TransSupAdd.hints.mandatory}"
+                              columns="#{bindings.TransSupAdd.hints.displayWidth}"
+                              maximumLength="#{bindings.TransSupAdd.hints.precision}"
+                              shortDesc="#{bindings.TransSupAdd.hints.tooltip}" id="it45" rows="3"
+                              partialTriggers="ilov1 billAddsIdId" disabled="true">
+                  <f:validator binding="#{bindings.TransSupAdd.validator}"/>
+                </af:inputText>
+                <af:inputListOfValues id="billAddsIdId"
+                                      popupTitle="Search and Select: #{bindings.BillAddsId.hints.label}"
+                                      value="#{bindings.BillAddsId.inputValue}"
+                                      model="#{bindings.BillAddsId.listOfValuesModel}"
+                                      required="#{bindings.BillAddsId.hints.mandatory}"
+                                      columns="#{bindings.BillAddsId.hints.displayWidth}"
+                                      shortDesc="#{bindings.BillAddsId.hints.tooltip}"
+                                      contentStyle="width:0px;height:0px;" partialTriggers="cil2 cil3 cil16"
+                                      disabled="#{ pageFlowScope.ADD_EDIT_MODE == 'V'}">
+                  <f:validator binding="#{bindings.BillAddsId.validator}"/>
+                </af:inputListOfValues>
+              </af:panelGroupLayout>
+            </af:panelLabelAndMessage>
+            <af:outputText value="#{bindings.DocId.inputValue}" shortDesc="#{bindings.DocId.hints.tooltip}" id="ot19"
+                           visible="false"/>
+            <af:selectOneChoice value="#{bindings.WhIdSrc.inputValue}" label="#{bundle['LBL.1138']}"
+                                required="#{bindings.WhIdSrc.hints.mandatory}"
+                                shortDesc="#{bindings.WhIdSrc.hints.tooltip}" id="soc17" partialTriggers="soc16 soc3"
+                                autoSubmit="true"
+                                visible="#{bindings.InvcType.inputValue==456 || bindings.InvcType.inputValue==716}"
+                                disabled="#{bindings.MmInvcDtlIterator.estimatedRowCount==0 ? false : true}"
+                                contentStyle="width:150px;">
+              <f:selectItems value="#{bindings.WhIdSrc.items}" id="si18"/>
+            </af:selectOneChoice>
+            <af:inputDate value="#{bindings.ExtDocDt.inputValue}" label="#{bundle['LBL.432']}"
+                          required="#{bindings.ExtDocDt.hints.mandatory}"
+                          columns="#{bindings.ExtDocDt.hints.displayWidth}"
+                          shortDesc="#{bindings.ExtDocDt.hints.tooltip}" id="id6" autoSubmit="true"
+                          disabled="#{pageFlowScope.ADD_EDIT_MODE=='V'}" contentStyle="width:140px">
+              <f:validator binding="#{bindings.ExtDocDt.validator}"/>
+              <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+            </af:inputDate>
+          </af:panelFormLayout>
+          <af:panelFormLayout id="pfl14" rows="1" labelAlignment="start" labelWidth="100" maxColumns="1"
+                              fieldWidth="200" inlineStyle="width:363px;">
+            <af:inputText value="#{bindings.CurrConvFctr.inputValue}" label="#{bundle['LBL.243']}"
+                          required="#{bindings.CurrConvFctr.hints.mandatory}"
+                          columns="#{bindings.CurrConvFctr.hints.displayWidth}"
+                          maximumLength="#{bindings.CurrConvFctr.hints.precision}"
+                          shortDesc="#{bindings.CurrConvFctr.hints.tooltip}" id="it2"
+                          contentStyle="width:140px;text-align:right;"
+                          disabled="true" inlineStyle="text-align:right;" partialTriggers="ilov1 soc16 transCurrNameId"
+                          binding="#{pageFlowScope.PurInvoiceBean.currencyConFctBindVar}">
+              <f:validator binding="#{bindings.CurrConvFctr.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.CurrConvFctr.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_CURR_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_CURR_DIGIT}"/>
+            </af:inputText>
+            <af:selectOneChoice value="#{bindings.CoaId1.inputValue}" label="#{bundle['LBL.212']}"
+                                required="#{bindings.CoaId1.hints.mandatory}"
+                                shortDesc="#{bindings.CoaId1.hints.tooltip}" id="soc18" contentStyle=" width:250px;" partialTriggers="soc3" visible="#{bindings.InvcType.inputValue==457}"
+                                autoSubmit="true"
+                                disabled="#{bindings.MmInvcDtlIterator.estimatedRowCount==0 ? false : true}">
+              <f:selectItems value="#{bindings.CoaId1.items}" id="si19"/>
+            </af:selectOneChoice>
+            <af:inputText value="#{bindings.Remarks.inputValue}" label="#{bundle['LBL.1209']}"
+                          required="#{bindings.Remarks.hints.mandatory}"
+                          columns="#{bindings.Remarks.hints.displayWidth}"
+                          maximumLength="#{bindings.Remarks.hints.precision}"
+                          shortDesc="#{bindings.Remarks.hints.tooltip}" id="it49" rows="3"
+                          disabled="#{ pageFlowScope.ADD_EDIT_MODE == 'V'}" contentStyle="width:200px;"
+                          inlineStyle="width:200px;" partialTriggers="cil2 cil3 cil16" autoSubmit="true">
+              <f:validator binding="#{bindings.Remarks.validator}"/>
+            </af:inputText>
+            <af:panelLabelAndMessage label="#{bundle['LBL.1127']}" id="plam4"
+                                     inlineStyle="font-weight:bold;color:Green; ">
+              <af:outputText value="#{bindings.TransVouId.inputValue}" shortDesc="#{bindings.TransVouId.hints.tooltip}"
+                             id="ot23"/>
+            </af:panelLabelAndMessage>
+          </af:panelFormLayout>
+        </af:panelGroupLayout>
+        <af:spacer width="10" height="5" id="s12"/>
+      </af:panelGroupLayout>
+    </af:panelGroupLayout>
+    <af:panelGroupLayout layout="vertical" id="pgl8" inlineStyle="background-color:#F3FFD5;">
+      <af:panelTabbed id="pt1" styleClass="AFStretchWidth" inlineStyle="height:416px;" position="both"
+                      visible="#{pageFlowScope.PurInvoiceBean.showcompInvc}" partialTriggers="soc3 pc11:ctb1 pc13:ctb4">
+        <af:showDetailItem text="#{bundle['LBL.2393']}" id="sdi1" inflexibleHeight="100"
+                           binding="#{pageFlowScope.PurInvoiceBean.bindInvoiceTabVar}" partialTriggers="cil3 cil16">
+          <af:panelStretchLayout id="psl2" topHeight="0px" endWidth="0px" startWidth="236px" bottomHeight="0px"
+                                 dimensionsFrom="auto" styleClass="AFStretchWidth">
+            <f:facet name="bottom"/>
+            <f:facet name="center">
+              <af:decorativeBox id="db1" styleClass="AFStretchWidth" inlineStyle="height:450px;">
+                <f:facet name="center">
+                  <af:panelGroupLayout id="pgl4" layout="vertical" styleClass="AFStretchWidth">
+                    <af:panelHeader text="#{bundle['LBL.3152']}" id="ph4" inlineStyle="height:21px;" size="5">
+                      <f:facet name="toolbar"/>
+                      <f:facet name="context">
+                        <af:outputText value=":: #{bundle['LBL.3088']}" id="ot16" inlineStyle="color:Red;"
+                                       visible="#{bindings.MmInvcPmtSchdl.estimatedRowCount >0 ? ( bindings.AuthStat.inputValue != 'Y' ? 'true':'false') : 'false' }"/>
+                      </f:facet>
+                    </af:panelHeader>
+                    <af:panelCollection id="pc1" styleClass="AFStretchWidth" inlineStyle="height:150px;"
+                                        partialTriggers="::pc3:t2"
+                                        featuresOff="columnsMenuItem detach detachMenuItem detachToolbarItem formatMenu freeze freezeMenuItem freezeToolbarItem reorderColumnsMenuItem resizeColumnsMenuItem scrollToFirstMenuItem scrollToLastMenuItem showAsTopMenuItem showAsTopToolbarItem sortMenuItem statusBar viewMenu wrap wrapMenuItem wrapToolbarItem">
+                      <f:facet name="statusbar"/>
+                      <af:table value="#{bindings.MmInvcSrc.collectionModel}" var="row"
+                                rows="#{bindings.MmInvcSrc.rangeSize}"
+                                emptyText="#{bindings.MmInvcSrc.viewable ? 'No data to display.' : 'Access Denied.'}"
+                                fetchSize="#{bindings.MmInvcSrc.rangeSize}" rowBandingInterval="0"
+                                selectedRowKeys="#{bindings.MmInvcSrc.collectionModel.selectedRow}"
+                                selectionListener="#{bindings.MmInvcSrc.collectionModel.makeCurrent}"
+                                rowSelection="single" id="t3"
+                                partialTriggers=":::p8 :::p2 :::p1 :::p3 :::p4 :::pc3 :::pc11:ctb1"
+                                contentDelivery="immediate" binding="#{pageFlowScope.PurInvoiceBean.poTableBind}"
+                                columnStretching="last">
+                        <af:column sortProperty="#{bindings.MmInvcSrc.hints.TransSrcDocNm.name}" sortable="false"
+                                   headerText="#{bundle['LBL.2504']}" id="c3" width="105">
+                          <af:inputText value="#{row.bindings.TransSrcDocNm.inputValue}"
+                                        label="#{bindings.MmInvcSrc.hints.TransSrcDocNm.label}"
+                                        required="#{bindings.MmInvcSrc.hints.TransSrcDocNm.mandatory}"
+                                        columns="#{bindings.MmInvcSrc.hints.TransSrcDocNm.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcSrc.hints.TransSrcDocNm.precision}"
+                                        shortDesc="#{bindings.MmInvcSrc.hints.TransSrcDocNm.tooltip}" id="it4"
+                                        readOnly="true" contentStyle="color:brown">
+                            <f:validator binding="#{row.bindings.TransSrcDocNm.validator}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column sortProperty="#{bindings.MmInvcSrc.hints.DocDtPo.name}" sortable="false"
+                                   headerText="#{bundle['LBL.336']}" id="c4" width="105">
+                          <af:inputDate value="#{row.bindings.DocDtPo.inputValue}"
+                                        label="#{bindings.MmInvcSrc.hints.DocDtPo.label}"
+                                        required="#{bindings.MmInvcSrc.hints.DocDtPo.mandatory}"
+                                        columns="#{bindings.MmInvcSrc.hints.DocDtPo.displayWidth}"
+                                        shortDesc="#{bindings.MmInvcSrc.hints.DocDtPo.tooltip}" id="id3"
+                                        readOnly="true">
+                            <f:validator binding="#{row.bindings.DocDtPo.validator}"/>
+                            <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+                          </af:inputDate>
+                        </af:column>
+                        <af:column sortProperty="#{bindings.MmInvcSrc.hints.DlvSchdlNo.name}" sortable="false"
+                                   headerText="#{bundle['LBL.2154']}" id="c5" align="center" width="104">
+                          <af:inputText value="#{row.bindings.DlvSchdlNo.inputValue}"
+                                        label="#{bindings.MmInvcSrc.hints.DlvSchdlNo.label}"
+                                        required="#{bindings.MmInvcSrc.hints.DlvSchdlNo.mandatory}"
+                                        columns="#{bindings.MmInvcSrc.hints.DlvSchdlNo.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcSrc.hints.DlvSchdlNo.precision}"
+                                        shortDesc="#{bindings.MmInvcSrc.hints.DlvSchdlNo.tooltip}" id="it5"
+                                        readOnly="true">
+                            <f:validator binding="#{row.bindings.DlvSchdlNo.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcSrc.hints.DlvSchdlNo.format}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column sortProperty="#{bindings.MmInvcSrc.hints.PoAmtSp.name}" sortable="false"
+                                   headerText="#{bundle['LBL.2957']}" id="c6" inlineStyle="text-align:right;"
+                                   width="106">
+                          <af:inputText value="#{row.bindings.PoAmtSp.inputValue}"
+                                        label="#{bindings.MmInvcSrc.hints.PoAmtSp.label}"
+                                        required="#{bindings.MmInvcSrc.hints.PoAmtSp.mandatory}"
+                                        columns="#{bindings.MmInvcSrc.hints.PoAmtSp.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcSrc.hints.PoAmtSp.precision}"
+                                        shortDesc="#{bindings.MmInvcSrc.hints.PoAmtSp.tooltip}" id="it6"
+                                        readOnly="true">
+                            <f:validator binding="#{row.bindings.PoAmtSp.validator}"/>
+                            <af:convertNumber groupingUsed="false" pattern="#{bindings.MmInvcSrc.hints.PoAmtSp.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column sortProperty="#{bindings.MmInvcSrc.hints.PoAmtBs.name}" sortable="false"
+                                   headerText="#{bundle['LBL.2584']}" id="c7" inlineStyle="text-align:right;"
+                                   width="105">
+                          <af:inputText value="#{row.bindings.PoAmtBs.inputValue}"
+                                        label="#{bindings.MmInvcSrc.hints.PoAmtBs.label}"
+                                        required="#{bindings.MmInvcSrc.hints.PoAmtBs.mandatory}"
+                                        columns="#{bindings.MmInvcSrc.hints.PoAmtBs.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcSrc.hints.PoAmtBs.precision}"
+                                        shortDesc="#{bindings.MmInvcSrc.hints.PoAmtBs.tooltip}" id="it7"
+                                        readOnly="true">
+                            <f:validator binding="#{row.bindings.PoAmtBs.validator}"/>
+                            <af:convertNumber groupingUsed="false" pattern="#{bindings.MmInvcSrc.hints.PoAmtBs.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column id="c23" headerText="#{bundle['LBL.1006']}" align="center" width="85">
+                          <af:selectBooleanCheckbox value="#{row.bindings.TaxAfterDiscFlg.inputValue}"
+                                                    label="#{row.bindings.TaxAfterDiscFlg.label}"
+                                                    shortDesc="#{bindings.MmInvcSrc.hints.TaxAfterDiscFlg.tooltip}"
+                                                    id="sbc1" readOnly="true"/>
+                        </af:column>
+                        <af:column id="c29" headerText="#{bundle['LBL.662']}" inlineStyle="text-align:right;"
+                                   width="105">
+                          <af:inputText value="#{row.bindings.TransPoAmtOc.inputValue}"
+                                        required="#{bindings.MmInvcSrc.hints.TransPoAmtOc.mandatory}"
+                                        columns="#{bindings.MmInvcSrc.hints.TransPoAmtOc.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcSrc.hints.TransPoAmtOc.precision}"
+                                        shortDesc="#{bindings.MmInvcSrc.hints.TransPoAmtOc.tooltip}" id="it25"
+                                        readOnly="true">
+                            <f:validator binding="#{row.bindings.TransPoAmtOc.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcSrc.hints.TransPoAmtOc.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column id="c17" headerText="#{bundle['LBL.2957']}"
+                                   inlineStyle="text-align:right; background-color:Silver;" width="105">
+                          <af:inputText value="#{row.bindings.TransPoAmtSp.inputValue}"
+                                        required="#{bindings.MmInvcSrc.hints.TransPoAmtSp.mandatory}"
+                                        columns="#{bindings.MmInvcSrc.hints.TransPoAmtSp.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcSrc.hints.TransPoAmtSp.precision}"
+                                        shortDesc="#{bindings.MmInvcSrc.hints.TransPoAmtSp.tooltip}" id="it15"
+                                        readOnly="true">
+                            <f:validator binding="#{row.bindings.TransPoAmtSp.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcSrc.hints.TransPoAmtSp.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column id="c14" align="center" width="139">
+                          <af:panelGroupLayout id="pgl16">
+                            <af:commandLink text="[#{bundle['LBL.86']}]" id="cl2"
+                                            actionListener="#{pageFlowScope.PurInvoiceBean.poTaxAction}"
+                                            visible="#{bindings.InvcType.inputValue==416 ? false : true}"
+                                            disabled="#{pageFlowScope.ADD_EDIT_MODE=='V' || bindings.MmInvcPmtSchdl.estimatedRowCount >0}"/>
+                            <af:spacer width="10" height="10" id="s16"/>
+                            <af:commandLink text="[#{bundle['LBL.3090']}]" id="cl6"
+                                            actionListener="#{pageFlowScope.PurInvoiceBean.resetTaxAction}"
+                                            disabled="#{pageFlowScope.ADD_EDIT_MODE=='V' || bindings.MmInvcPmtSchdl.estimatedRowCount >0}"/>
+                            <af:spacer width="10" height="10" id="s17"/>
+                            <af:commandLink text="[#{bundle['LBL.3102']}]" id="cl3"
+                                            actionListener="#{pageFlowScope.PurInvoiceBean.poOcAction}"
+                                            disabled="#{pageFlowScope.ADD_EDIT_MODE=='V' || bindings.MmInvcPmtSchdl.estimatedRowCount >0}"/>
+                          </af:panelGroupLayout>
+                        </af:column>
+                      </af:table>
+                    </af:panelCollection>
+                    <af:popup childCreation="deferred" autoCancel="disabled" id="p8"
+                              binding="#{pageFlowScope.PurInvoiceBean.removePOTaxBindVar}">
+                      <af:dialog id="d7" closeIconVisible="false"
+                                 dialogListener="#{pageFlowScope.PurInvoiceBean.removeTaxFromPO}">
+                        <f:facet name="buttonBar"/>
+                        <af:panelFormLayout id="pfl11">
+                          <af:outputText value="#{bundle['LBL.3100']}" id="ot17"
+                                         inlineStyle="color:Red; font-weight:bold;"/>
+                        </af:panelFormLayout>
+                      </af:dialog>
+                    </af:popup>
+                    <af:panelHeader text="#{bundle['LBL.2008']}" id="ph3" inlineStyle="height:21px;" size="5">
+                      <f:facet name="toolbar"/>
+                    </af:panelHeader>
+                    <af:panelCollection id="pc2" styleClass="AFStretchWidth" inlineStyle="height:165px;"
+                                        featuresOff="columnsMenuItem detach detachMenuItem detachToolbarItem formatMenu freeze freezeMenuItem freezeToolbarItem reorderColumnsMenuItem resizeColumnsMenuItem scrollToFirstMenuItem scrollToLastMenuItem showAsTopMenuItem showAsTopToolbarItem sortMenuItem statusBar viewMenu wrap wrapMenuItem wrapToolbarItem">
+                      <f:facet name="statusbar"/>
+                      <af:table value="#{bindings.MmInvcItm.collectionModel}" var="row"
+                                rows="#{bindings.MmInvcItm.rangeSize}"
+                                emptyText="#{bindings.MmInvcItm.viewable ? 'No data to display.' : 'Access Denied.'}"
+                                fetchSize="#{bindings.MmInvcItm.rangeSize}" rowBandingInterval="0"
+                                selectedRowKeys="#{bindings.MmInvcItm.collectionModel.selectedRow}"
+                                selectionListener="#{bindings.MmInvcItm.collectionModel.makeCurrent}"
+                                rowSelection="single" id="t4"
+                                partialTriggers=":::pc1:t3 :::pc3:t2 :::p3 :::p1 :::p2 :::p4"
+                                contentDelivery="immediate" binding="#{pageFlowScope.PurInvoiceBean.poItemTable}"
+                                columnStretching="last" styleClass="AFStretchWidth" inlineStyle="height:155px;">
+                        <af:column sortProperty="#{bindings.MmInvcItm.hints.ItmUom.name}" sortable="false"
+                                   headerText="#{bundle['LBL.532']}" id="c9" width="85">
+                          <af:outputText value="#{row.TransUomNm}"
+                                         shortDesc="#{bindings.MmInvcItm.hints.TransUomNm.tooltip}" id="ot28"
+                                         inlineStyle="color:Green;"/>
+                          <af:selectOneChoice value="#{row.bindings.ItmUom.inputValue}"
+                                              label="#{row.bindings.ItmUom.label}"
+                                              required="#{bindings.MmInvcItm.hints.ItmUom.mandatory}"
+                                              shortDesc="#{bindings.MmInvcItm.hints.ItmUom.tooltip}" id="soc5"
+                                              readOnly="true" rendered="false">
+                            <f:selectItems value="#{row.bindings.ItmUom.items}" id="si5"/>
+                          </af:selectOneChoice>
+                        </af:column>
+                        <af:column sortProperty="#{bindings.MmInvcItm.hints.ItmId.name}" sortable="false"
+                                   headerText="#{bundle['LBL.528']}" id="c8" width="106">
+                          <af:outputText value="#{row.TransItmDesc}"
+                                         shortDesc="#{bindings.MmInvcItm.hints.TransItmDesc.tooltip}" id="ot26"
+                                         inlineStyle="color:brown"/>
+                          <af:outputText value="[ #{row.ItmId} ]" shortDesc="#{bindings.MmInvcItm.hints.ItmId.tooltip}"
+                                         id="ot1" inlineStyle="color:blue; font-size:smaller;"/>
+                        </af:column>
+                        <af:column sortProperty="#{bindings.MmInvcItm.hints.FinalRcptQty.name}" sortable="false"
+                                   headerText="#{bundle['LBL.2291']}" id="c10" width="84"
+                                   inlineStyle="text-align:right;">
+                          <af:inputText value="#{row.bindings.FinalRcptQty.inputValue}"
+                                        label="#{bindings.MmInvcItm.hints.FinalRcptQty.label}"
+                                        required="#{bindings.MmInvcItm.hints.FinalRcptQty.mandatory}"
+                                        columns="#{bindings.MmInvcItm.hints.FinalRcptQty.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcItm.hints.FinalRcptQty.precision}"
+                                        shortDesc="#{bindings.MmInvcItm.hints.FinalRcptQty.tooltip}" id="it8"
+                                        readOnly="true">
+                            <f:validator binding="#{row.bindings.FinalRcptQty.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcItm.hints.FinalRcptQty.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column sortProperty="#{bindings.MmInvcItm.hints.ItmPrice.name}" sortable="false"
+                                   headerText="#{bundle['LBL.529']}" id="c11" inlineStyle="text-align:right;"
+                                   width="105">
+                          <af:inputText value="#{row.bindings.ItmPrice.inputValue}"
+                                        label="#{bindings.MmInvcItm.hints.ItmPrice.label}"
+                                        required="#{bindings.MmInvcItm.hints.ItmPrice.mandatory}"
+                                        columns="#{bindings.MmInvcItm.hints.ItmPrice.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcItm.hints.ItmPrice.precision}"
+                                        shortDesc="#{bindings.MmInvcItm.hints.ItmPrice.tooltip}" id="it9"
+                                        readOnly="true" inlineStyle="text-align:right;">
+                            <f:validator binding="#{row.bindings.ItmPrice.validator}"/>
+                            <af:convertNumber groupingUsed="false" pattern="#{bindings.MmInvcItm.hints.ItmPrice.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column headerText="#{bundle['LBL.375']}" id="c22" inlineStyle="text-align:right;"
+                                   sortProperty="#{bindings.MmInvcItm.hints.DiscAmtSp.name}" sortable="false"
+                                   width="105">
+                          <af:inputText value="#{row.bindings.DiscAmtSp.inputValue}"
+                                        label="#{bindings.MmInvcItm.hints.DiscAmtSp.label}"
+                                        required="#{bindings.MmInvcItm.hints.DiscAmtSp.mandatory}"
+                                        columns="#{bindings.MmInvcItm.hints.DiscAmtSp.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcItm.hints.DiscAmtSp.precision}"
+                                        shortDesc="#{bindings.MmInvcItm.hints.DiscAmtSp.tooltip}" id="it18"
+                                        readOnly="true" inlineStyle="text-align:right;">
+                            <f:validator binding="#{row.bindings.DiscAmtSp.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcItm.hints.DiscAmtSp.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column sortProperty="#{bindings.MmInvcItm.hints.ItmAmtSp.name}" sortable="false"
+                                   headerText="#{bindings.MmInvcItm.hints.ItmAmtSp.label}" id="c12" visible="false">
+                          <af:inputText value="#{row.bindings.ItmAmtSp.inputValue}"
+                                        label="#{bindings.MmInvcItm.hints.ItmAmtSp.label}"
+                                        required="#{bindings.MmInvcItm.hints.ItmAmtSp.mandatory}"
+                                        columns="#{bindings.MmInvcItm.hints.ItmAmtSp.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcItm.hints.ItmAmtSp.precision}"
+                                        shortDesc="#{bindings.MmInvcItm.hints.ItmAmtSp.tooltip}" id="it10"
+                                        readOnly="true">
+                            <f:validator binding="#{row.bindings.ItmAmtSp.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcItm.hints.ItmAmtSp.format}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column headerText="#{bindings.MmInvcItm.hints.TransCurrConvFctr.label}" id="c24" width="80"
+                                   visible="false" sortProperty="#{bindings.MmInvcItm.hints.TransCurrConvFctr.name}"
+                                   sortable="false">
+                          <af:inputText value="#{row.bindings.TransCurrConvFctr.inputValue}"
+                                        label="#{bindings.MmInvcItm.hints.TransCurrConvFctr.label}"
+                                        required="#{bindings.MmInvcItm.hints.TransCurrConvFctr.mandatory}"
+                                        columns="#{bindings.MmInvcItm.hints.TransCurrConvFctr.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcItm.hints.TransCurrConvFctr.precision}"
+                                        shortDesc="#{bindings.MmInvcItm.hints.TransCurrConvFctr.tooltip}" id="it19"
+                                        readOnly="true">
+                            <f:validator binding="#{row.bindings.TransCurrConvFctr.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcItm.hints.TransCurrConvFctr.format}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column headerText="Taxable Amount" id="c25" width="80" visible="false"
+                                   sortProperty="#{bindings.MmInvcItm.hints.TransTaxableAmt.name}" sortable="false">
+                          <af:inputText value="#{row.bindings.TransTaxableAmt.inputValue}"
+                                        label="#{bindings.MmInvcItm.hints.TransTaxableAmt.label}"
+                                        required="#{bindings.MmInvcItm.hints.TransTaxableAmt.mandatory}"
+                                        columns="#{bindings.MmInvcItm.hints.TransTaxableAmt.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcItm.hints.TransTaxableAmt.precision}"
+                                        shortDesc="#{bindings.MmInvcItm.hints.TransTaxableAmt.tooltip}" id="it20"
+                                        readOnly="true" inlineStyle="text-align:right;">
+                            <f:validator binding="#{row.bindings.TransTaxableAmt.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcItm.hints.TransTaxableAmt.format}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column headerText="#{bundle['LBL.984']}" id="c27" inlineStyle="text-align:right;"
+                                   sortProperty="#{bindings.MmInvcItm.hints.TransTaxAmt.name}" sortable="false"
+                                   width="105">
+                          <af:inputText value="#{row.bindings.TransTaxAmt.inputValue}"
+                                        label="#{bindings.MmInvcItm.hints.TransTaxAmt.label}"
+                                        required="#{bindings.MmInvcItm.hints.TransTaxAmt.mandatory}"
+                                        columns="#{bindings.MmInvcItm.hints.TransTaxAmt.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcItm.hints.TransTaxAmt.precision}"
+                                        shortDesc="#{bindings.MmInvcItm.hints.TransTaxAmt.tooltip}" id="it24"
+                                        readOnly="true" inlineStyle="text-align:right;">
+                            <f:validator binding="#{row.bindings.TransTaxAmt.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcItm.hints.TransTaxAmt.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column headerText="#{bindings.MmInvcItm.hints.TranTaxItmAmt.label}" id="c78"
+                                   visible="false">
+                          <af:inputText value="#{row.bindings.TranTaxItmAmt.inputValue}"
+                                        label="#{bindings.MmInvcItm.hints.TranTaxItmAmt.label}"
+                                        required="#{bindings.MmInvcItm.hints.TranTaxItmAmt.mandatory}"
+                                        columns="#{bindings.MmInvcItm.hints.TranTaxItmAmt.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcItm.hints.TranTaxItmAmt.precision}"
+                                        shortDesc="#{bindings.MmInvcItm.hints.TranTaxItmAmt.tooltip}" id="it54"
+                                        autoSubmit="true" binding="#{pageFlowScope.PurInvoiceBean.taxableItmAmtBind}">
+                            <f:validator binding="#{row.bindings.TranTaxItmAmt.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcItm.hints.TranTaxItmAmt.format}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column headerText="#{bundle['LBL.967']}" id="c33" inlineStyle="text-align:right;"
+                                   sortProperty="#{bindings.MmInvcItm.hints.TransTdsAmt.name}" sortable="false"
+                                   width="105">
+                          <af:inputText value="#{row.bindings.TransTdsAmt.inputValue}"
+                                        label="#{bindings.MmInvcItm.hints.TransTdsAmt.label}"
+                                        required="#{bindings.MmInvcItm.hints.TransTdsAmt.mandatory}"
+                                        columns="#{bindings.MmInvcItm.hints.TransTdsAmt.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcItm.hints.TransTdsAmt.precision}"
+                                        shortDesc="#{bindings.MmInvcItm.hints.TransTdsAmt.tooltip}" id="it30"
+                                        readOnly="true">
+                            <f:validator binding="#{row.bindings.TransTdsAmt.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcItm.hints.TransTdsAmt.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column headerText="#{bundle['LBL.3400']}" id="c79">
+                          <af:inputText value="#{row.bindings.TaxableAmtSp.inputValue}"
+                                        label="#{bindings.MmInvcItm.hints.TaxableAmtSp.label}"
+                                        required="#{bindings.MmInvcItm.hints.TaxableAmtSp.mandatory}"
+                                        columns="#{bindings.MmInvcItm.hints.TaxableAmtSp.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcItm.hints.TaxableAmtSp.precision}"
+                                        shortDesc="#{bindings.MmInvcItm.hints.TaxableAmtSp.tooltip}" id="it55"
+                                        autoSubmit="true" binding="#{pageFlowScope.PurInvoiceBean.taxableItmAmtSpBind}"
+                                        disabled="#{pageFlowScope.ADD_EDIT_MODE=='V' || bindings.MmInvcPmtSchdl.estimatedRowCount >0}">
+                            <f:validator binding="#{row.bindings.TaxableAmtSp.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcItm.hints.TaxableAmtSp.format}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column headerText="#{bundle['MSG.299']}" id="c26" width="85"
+                                   inlineStyle="text-align:right; background-color:Silver;"
+                                   sortProperty="#{bindings.MmInvcItm.hints.TransItmTotAmt.name}" sortable="false">
+                          <af:inputText value="#{row.bindings.TransItmTotAmt.inputValue}"
+                                        label="#{bindings.MmInvcItm.hints.TransItmTotAmt.label}"
+                                        required="#{bindings.MmInvcItm.hints.TransItmTotAmt.mandatory}"
+                                        columns="#{bindings.MmInvcItm.hints.TransItmTotAmt.displayWidth}"
+                                        maximumLength="#{bindings.MmInvcItm.hints.TransItmTotAmt.precision}"
+                                        shortDesc="#{bindings.MmInvcItm.hints.TransItmTotAmt.tooltip}" id="it21"
+                                        readOnly="true">
+                            <f:validator binding="#{row.bindings.TransItmTotAmt.validator}"/>
+                            <af:convertNumber groupingUsed="false"
+                                              pattern="#{bindings.MmInvcItm.hints.TransItmTotAmt.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                        </af:column>
+                        <af:column id="c13" align="center" width="180" headerText="">
+                          <af:panelGroupLayout id="pgl17">
+                            <af:commandLink text="[#{bundle['LBL.86']}]" id="cl1"
+                                            actionListener="#{pageFlowScope.PurInvoiceBean.itmTaxAction}"
+                                            visible="#{bindings.InvcType.inputValue==416 ? false : true}"
+                                            disabled="#{pageFlowScope.ADD_EDIT_MODE=='V' || bindings.MmInvcPmtSchdl.estimatedRowCount >0}"/>
+                            <af:commandLink text="[#{bundle['LBL.3090']}]" id="cl7"
+                                            actionListener="#{pageFlowScope.PurInvoiceBean.callPopRemovePopUp}"
+                                            disabled="#{pageFlowScope.ADD_EDIT_MODE=='V' || bindings.MmInvcPmtSchdl.estimatedRowCount >0}"/>
+                            <af:spacer width="10" height="10" id="s18"/>
+                            <af:commandLink text="[#{bundle['LBL.85']}]" id="cl4"
+                                            actionListener="#{pageFlowScope.PurInvoiceBean.itmTdsAction}"
+                                            disabled="#{pageFlowScope.ADD_EDIT_MODE=='V' || bindings.MmInvcPmtSchdl.estimatedRowCount >0}"/>
+                            <af:commandLink text="[#{bundle['LBL.3091']}]" id="cl8"
+                                            actionListener="#{pageFlowScope.PurInvoiceBean.removeTdsFromItm}"
+                                            disabled="#{pageFlowScope.ADD_EDIT_MODE=='V' || bindings.MmInvcPmtSchdl.estimatedRowCount >0}">
+                              <af:popup childCreation="deferred" autoCancel="disabled" id="p7"
+                                        binding="#{pageFlowScope.PurInvoiceBean.removePopUpTds}">
+                                <af:dialog id="d8" closeIconVisible="false"
+                                           dialogListener="#{pageFlowScope.PurInvoiceBean.removeTdsFromItmAction}">
+                                  <f:facet name="buttonBar"/>
+                                  <af:panelFormLayout id="pfl10" inlineStyle="color:Red; font-weight:bold;"
+                                                      binding="#{pageFlowScope.PurInvoiceBean.removeTdsPopUp}">
+                                    <af:outputText value="#{bundle['LBL.3101']}" id="ot15"/>
+                                  </af:panelFormLayout>
+                                </af:dialog>
+                              </af:popup>
+                            </af:commandLink>
+                          </af:panelGroupLayout>
+                          <af:popup childCreation="deferred" autoCancel="disabled" id="p6"
+                                    binding="#{pageFlowScope.PurInvoiceBean.removeTrItmPopUp}">
+                            <af:dialog id="d6" closeIconVisible="false"
+                                       dialogListener="#{pageFlowScope.PurInvoiceBean.removeTrFromItmAction}">
+                              <f:facet name="buttonBar"/>
+                              <af:panelFormLayout id="pfl9">
+                                <af:outputText value="#{bundle['LBL.3100']}" id="ot14"
+                                               inlineStyle="color:Red; font-weight:bold;"/>
+                              </af:panelFormLayout>
+                            </af:dialog>
+                          </af:popup>
+                        </af:column>
+                      </af:table>
+                    </af:panelCollection>
+                    <af:inputText value="#{bindings.TransTaxableAmt.inputValue}"
+                                  label="#{bindings.TransTaxableAmt.hints.label}"
+                                  required="#{bindings.TransTaxableAmt.hints.mandatory}"
+                                  columns="#{bindings.TransTaxableAmt.hints.displayWidth}"
+                                  maximumLength="#{bindings.TransTaxableAmt.hints.precision}"
+                                  shortDesc="#{bindings.TransTaxableAmt.hints.tooltip}" id="it22"
+                                  binding="#{pageFlowScope.PurInvoiceBean.taxableAmtItm}" readOnly="true"
+                                  partialTriggers="pc2:t4" visible="false">
+                      <f:validator binding="#{bindings.TransTaxableAmt.validator}"/>
+                      <af:convertNumber groupingUsed="false" pattern="#{bindings.TransTaxableAmt.format}"/>
+                    </af:inputText>
+                    <af:inputText value="#{bindings.TransTdsOnAmt.inputValue}"
+                                  required="#{bindings.TransTdsOnAmt.hints.mandatory}"
+                                  columns="#{bindings.TransTdsOnAmt.hints.displayWidth}"
+                                  maximumLength="#{bindings.TransTdsOnAmt.hints.precision}"
+                                  shortDesc="#{bindings.TransTdsOnAmt.hints.tooltip}" id="it29"
+                                  binding="#{pageFlowScope.PurInvoiceBean.tdsOnAmtItm}" partialTriggers="pc2:t4"
+                                  label="ItmTdsAmt" readOnly="true" visible="false">
+                      <f:validator binding="#{bindings.TransTdsOnAmt.validator}"/>
+                      <af:convertNumber groupingUsed="false" pattern="#{bindings.TransTdsOnAmt.format}"/>
+                    </af:inputText>
+                    <af:popup childCreation="deferred" autoCancel="disabled" id="p2"
+                              binding="#{pageFlowScope.PurInvoiceBean.itmTaxPopUp}" contentDelivery="lazyUncached"
+                              popupCanceledListener="#{pageFlowScope.PurInvoiceBean.trCanceledListenerAction}">
+                      <af:dialog id="d2" title="#{bundle['LBL.2537']}(#{bundle['LBL.533']})"
+                                 dialogListener="#{pageFlowScope.PurInvoiceBean.itemTaxDialogListener}"
+                                 closeIconVisible="false">
+                        <f:facet name="buttonBar"/>
+                        <af:panelGroupLayout id="pgl10" halign="right" layout="horizontal"
+                                             inlineStyle="background-color:gray;">
+                          <af:toolbar id="t7">
+                            <af:commandImageLink text="Delete" id="cil7" visible="false"/>
+                          </af:toolbar>
+                        </af:panelGroupLayout>
+                        <af:panelFormLayout id="pfl4" fieldWidth="150" labelWidth="120" rows="3"
+                                            inlineStyle="background-color:rgb(214,255,214);">
+                          <af:panelLabelAndMessage label="#{bundle['LBL.964']}" id="plam8">
+                            <af:panelGroupLayout id="pgl26" layout="horizontal">
+                              <af:selectOneChoice value="#{bindings.TaxRuleId.inputValue}"
+                                                  required="#{bindings.TaxRuleId.hints.mandatory}"
+                                                  shortDesc="#{bindings.TaxRuleId.hints.tooltip}" id="soc6"
+                                                  contentStyle="width:130px;" autoSubmit="true"
+                                                  valueChangeListener="#{pageFlowScope.PurInvoiceBean.itmTaxRuleVCE}">
+                                <f:selectItems value="#{bindings.TaxRuleId.items}" id="si6"/>
+                              </af:selectOneChoice>
+                              <af:commandImageLink id="cil23"
+                                                   icon="#{resource['images:enable_ok_blue.png']}"
+                                                   disabledIcon="#{resource['images:disable_ok_blue.png']}"
+                                                   actionListener="#{pageFlowScope.PurInvoiceBean.itmTaxRule}"/>
+                            </af:panelGroupLayout>
+                          </af:panelLabelAndMessage>
+                          <af:inputText value="#{bindings.TaxableAmtSp.inputValue}" label="#{bundle['LBL.1439']}"
+                                        required="#{bindings.TaxableAmtSp.hints.mandatory}"
+                                        columns="#{bindings.TaxableAmtSp.hints.displayWidth}"
+                                        maximumLength="#{bindings.TaxableAmtSp.hints.precision}"
+                                        shortDesc="#{bindings.TaxableAmtSp.hints.tooltip}" id="it12"
+                                        contentStyle="width:120px;text-align:right;" disabled="true">
+                            <f:validator binding="#{bindings.TaxableAmtSp.validator}"/>
+                            <af:convertNumber groupingUsed="false" pattern="#{bindings.TaxableAmtSp.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                          <af:inputText value="#{bindings.TaxAmt.inputValue}" label="#{bundle['LBL.984']}"
+                                        required="#{bindings.TaxAmt.hints.mandatory}"
+                                        columns="#{bindings.TaxAmt.hints.displayWidth}"
+                                        maximumLength="#{bindings.TaxAmt.hints.precision}"
+                                        shortDesc="#{bindings.TaxAmt.hints.tooltip}" id="it13"
+                                        contentStyle="width:120px;text-align:right;" disabled="true"
+                                        partialTriggers="sbc2 soc6"
+                                        binding="#{pageFlowScope.PurInvoiceBean.taxableAmtBindVar}">
+                            <f:validator binding="#{bindings.TaxAmt.validator}"/>
+                            <af:convertNumber groupingUsed="false" pattern="#{bindings.TaxAmt.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                          <af:selectBooleanCheckbox value="#{bindings.TaxExmptFlg.inputValue}"
+                                                    shortDesc="#{bindings.TaxExmptFlg.hints.tooltip}" id="sbc2"
+                                                    text="#{bundle['LBL.2546']}" autoSubmit="true"
+                                                    valueChangeListener="#{pageFlowScope.PurInvoiceBean.taxExemptedVCE}"/>
+                        </af:panelFormLayout>
+                        <af:panelCollection id="pc4" inlineStyle="width:426px;height:180px;"
+                                            featuresOff="columnsMenuItem detach detachMenuItem detachToolbarItem formatMenu freeze freezeMenuItem freezeToolbarItem reorderColumnsMenuItem resizeColumnsMenuItem scrollToFirstMenuItem scrollToLastMenuItem showAsTopMenuItem showAsTopToolbarItem sortMenuItem statusBar viewMenu wrap wrapMenuItem wrapToolbarItem">
+                          <f:facet name="menus"/>
+                          <f:facet name="toolbar"/>
+                          <f:facet name="statusbar"/>
+                          <af:table value="#{bindings.MmInvcTrLines.collectionModel}" var="row"
+                                    rows="#{bindings.MmInvcTrLines.rangeSize}"
+                                    emptyText="#{bindings.MmInvcTrLines.viewable ? 'No data to display.' : 'Access Denied.'}"
+                                    fetchSize="#{bindings.MmInvcTrLines.rangeSize}" rowBandingInterval="0"
+                                    selectedRowKeys="#{bindings.MmInvcTrLines.collectionModel.selectedRow}"
+                                    selectionListener="#{bindings.MmInvcTrLines.collectionModel.makeCurrent}"
+                                    rowSelection="single" id="t6" width="420" partialTriggers=":soc6"
+                                    contentDelivery="immediate"
+                                    binding="#{pageFlowScope.PurInvoiceBean.taxTableBindVar}">
+                            <af:column headerText="#{bundle['LBL.1001']}" id="c18" width="105"
+                                       sortProperty="#{bindings.MmInvcTrLines.hints.TaxType.name}" sortable="false">
+                              <af:selectOneChoice value="#{row.bindings.TaxType.inputValue}"
+                                                  label="#{row.bindings.TaxType.label}"
+                                                  required="#{bindings.MmInvcTrLines.hints.TaxType.mandatory}"
+                                                  shortDesc="#{bindings.MmInvcTrLines.hints.TaxType.tooltip}" id="soc8"
+                                                  readOnly="true">
+                                <f:selectItems value="#{row.bindings.TaxType.items}" id="si8"/>
+                              </af:selectOneChoice>
+                            </af:column>
+                            <af:column sortProperty="#{bindings.MmInvcTrLines.hints.TaxCoaId.name}" sortable="false"
+                                       headerText="#{bundle['LBL.2555']}" id="c15" width="106">
+                              <af:selectOneChoice value="#{row.bindings.TaxCoaId.inputValue}"
+                                                  label="#{row.bindings.TaxCoaId.label}"
+                                                  required="#{bindings.MmInvcTrLines.hints.TaxCoaId.mandatory}"
+                                                  shortDesc="#{bindings.MmInvcTrLines.hints.TaxCoaId.tooltip}" id="soc7"
+                                                  readOnly="true">
+                                <f:selectItems value="#{row.bindings.TaxCoaId.items}" id="si7"/>
+                              </af:selectOneChoice>
+                            </af:column>
+                            <af:column sortProperty="#{bindings.MmInvcTrLines.hints.TaxAmtSp.name}" sortable="false"
+                                       headerText="#{bundle['LBL.1444']}" id="c16" inlineStyle="text-align:right;">
+                              <af:inputText value="#{row.bindings.TaxAmtSp.inputValue}"
+                                            label="#{bindings.MmInvcTrLines.hints.TaxAmtSp.label}"
+                                            required="#{bindings.MmInvcTrLines.hints.TaxAmtSp.mandatory}"
+                                            columns="#{bindings.MmInvcTrLines.hints.TaxAmtSp.displayWidth}"
+                                            maximumLength="#{bindings.MmInvcTrLines.hints.TaxAmtSp.precision}"
+                                            shortDesc="#{bindings.MmInvcTrLines.hints.TaxAmtSp.tooltip}" id="it14"
+                                            readOnly="true">
+                                <f:validator binding="#{row.bindings.TaxAmtSp.validator}"/>
+                                <af:convertNumber minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                              </af:inputText>
+                            </af:column>
+                          </af:table>
+                        </af:panelCollection>
+                      </af:dialog>
+                    </af:popup>
+                    <af:popup childCreation="deferred" autoCancel="disabled" id="p1"
+                              binding="#{pageFlowScope.PurInvoiceBean.poTaxPopUp}" contentDelivery="lazyUncached">
+                      <af:dialog id="d1" title="#{bundle['LBL.86']}" type="none"
+                                 dialogListener="#{pageFlowScope.PurInvoiceBean.poTaxDialogListener}"
+                                 closeIconVisible="false">
+                        <f:facet name="buttonBar">
+                          <af:panelGroupLayout id="pgl12" layout="horizontal" halign="right">
+                            <af:toolbar id="t9">
+                              <af:commandImageLink text="#{bundle['LBL.3104']}" id="cil8"
+                                                   actionListener="#{pageFlowScope.PurInvoiceBean.applyPoTaxAction}"/>
+                              <af:commandImageLink text="#{bundle['LBL.184']}" id="cil9"
+                                                   actionListener="#{pageFlowScope.PurInvoiceBean.cancelPoTaxAction}">
+                                <af:resetActionListener/>
+                              </af:commandImageLink>
+                            </af:toolbar>
+                          </af:panelGroupLayout>
+                        </f:facet>
+                        <af:panelGroupLayout id="pgl11" layout="horizontal" halign="right"
+                                             inlineStyle="background-color:gray;" visible="false">
+                          <af:toolbar id="t8">
+                            <af:commandImageLink text="Remove" id="cil6"/>
+                          </af:toolbar>
+                        </af:panelGroupLayout>
+                        <af:panelGroupLayout id="pgl13" layout="vertical" inlineStyle="width:309px;">
+                          <af:outputText value="#{bundle['LBL.3097']}" id="ot2" inlineStyle="color:Green;"/>
+                          <af:spacer width="10" height="6" id="s7"/>
+                        </af:panelGroupLayout>
+                        <af:panelFormLayout id="pfl5" rows="1" fieldWidth="150" labelWidth="120">
+                          <af:selectOneChoice value="#{bindings.TransTaxRuleAll.inputValue}"
+                                              label="#{bundle['LBL.964']}"
+                                              required="#{bindings.TransTaxRuleAll.hints.mandatory}"
+                                              shortDesc="#{bindings.TransTaxRuleAll.hints.tooltip}" id="soc9"
+                                              contentStyle="width:120px;"
+                                              binding="#{pageFlowScope.PurInvoiceBean.poTaxRule}" autoSubmit="true">
+                            <f:selectItems value="#{bindings.TransTaxRuleAll.items}" id="si9"/>
+                          </af:selectOneChoice>
+                        </af:panelFormLayout>
+                      </af:dialog>
+                    </af:popup>
+                    <af:popup childCreation="deferred" autoCancel="disabled" id="p3"
+                              binding="#{pageFlowScope.PurInvoiceBean.poOcPopup}">
+                      <af:dialog id="d3" title="#{bundle['LBL.662']}"
+                                 dialogListener="#{pageFlowScope.PurInvoiceBean.poOcDialogListener}" type="ok"
+                                 closeIconVisible="false">
+                        <f:facet name="buttonBar"/>
+                        <af:panelFormLayout id="pfl16">
+                          <af:inputListOfValues id="coaNameId"
+                                                popupTitle="Search and Select: #{bindings.CoaName.hints.label}"
+                                                value="#{bindings.CoaName.inputValue}"
+                                                label="#{bundle['LBL.212']}"
+                                                model="#{bindings.CoaName.listOfValuesModel}"
+                                                required="#{bindings.CoaName.hints.mandatory}"
+                                                columns="#{bindings.CoaName.hints.displayWidth}"
+                                                shortDesc="#{bindings.CoaName.hints.tooltip}"
+                                                contentStyle="width:200px;" autoSubmit="true"
+                                                binding="#{pageFlowScope.PurInvoiceBean.bindCoaNm}">
+                            <f:validator binding="#{bindings.CoaName.validator}"/>
+                            <af:autoSuggestBehavior suggestedItems="#{bindings.CoaName.suggestedItems}"/>
+                          </af:inputListOfValues>
+                          <af:inputText value="#{bindings.TransSpAmt.inputValue}"
+                                        label="#{bundle['LBL.2957']}"
+                                        required="#{bindings.TransSpAmt.hints.mandatory}"
+                                        columns="#{bindings.TransSpAmt.hints.displayWidth}"
+                                        maximumLength="#{bindings.TransSpAmt.hints.precision}"
+                                        shortDesc="#{bindings.TransSpAmt.hints.tooltip}" id="it44"
+                                        contentStyle="width:100px;text-align:right; font-weight:bold;" inlineStyle="text-align:right; font-weight:bold;"
+                                        autoSubmit="true" binding="#{pageFlowScope.PurInvoiceBean.bindSpAmt}">
+                            <f:validator binding="#{bindings.TransSpAmt.validator}"/>
+                            <af:convertNumber groupingUsed="false" pattern="#{bindings.TransSpAmt.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                          <af:toolbar id="t26">
+                            <af:commandImageLink id="cil18" icon="#{resource['images:enable_save_blue.png']}"
+                                                 actionListener="#{pageFlowScope.PurInvoiceBean.addOcAction}"
+                                                 partialTriggers="cil18"/>
+                            <af:commandImageLink id="cil20"
+                                                 icon="#{resource['images:enable_reset_blue.png']}" rendered="false"/>
+                          </af:toolbar>
+                        </af:panelFormLayout>
+                        <af:toolbar id="t11" rendered="false">
+                          <af:commandImageLink id="cil10" icon="#{resource['images:enable_add_blue.png']}"
+                                               shortDesc="Add"
+                                               actionListener="#{pageFlowScope.PurInvoiceBean.addPoOcAction}"/>
+                        </af:toolbar>
+                        <af:panelCollection id="pc5" inlineStyle="width:430px;" featuresOff="viewMenu">
+                          <f:facet name="menus"/>
+                          <f:facet name="statusbar"/>
+                          <af:table value="#{bindings.MmInvcOc.collectionModel}" var="row"
+                                    rows="#{bindings.MmInvcOc.rangeSize}"
+                                    emptyText="#{bindings.MmInvcOc.viewable ? 'No data to display.' : 'Access Denied.'}"
+                                    fetchSize="#{bindings.MmInvcOc.rangeSize}" rowBandingInterval="0"
+                                    selectedRowKeys="#{bindings.MmInvcOc.collectionModel.selectedRow}"
+                                    selectionListener="#{bindings.MmInvcOc.collectionModel.makeCurrent}" id="t10" contentDelivery="immediate" editingMode="clickToEdit"
+                                    binding="#{pageFlowScope.PurInvoiceBean.ocTableBind}" rowSelection="single">
+                            <af:column sortProperty="#{bindings.MmInvcOc.hints.CoaId.name}" sortable="false"
+                                       headerText="#{bundle['LBL.212']}" id="c19" width="150">
+                              <af:spacer width="10" height="3" id="s8"/>
+                              <af:outputText value="#{row.TrnsCoaNm}"
+                                             shortDesc="#{bindings.MmInvcOc.hints.TrnsCoaNm.tooltip}" id="ot25"
+                                             inlineStyle="color:brown;"/>
+                              <af:spacer width="10" height="3" id="s9"/>
+                            </af:column>
+                            <af:column sortProperty="#{bindings.MmInvcOc.hints.OcAmtSp.name}" sortable="false"
+                                       headerText="#{bundle['LBL.2957']}" id="c20" inlineStyle="text-align:right;">
+                              <af:inputText value="#{row.bindings.OcAmtSp.inputValue}"
+                                            label="#{bindings.MmInvcOc.hints.OcAmtSp.label}"
+                                            required="#{bindings.MmInvcOc.hints.OcAmtSp.mandatory}"
+                                            columns="#{bindings.MmInvcOc.hints.OcAmtSp.displayWidth}"
+                                            maximumLength="#{bindings.MmInvcOc.hints.OcAmtSp.precision}"
+                                            shortDesc="#{bindings.MmInvcOc.hints.OcAmtSp.tooltip}" id="it16"
+                                            validator="#{pageFlowScope.PurInvoiceBean.OtherChargesValidator}"
+                                            autoSubmit="true" inlineStyle="text-align:right;"
+                                            contentStyle="text-align:right;"
+                                            valueChangeListener="#{pageFlowScope.PurInvoiceBean.ocValueChangeListener}">
+                                <f:validator binding="#{row.bindings.OcAmtSp.validator}"/>
+                                <af:convertNumber groupingUsed="false"
+                                                  pattern="#{bindings.MmInvcOc.hints.OcAmtSp.format}"
+                                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                              </af:inputText>
+                            </af:column>
+                            <af:column sortProperty="#{bindings.MmInvcOc.hints.OcAmtBs.name}" sortable="false"
+                                       headerText="#{bundle['LBL.2584']}" id="c21" inlineStyle="text-align:right;">
+                              <af:inputText value="#{row.bindings.OcAmtBs.inputValue}"
+                                            label="#{bindings.MmInvcOc.hints.OcAmtBs.label}"
+                                            required="#{bindings.MmInvcOc.hints.OcAmtBs.mandatory}"
+                                            columns="#{bindings.MmInvcOc.hints.OcAmtBs.displayWidth}"
+                                            maximumLength="#{bindings.MmInvcOc.hints.OcAmtBs.precision}"
+                                            shortDesc="#{bindings.MmInvcOc.hints.OcAmtBs.tooltip}" id="it17"
+                                            validator="#{pageFlowScope.PurInvoiceBean.OtherChargesValidator}"
+                                            autoSubmit="true" contentStyle="text-align:right; font-weight:bold;"
+                                            inlineStyle="text-align:right; font-weight:bold;" readOnly="true">
+                                <f:validator binding="#{row.bindings.OcAmtBs.validator}"/>
+                                <af:convertNumber groupingUsed="false"
+                                                  pattern="#{bindings.MmInvcOc.hints.OcAmtBs.format}"
+                                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                              </af:inputText>
+                            </af:column>
+                            <af:column id="c28" width="45" align="center">
+                              <af:commandImageLink id="cil11" immediate="true"
+                                                   icon="#{resource['images:enable_delete_white.png']}"
+                                                   disabledIcon="#{resource['images:disabled_delete_white.png']}"
+                                                   shortDesc="Delete"
+                                                   actionListener="#{pageFlowScope.PurInvoiceBean.deleteOCAL}"/>
+                            </af:column>
+                          </af:table>
+                        </af:panelCollection>
+                      </af:dialog>
+                    </af:popup>
+                    <af:popup childCreation="deferred" autoCancel="disabled" id="p4"
+                              binding="#{pageFlowScope.PurInvoiceBean.itmTdsPopUp}"
+                              popupCanceledListener="#{pageFlowScope.PurInvoiceBean.tdsCanceledListener}">
+                      <af:dialog id="d4" title="#{bundle['LBL.966']} (#{bundle['LBL.533']})" closeIconVisible="false"
+                                 dialogListener="#{pageFlowScope.PurInvoiceBean.itemTdsDialogListener}">
+                        <f:facet name="buttonBar"/>
+                        <af:panelGroupLayout id="pgl9" layout="horizontal" styleClass="AFStretchWidth" halign="end"
+                                             inlineStyle="background-color:gray;">
+                          <af:toolbar id="t12">
+                            <af:commandLink text="Delete" id="cl5" visible="false"/>
+                          </af:toolbar>
+                        </af:panelGroupLayout>
+                        <af:panelFormLayout id="pfl6" inlineStyle="background-color:rgb(214,255,214);" fieldWidth="120"
+                                            labelWidth="150" rows="3">
+                          <af:selectOneChoice value="#{bindings.TdsRuleId.inputValue}" label="#{bundle['LBL.973']}"
+                                              required="#{bindings.TdsRuleId.hints.mandatory}"
+                                              shortDesc="#{bindings.TdsRuleId.hints.tooltip}" id="soc11"
+                                              valueChangeListener="#{pageFlowScope.PurInvoiceBean.tdsRuleVCE}"
+                                              contentStyle="width:130px;" autoSubmit="true">
+                            <f:selectItems value="#{bindings.TdsRuleId.items}" id="si11"/>
+                          </af:selectOneChoice>
+                          <af:inputText value="#{bindings.TdsOnAmtSp.inputValue}" label="#{bundle['LBL.967']}"
+                                        required="#{bindings.TdsOnAmtSp.hints.mandatory}"
+                                        columns="#{bindings.TdsOnAmtSp.hints.displayWidth}"
+                                        maximumLength="#{bindings.TdsOnAmtSp.hints.precision}"
+                                        shortDesc="#{bindings.TdsOnAmtSp.hints.tooltip}" id="it27" disabled="true"
+                                        contentStyle="width:140px;text-align:right;">
+                            <f:validator binding="#{bindings.TdsOnAmtSp.validator}"/>
+                            <af:convertNumber groupingUsed="false" pattern="#{bindings.TdsOnAmtSp.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                          <af:inputText value="#{bindings.TdsAmt.inputValue}" label="#{bundle['LBL.65']}"
+                                        required="#{bindings.TdsAmt.hints.mandatory}"
+                                        columns="#{bindings.TdsAmt.hints.displayWidth}"
+                                        maximumLength="#{bindings.TdsAmt.hints.precision}"
+                                        shortDesc="#{bindings.TdsAmt.hints.tooltip}" id="it26" disabled="true"
+                                        contentStyle="width:140px;text-align:right;" partialTriggers="soc11"
+                                        binding="#{pageFlowScope.PurInvoiceBean.tdsAmountBindVar}">
+                            <f:validator binding="#{bindings.TdsAmt.validator}"/>
+                            <af:convertNumber groupingUsed="false" pattern="#{bindings.TdsAmt.format}"
+                                              minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                              maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                          </af:inputText>
+                          <af:selectBooleanCheckbox value="#{bindings.TdsExmptFlg.inputValue}"
+                                                    shortDesc="#{bindings.TdsExmptFlg.hints.tooltip}" id="sbc3"
+                                                    text="#{bundle['LBL.2546']}"/>
+                        </af:panelFormLayout>
+                        <af:panelCollection id="pc6" inlineStyle="height:165px;" partialTriggers="::soc11">
+                          <f:facet name="menus"/>
+                          <f:facet name="toolbar"/>
+                          <af:table value="#{bindings.MmInvcTdsLines.collectionModel}" var="row"
+                                    rows="#{bindings.MmInvcTdsLines.rangeSize}"
+                                    emptyText="#{bindings.MmInvcTdsLines.viewable ? 'No data to display.' : 'Access Denied.'}"
+                                    fetchSize="#{bindings.MmInvcTdsLines.rangeSize}" rowBandingInterval="0" id="t13"
+                                    partialTriggers=":::soc11"
+                                    binding="#{pageFlowScope.PurInvoiceBean.tdsTableBindVar}">
+                            <af:column sortProperty="#{bindings.MmInvcTdsLines.hints.TdsCoaId.name}" sortable="false"
+                                       headerText="#{bundle['LBL.212']}" id="c30" width="150">
+                              <af:selectOneChoice value="#{row.bindings.TdsCoaId.inputValue}"
+                                                  label="#{row.bindings.TdsCoaId.label}"
+                                                  required="#{bindings.MmInvcTdsLines.hints.TdsCoaId.mandatory}"
+                                                  shortDesc="#{bindings.MmInvcTdsLines.hints.TdsCoaId.tooltip}"
+                                                  id="soc12" readOnly="true">
+                                <f:selectItems value="#{row.bindings.TdsCoaId.items}" id="si12"/>
+                              </af:selectOneChoice>
+                            </af:column>
+                            <af:column sortProperty="#{bindings.MmInvcTdsLines.hints.TdsType.name}" sortable="false"
+                                       headerText="#{bundle['LBL.3098']}" id="c31" width="130">
+                              <af:selectOneChoice value="#{row.bindings.TdsType.inputValue}"
+                                                  label="#{row.bindings.TdsType.label}"
+                                                  required="#{bindings.MmInvcTdsLines.hints.TdsType.mandatory}"
+                                                  shortDesc="#{bindings.MmInvcTdsLines.hints.TdsType.tooltip}"
+                                                  id="soc13" readOnly="true">
+                                <f:selectItems value="#{row.bindings.TdsType.items}" id="si13"/>
+                              </af:selectOneChoice>
+                            </af:column>
+                            <af:column sortProperty="#{bindings.MmInvcTdsLines.hints.TdsAmtSp.name}" sortable="false"
+                                       headerText="#{bundle['LBL.65']}" id="c32" width="120"
+                                       inlineStyle="text-align:right;">
+                              <af:inputText value="#{row.bindings.TdsAmtSp.inputValue}"
+                                            label="#{bindings.MmInvcTdsLines.hints.TdsAmtSp.label}"
+                                            required="#{bindings.MmInvcTdsLines.hints.TdsAmtSp.mandatory}"
+                                            columns="#{bindings.MmInvcTdsLines.hints.TdsAmtSp.displayWidth}"
+                                            maximumLength="#{bindings.MmInvcTdsLines.hints.TdsAmtSp.precision}"
+                                            shortDesc="#{bindings.MmInvcTdsLines.hints.TdsAmtSp.tooltip}" id="it28"
+                                            readOnly="true">
+                                <f:validator binding="#{row.bindings.TdsAmtSp.validator}"/>
+                                <af:convertNumber groupingUsed="false"
+                                                  pattern="#{bindings.MmInvcTdsLines.hints.TdsAmtSp.format}"
+                                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                              </af:inputText>
+                            </af:column>
+                          </af:table>
+                        </af:panelCollection>
+                      </af:dialog>
+                    </af:popup>
+                  </af:panelGroupLayout>
+                </f:facet>
+              </af:decorativeBox>
+            </f:facet>
+            <f:facet name="start">
+              <af:decorativeBox id="db2"
+                                inlineStyle="height:450px; border-color:Silver; border-style:solid; border-width:thin;"
+                                dimensionsFrom="auto" topHeight="50px">
+                <f:facet name="center">
+                  <af:panelGroupLayout layout="vertical" id="pgl5" styleClass="AFStretchWidth">
+                    <af:panelHeader text="#{bindings.InvcType.inputValue==456 ? bundle['LBL.2146'] : ( (bindings.InvcType.inputValue==455 || bindings.InvcType.inputValue==492)? bundle['LBL.2142'] : bundle['LBL.1851']) }"
+                                    id="ph2" size="5" inlineStyle="height:22px;" styleClass="AFStretchWidth"
+                                    partialTriggers="soc3"/>
+                    <af:panelGroupLayout id="pgl6" layout="vertical" styleClass="AFStretchWidth"
+                                         inlineStyle="height:307px;">
+                      <af:panelFormLayout id="pfl3" rows="1" fieldWidth="120" labelWidth="75" maxColumns="1"
+                                          labelAlignment="top">
+                        <af:inputComboboxListOfValues id="transDocNameId"
+                                                      popupTitle="#{bundle['LBL.1324']}: #{bindings.InvcType.inputValue==416 ? bundle['LBL.3111'] : bundle['LBL.2094']}"
+                                                      value="#{bindings.TransDocName.inputValue}"
+                                                      model="#{bindings.TransDocName.listOfValuesModel}"
+                                                      required="#{bindings.TransDocName.hints.mandatory}"
+                                                      columns="#{bindings.TransDocName.hints.displayWidth}"
+                                                      shortDesc="#{bindings.TransDocName.hints.tooltip}"
+                                                      autoSubmit="true" partialTriggers="cil1 soc3 cil3 cil16"
+                                                      label="#{bindings.InvcType.inputValue==456 ? bundle['LBL.3111'] : (bindings.InvcType.inputValue==455 ?  bundle['LBL.2094']  : (bindings.InvcType.inputValue==737 || bindings.InvcType.inputValue==739 ?  bundle['LBL.769'] : bundle['LBL.2094']))}"
+                                                      inlineStyle="width:200px"
+                                                      binding="#{pageFlowScope.PurInvoiceBean.bindTransDocVar}"
+                                                      disabled="#{bindings.InvcType.inputValue == 492}">
+                          <f:validator binding="#{bindings.TransDocName.validator}"/>
+                          <af:autoSuggestBehavior suggestedItems="#{bindings.TransDocName.suggestedItems}"/>
+                        </af:inputComboboxListOfValues>
+                        <af:inputText value="#{bindings.TransSrcDocId.inputValue}"
+                                      label="#{bindings.TransSrcDocId.hints.label}"
+                                      required="#{bindings.TransSrcDocId.hints.mandatory}"
+                                      columns="#{bindings.TransSrcDocId.hints.displayWidth}"
+                                      maximumLength="#{bindings.TransSrcDocId.hints.precision}"
+                                      shortDesc="#{bindings.TransSrcDocId.hints.tooltip}" id="it11" disabled="true"
+                                      binding="#{pageFlowScope.PurInvoiceBean.rcptDocIdVar}" visible="false">
+                          <f:validator binding="#{bindings.TransSrcDocId.validator}"/>
+                        </af:inputText>
+                      </af:panelFormLayout>
+                      <af:spacer width="10" height="10" id="s6"/>
+                      <af:panelCollection id="pc3"
+                                          featuresOff="detach detachMenuItem detachToolbarItem wrapMenuItem wrap viewMenu statusBar"
+                                          inlineStyle="height:250px; width:229px;">
+                        <f:facet name="toolbar">
+                          <af:toolbar id="t5">
+                            <af:commandImageLink id="cil5" icon="#{resource['images:enable_add_blue.png']}"
+                                                 shortDesc="#{bindings.InvcType.inputValue==416 ? 'Add Issues' : 'Add Receipts'}"
+                                                 disabledIcon="#{resource['images:disabled_add_white.png']}"
+                                                 actionListener="#{pageFlowScope.PurInvoiceBean.addReceiptAction}"
+                                                 disabled="#{pageFlowScope.ADD_EDIT_MODE=='V'   || bindings.MmInvcPmtSchdl.estimatedRowCount >0 || bindings.InvcType.inputValue == 492}"/>
+                          </af:toolbar>
+                        </f:facet>
+                        <f:facet name="statusbar"/>
+                        <af:table value="#{bindings.MmInvcDtl.collectionModel}" var="row"
+                                  rows="#{bindings.MmInvcDtl.rangeSize}"
+                                  emptyText="#{bindings.MmInvcDtl.viewable ? 'No data to display.' : 'Access Denied.'}"
+                                  fetchSize="#{bindings.MmInvcDtl.rangeSize}" rowBandingInterval="0"
+                                  selectedRowKeys="#{bindings.MmInvcDtl.collectionModel.selectedRow}"
+                                  selectionListener="#{bindings.MmInvcDtl.collectionModel.makeCurrent}"
+                                  rowSelection="single" id="t2" width="204" contentDelivery="immediate"
+                                  inlineStyle="height:217px; width:226px;" partialTriggers="::cil5 :::pc11:ctb1">
+                          <af:column sortProperty="#{bindings.MmInvcDtl.hints.TransDocNm.name}" sortable="false"
+                                     headerText="#{bindings.InvcType.inputValue ==456 || bindings.InvcType.inputValue ==716 ? bundle['LBL.3111'] : ( (bindings.InvcType.inputValue==455 || bindings.InvcType.inputValue==492 ) ? bundle['LBL.2094'] : ( (bindings.InvcType.inputValue==737 || bindings.InvcType.inputValue==739 ) ? bundle['LBL.769'] : bundle['LBL.173'] ))}"
+                                     id="c1" width="110" partialTriggers=":::soc3">
+                            <af:spacer width="10" height="5" id="s4"/>
+                            <af:inputText value="#{row.bindings.TransDocNm.inputValue}"
+                                          label="#{bindings.MmInvcDtl.hints.TransDocNm.label}"
+                                          required="#{bindings.MmInvcDtl.hints.TransDocNm.mandatory}"
+                                          columns="#{bindings.MmInvcDtl.hints.TransDocNm.displayWidth}"
+                                          maximumLength="#{bindings.MmInvcDtl.hints.TransDocNm.precision}"
+                                          shortDesc="#{bindings.MmInvcDtl.hints.TransDocNm.tooltip}" id="it3"
+                                          readOnly="true" contentStyle="color:brown">
+                              <f:validator binding="#{row.bindings.TransDocNm.validator}"/>
+                            </af:inputText>
+                            <af:spacer width="10" height="5" id="s5"/>
+                          </af:column>
+                          <af:column sortProperty="#{bindings.MmInvcDtl.hints.DocDtRcpt.name}" sortable="false"
+                                     headerText="#{bundle['LBL.336']}" id="c2" width="60">
+                            <af:inputDate value="#{row.bindings.DocDtRcpt.inputValue}"
+                                          label="#{bindings.MmInvcDtl.hints.DocDtRcpt.label}"
+                                          required="#{bindings.MmInvcDtl.hints.DocDtRcpt.mandatory}"
+                                          columns="#{bindings.MmInvcDtl.hints.DocDtRcpt.displayWidth}"
+                                          shortDesc="#{bindings.MmInvcDtl.hints.DocDtRcpt.tooltip}" id="id2"
+                                          readOnly="true">
+                              <f:validator binding="#{row.bindings.DocDtRcpt.validator}"/>
+                              <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+                            </af:inputDate>
+                          </af:column>
+                        </af:table>
+                      </af:panelCollection>
+                    </af:panelGroupLayout>
+                    <af:spacer width="10" height="10" id="s3"/>
+                  </af:panelGroupLayout>
+                </f:facet>
+              </af:decorativeBox>
+            </f:facet>
+            <f:facet name="end"/>
+            <f:facet name="top"/>
+          </af:panelStretchLayout>
+        </af:showDetailItem>
+        <af:showDetailItem text="#{bundle['LBL.3085']}" id="sdi2"
+                           disabled="#{bindings.MmInvcDtlIterator.estimatedRowCount > 0 ?'false':'true'}"
+                           partialTriggers="pc1:t3 pc3:t2 pc3:cil5"
+                           disclosureListener="#{pageFlowScope.PurInvoiceBean.InvcCalculationDisclosureListener}">
+          <af:panelCollection id="pc7" inlineStyle="width:577px;">
+            <f:facet name="statusbar"/>
+            <af:table value="#{bindings.MmInvcCalc.collectionModel}" var="row" rows="#{bindings.MmInvcCalc.rangeSize}"
+                      emptyText="#{bindings.MmInvcCalc.viewable ? 'No data to display.' : 'Access Denied.'}"
+                      fetchSize="#{bindings.MmInvcCalc.rangeSize}" rowBandingInterval="0"
+                      selectedRowKeys="#{bindings.MmInvcCalc.collectionModel.selectedRow}"
+                      selectionListener="#{bindings.MmInvcCalc.collectionModel.makeCurrent}" id="t14" width="567"
+                      contentDelivery="immediate">
+              <af:column sortProperty="#{bindings.MmInvcCalc.hints.SrNo.name}" sortable="true"
+                         headerText="#{bundle['LBL.2977']}" id="c34" width="50" align="center">
+                <af:spacer width="10" height="5" id="s10"/>
+                <af:inputText value="#{row.bindings.SrNo.inputValue}." label="#{bindings.MmInvcCalc.hints.SrNo.label}"
+                              required="#{bindings.MmInvcCalc.hints.SrNo.mandatory}"
+                              columns="#{bindings.MmInvcCalc.hints.SrNo.displayWidth}"
+                              maximumLength="#{bindings.MmInvcCalc.hints.SrNo.precision}"
+                              shortDesc="#{bindings.MmInvcCalc.hints.SrNo.tooltip}" id="it31" readOnly="true"
+                              contentStyle="color:blue;font-weight:bold;">
+                  <f:validator binding="#{row.bindings.SrNo.validator}"/>
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MmInvcCalc.hints.SrNo.format}"/>
+                </af:inputText>
+                <af:spacer width="10" height="5" id="s11"/>
+              </af:column>
+              <af:column sortProperty="#{bindings.MmInvcCalc.hints.CoaNm.name}" sortable="true"
+                         headerText="#{bundle['LBL.194']}" id="c35" width="200">
+                <af:inputText value="#{row.bindings.CoaNm.inputValue}" label="#{bindings.MmInvcCalc.hints.CoaNm.label}"
+                              required="#{bindings.MmInvcCalc.hints.CoaNm.mandatory}"
+                              columns="#{bindings.MmInvcCalc.hints.CoaNm.displayWidth}"
+                              maximumLength="#{bindings.MmInvcCalc.hints.CoaNm.precision}"
+                              shortDesc="#{bindings.MmInvcCalc.hints.CoaNm.tooltip}" id="it32" readOnly="true"
+                              contentStyle="color:Green;font-weight:bold; font-size:small;">
+                  <f:validator binding="#{row.bindings.CoaNm.validator}"/>
+                </af:inputText>
+              </af:column>
+              <af:column sortProperty="#{bindings.MmInvcCalc.hints.AmtSp.name}" sortable="true"
+                         headerText="#{bundle['LBL.2957']}" id="c36"
+                         inlineStyle="text-align:right; background-color:Silver;" width="130">
+                <af:inputText value="#{row.bindings.AmtSp.inputValue}" label="#{bindings.MmInvcCalc.hints.AmtSp.label}"
+                              required="#{bindings.MmInvcCalc.hints.AmtSp.mandatory}"
+                              columns="#{bindings.MmInvcCalc.hints.AmtSp.displayWidth}"
+                              maximumLength="#{bindings.MmInvcCalc.hints.AmtSp.precision}"
+                              shortDesc="#{bindings.MmInvcCalc.hints.AmtSp.tooltip}" id="it33" readOnly="true"
+                              contentStyle="color:Maroon; font-weight:bold;">
+                  <f:validator binding="#{row.bindings.AmtSp.validator}"/>
+                  <af:convertNumber groupingUsed="false" minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    pattern="#,##,##.##"/>
+                </af:inputText>
+              </af:column>
+              <af:column sortProperty="#{bindings.MmInvcCalc.hints.AmtBs.name}" sortable="true"
+                         headerText="#{bundle['LBL.2584']}" id="c37"
+                         inlineStyle="text-align:right; background-color:Silver;" width="130">
+                <af:inputText value="#{row.bindings.AmtBs.inputValue}" label="#{bindings.MmInvcCalc.hints.AmtBs.label}"
+                              required="#{bindings.MmInvcCalc.hints.AmtBs.mandatory}"
+                              columns="#{bindings.MmInvcCalc.hints.AmtBs.displayWidth}"
+                              maximumLength="#{bindings.MmInvcCalc.hints.AmtBs.precision}"
+                              shortDesc="#{bindings.MmInvcCalc.hints.AmtBs.tooltip}" id="it34" readOnly="true"
+                              contentStyle="color:Maroon; font-weight:bold;">
+                  <f:validator binding="#{row.bindings.AmtBs.validator}"/>
+                  <af:convertNumber groupingUsed="false" minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+              </af:column>
+            </af:table>
+            <f:facet name="secondaryToolbar">
+              <af:toolbar id="t17">
+                <af:commandImageLink text="#{bundle['LBL.2833']}" id="cil13"
+                                     icon="#{resource['images:enable_recycle_icon_blue.png']}"
+                                     disabledIcon="#{resource['images:disable_recycle_blue.png']}"
+                                     shortDesc="Process Calculations"
+                                     actionListener="#{pageFlowScope.PurInvoiceBean.populateInvcCalc}"
+                                     disabled="#{pageFlowScope.ADD_EDIT_MODE=='V'}"/>
+              </af:toolbar>
+            </f:facet>
+          </af:panelCollection>
+        </af:showDetailItem>
+        <af:showDetailItem text="#{bundle['LBL.3086']}" id="sdi3"
+                           disabled="#{(bindings.MmInvcDtlIterator.estimatedRowCount > 0 ? false : true)  || (bindings.InvcType.inputValue == 456 ? true : false) ||  (bindings.InvcType.inputValue == 457 ? true : false) }"
+                           partialTriggers="pc1:t3 pc3:cil5 pc3:t2 soc3"
+                           disclosureListener="#{pageFlowScope.PurInvoiceBean.AdjustmentDetailLstnr}">
+          <af:panelCollection id="pc9" inlineStyle="width:1076px; height:343px;">
+            <f:facet name="statusbar">
+              <af:toolbar id="t16">
+                <af:panelLabelAndMessage label="#{bundle['LBL.1035']} :" id="plam1">
+                  <af:outputText id="ot4" value="0.00" binding="#{pageFlowScope.PurInvoiceBean.totalAdjtAmtBindVar}"
+                                 partialTriggers="t18" inlineStyle="color:red;text-align:right;font-weight:bold;">
+                    <af:convertNumber minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                      maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                  </af:outputText>
+                </af:panelLabelAndMessage>
+              </af:toolbar>
+            </f:facet>
+            <af:table value="#{bindings.MMInvcAdj1.collectionModel}" var="row" rows="#{bindings.MMInvcAdj1.rangeSize}"
+                      emptyText="#{bindings.MMInvcAdj1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                      fetchSize="#{bindings.MMInvcAdj1.rangeSize}" rowBandingInterval="0" id="t18"
+                      editingMode="clickToEdit" contentDelivery="immediate"
+                      selectedRowKeys="#{bindings.MMInvcAdj1.collectionModel.selectedRow}"
+                      selectionListener="#{bindings.MMInvcAdj1.collectionModel.makeCurrent}" rowSelection="single"
+                      verticalGridVisible="false">
+              <af:column sortProperty="#{bindings.MMInvcAdj1.hints.SrNo.name}" sortable="false"
+                         headerText="#{bundle['LBL.2977']}" id="c45" width="60">
+                <af:outputText value="#{row.SrNo}" shortDesc="#{bindings.MMInvcAdj1.hints.SrNo.tooltip}" id="ot3"
+                               inlineStyle="color:black;font-weight:bold;padding:5px;">
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MMInvcAdj1.hints.SrNo.format}"/>
+                </af:outputText>
+                <af:spacer width="10" height="5" id="s15"/>
+              </af:column>
+              <af:column id="c46" headerText="#{bundle['LBL.1127']}"
+                         sortProperty="#{bindings.MMInvcAdj1.hints.vouDispId.name}" sortable="false">
+                <af:outputText value="#{row.vouDispId}" shortDesc="#{bindings.MMInvcAdj1.hints.vouDispId.tooltip}"
+                               id="ot6" inlineStyle="font-weight:bold;"/>
+              </af:column>
+              <af:column id="c47" headerText="#{bundle['LBL.1120']}"
+                         sortProperty="#{bindings.MMInvcAdj1.hints.GlDocDt.name}" sortable="false">
+                <af:outputText value="#{row.GlDocDt}" shortDesc="#{bindings.MMInvcAdj1.hints.GlDocDt.tooltip}" id="ot5"
+                               inlineStyle="color:Green;font-weight:bold;">
+                  <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+                </af:outputText>
+              </af:column>
+              <af:column sortProperty="#{bindings.MMInvcAdj1.hints.GlAmtBs.name}" sortable="false"
+                         headerText="#{bundle['LBL.3094']}" id="c53" align="right" width="130">
+                <af:outputText value="#{row.GlAmtBs}" shortDesc="#{bindings.MMInvcAdj1.hints.GlAmtBs.tooltip}" id="ot11"
+                               inlineStyle="text-align:right;color:maroon;font-weight:bold;">
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MMInvcAdj1.hints.GlAmtBs.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:outputText>
+              </af:column>
+              <af:column sortProperty="#{bindings.MMInvcAdj1.hints.GlAmtSp.name}" sortable="false"
+                         headerText="#{bundle['LBL.3093']}" id="c54" align="right" width="130">
+                <af:outputText value="#{row.GlAmtSp}" shortDesc="#{bindings.MMInvcAdj1.hints.GlAmtSp.tooltip}" id="ot12"
+                               inlineStyle="text-align:right;color:maroon;font-weight:bold;">
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MMInvcAdj1.hints.GlAmtSp.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:outputText>
+              </af:column>
+              <af:column sortProperty="#{bindings.MMInvcAdj1.hints.TranType.name}" sortable="false"
+                         headerText="#{bundle['LBL.1050']}" id="c55" align="center">
+                <af:outputText value="#{row.TranType}" shortDesc="#{bindings.MMInvcAdj1.hints.TranType.tooltip}"
+                               id="ot13" inlineStyle="color:Blue;font-weight:bold;"/>
+              </af:column>
+              <af:column sortProperty="#{bindings.MMInvcAdj1.hints.AdjAmtBs.name}" sortable="false"
+                         headerText="#{bundle['LBL.3095']}" id="c49" align="right" width="130">
+                <af:outputText value="#{row.AdjAmtBs}" shortDesc="#{bindings.MMInvcAdj1.hints.AdjAmtBs.tooltip}"
+                               id="ot7" inlineStyle="text-align:right;color:maroon;font-weight:bold;">
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MMInvcAdj1.hints.AdjAmtBs.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:outputText>
+              </af:column>
+              <af:column sortProperty="#{bindings.MMInvcAdj1.hints.AdjAmtSp.name}" sortable="false"
+                         headerText="#{bundle['LBL.3096']}" id="c50" align="right" width="130">
+                <af:inputText value="#{row.bindings.AdjAmtSp.inputValue}"
+                              required="#{bindings.MMInvcAdj1.hints.AdjAmtSp.mandatory}"
+                              columns="#{bindings.MMInvcAdj1.hints.AdjAmtSp.displayWidth}" maximumLength="20"
+                              shortDesc="#{bindings.MMInvcAdj1.hints.AdjAmtSp.tooltip}" id="it40"
+                              contentStyle="text-align:right;color:maroon;font-weight:bold;"
+                              validator="#{pageFlowScope.PurInvoiceBean.adjustmentValidator}" autoSubmit="true"
+                              valueChangeListener="#{pageFlowScope.PurInvoiceBean.AdjtAmtApVCL}"
+                              binding="#{pageFlowScope.PurInvoiceBean.bindAdjAmtVar}"
+                              readOnly="#{pageFlowScope.ADD_EDIT_MODE=='V'}">
+                  <f:validator binding="#{row.bindings.AdjAmtSp.validator}"/>
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MMInvcAdj1.hints.AdjAmtSp.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+              </af:column>
+            </af:table>
+            <f:facet name="secondaryToolbar">
+              <af:toolbar id="t19">
+                <af:commandImageLink text="#{bundle['LBL.2833']}" id="cil14"
+                                     icon="#{resource['images:enable_recycle_icon_blue.png']}"
+                                     disabledIcon="#{resource['images:disable_recycle_blue.png']}"
+                                     actionListener="#{pageFlowScope.PurInvoiceBean.populateInvcAdjt}"
+                                     disabled="#{pageFlowScope.ADD_EDIT_MODE=='V'}"/>
+              </af:toolbar>
+            </f:facet>
+          </af:panelCollection>
+        </af:showDetailItem>
+        <af:showDetailItem text="#{bundle['LBL.722']}" id="sdi4"
+                           disclosureListener="#{pageFlowScope.PurInvoiceBean.PaymentSchdDisLstner}"
+                           disabled="#{(bindings.MmInvcDtlIterator.estimatedRowCount > 0 ? false : true)  || (bindings.InvcType.inputValue == 456 ? true : false) }"
+                           partialTriggers="pc1:t3 pc3:cil5 pc3:t2 soc3">
+          <af:panelGroupLayout id="pgl15" styleClass="AFStretchWidth">
+            <af:panelFormLayout id="pfl7" rows="2" maxColumns="3" fieldWidth="130" labelWidth="120"
+                                labelAlignment="start" inlineStyle="background-color:#F3FFD5;">
+              <af:inputDate value="#{bindings.TransPayDate.inputValue}" label="#{bundle['LBL.720']}"
+                            required="#{bindings.TransPayDate.hints.mandatory}"
+                            columns="#{bindings.TransPayDate.hints.displayWidth}"
+                            shortDesc="#{bindings.TransPayDate.hints.tooltip}" id="id5"
+                            contentStyle="padding:4px;width:150px;color:blue;"
+                            minValue="#{pageFlowScope.PurInvoiceBean.date.value}"
+                            binding="#{pageFlowScope.PurInvoiceBean.paymentDateVar}"
+                            disabled="#{pageFlowScope.ADD_EDIT_MODE=='V'}">
+                <f:validator binding="#{bindings.TransPayDate.validator}"/>
+                <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+              </af:inputDate>
+              <af:selectOneChoice value="#{bindings.TransPayMode.inputValue}" label="#{bundle['LBL.721']}"
+                                  required="#{bindings.TransPayMode.hints.mandatory}"
+                                  shortDesc="#{bindings.TransPayMode.hints.tooltip}" id="soc15"
+                                  contentStyle="padding:1px;width:160px;color:blue;"
+                                  binding="#{pageFlowScope.PurInvoiceBean.paymentModeVar}" autoSubmit="true"
+                                  disabled="#{pageFlowScope.ADD_EDIT_MODE=='V'}">
+                <f:selectItems value="#{bindings.TransPayMode.items}" id="si16"/>
+              </af:selectOneChoice>
+              <af:selectBooleanCheckbox value="#{bindings.TransAdvFlg.inputValue}"
+                                        shortDesc="#{bindings.TransAdvFlg.hints.tooltip}" id="sbc5"
+                                        text="#{bundle['LBL.53']}"
+                                        binding="#{pageFlowScope.PurInvoiceBean.paymentAdvFlgVar}" disabled="true"/>
+              <af:inputText value="#{bindings.TransPmtAmtSp.inputValue}" label="#{bundle['LBL.719']}"
+                            required="#{bindings.TransPmtAmtSp.hints.mandatory}"
+                            columns="#{bindings.TransPmtAmtSp.hints.displayWidth}" maximumLength="30"
+                            shortDesc="#{bindings.TransPmtAmtSp.hints.tooltip}" id="it39"
+                            contentStyle="padding:4px;width:190px;color:blue;font-weight:bold;text-align:right;"
+                            binding="#{pageFlowScope.PurInvoiceBean.paymentAmtVar}" partialTriggers="it23 p5 d5"
+                            validator="#{pageFlowScope.PurInvoiceBean.totalPayAmountValidator}" autoSubmit="true"
+                            disabled="#{pageFlowScope.ADD_EDIT_MODE=='V'}">
+                <f:validator binding="#{bindings.TransPmtAmtSp.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.TransPmtAmtSp.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:inputText>
+              <af:commandImageLink id="cil12" shortDesc="Add Schedule" icon="#{resource['images:enable_ok_blue.png']}"
+                                   disabledIcon="#{resource['images:disable_ok_blue.png']}"
+                                   actionListener="#{pageFlowScope.PurInvoiceBean.addPaymentSchdlAction}"
+                                   disabled="#{pageFlowScope.ADD_EDIT_MODE=='V'}"/>
+              <af:popup childCreation="deferred" id="p5" autoCancel="disabled"
+                        binding="#{pageFlowScope.PurInvoiceBean.duplicateDatePopUpVar}">
+                <af:dialog id="d5" type="yesNo" closeIconVisible="false"
+                           dialogListener="#{pageFlowScope.PurInvoiceBean.addPaymentScheduleDL}">
+                  <f:facet name="buttonBar"/>
+                  <af:panelFormLayout id="pfl8" rows="1" inlineStyle="color:Red; font-weight:bold;">
+                    <af:activeOutputText value="#{bundle['LBL.3099']}" id="aot1"/>
+                  </af:panelFormLayout>
+                </af:dialog>
+              </af:popup>
+            </af:panelFormLayout>
+            <af:panelCollection id="pc8" styleClass="AFStretchWidth" inlineStyle="width:1240px;">
+              <f:facet name="menus"/>
+              <f:facet name="toolbar"/>
+              <f:facet name="statusbar">
+                <af:toolbar id="t20">
+                  <af:panelLabelAndMessage label="#{bundle['LBL.1035']}:" id="plam2">
+                    <af:outputText value="0.00" id="ot8" binding="#{pageFlowScope.PurInvoiceBean.totalPayAmtBindVar}"
+                                   partialTriggers="::sdi4 ::cil12 ::p5 t15 p9"
+                                   inlineStyle="color:red;text-align:right;font-weight:bold;">
+                      <af:convertNumber minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                        maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                    </af:outputText>
+                  </af:panelLabelAndMessage>
+                </af:toolbar>
+              </f:facet>
+              <af:table value="#{bindings.MmInvcPmtSchdl.collectionModel}" var="row"
+                        rows="#{bindings.MmInvcPmtSchdl.rangeSize}"
+                        emptyText="#{bindings.MmInvcPmtSchdl.viewable ? 'No data to display.' : 'Access Denied.'}"
+                        fetchSize="#{bindings.MmInvcPmtSchdl.rangeSize}" rowBandingInterval="0"
+                        selectedRowKeys="#{bindings.MmInvcPmtSchdl.collectionModel.selectedRow}"
+                        selectionListener="#{bindings.MmInvcPmtSchdl.collectionModel.makeCurrent}" rowSelection="single"
+                        id="t15" binding="#{pageFlowScope.PurInvoiceBean.paymentSchdTblVar}" contentDelivery="immediate"
+                        partialTriggers=":::p5 :::d5" width="1230">
+                <af:column sortProperty="#{bindings.MmInvcPmtSchdl.hints.SrNo.name}" sortable="false"
+                           headerText="#{bundle['LBL.2977']}" id="c38" width="40">
+                  <af:spacer width="10" height="5" id="s13"/>
+                  <af:inputText value="#{row.bindings.SrNo.inputValue}"
+                                label="#{bindings.MmInvcPmtSchdl.hints.SrNo.label}"
+                                required="#{bindings.MmInvcPmtSchdl.hints.SrNo.mandatory}"
+                                columns="#{bindings.MmInvcPmtSchdl.hints.SrNo.displayWidth}"
+                                maximumLength="#{bindings.MmInvcPmtSchdl.hints.SrNo.precision}"
+                                shortDesc="#{bindings.MmInvcPmtSchdl.hints.SrNo.tooltip}" id="it36" readOnly="true"
+                                contentStyle="color:Black; font-weight:300;font-weight:bold;">
+                    <f:validator binding="#{row.bindings.SrNo.validator}"/>
+                    <af:convertNumber groupingUsed="false" pattern="#{bindings.MmInvcPmtSchdl.hints.SrNo.format}"/>
+                  </af:inputText>
+                  <af:spacer width="10" height="5" id="s14"/>
+                </af:column>
+                <af:column sortProperty="#{bindings.MmInvcPmtSchdl.hints.PayDt.name}" sortable="false"
+                           headerText="#{bundle['LBL.720']}" id="c39">
+                  <af:inputDate value="#{row.bindings.PayDt.inputValue}"
+                                label="#{bindings.MmInvcPmtSchdl.hints.PayDt.label}"
+                                required="#{bindings.MmInvcPmtSchdl.hints.PayDt.mandatory}"
+                                columns="#{bindings.MmInvcPmtSchdl.hints.PayDt.displayWidth}"
+                                shortDesc="#{bindings.MmInvcPmtSchdl.hints.PayDt.tooltip}" id="id4" readOnly="true"
+                                contentStyle="color:Green;font-weight:300;font-weight:bold;">
+                    <f:validator binding="#{row.bindings.PayDt.validator}"/>
+                    <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+                  </af:inputDate>
+                </af:column>
+                <af:column sortProperty="#{bindings.MmInvcPmtSchdl.hints.PayMode.name}" sortable="false"
+                           headerText="#{bundle['LBL.721']}" id="c40">
+                  <af:selectOneChoice value="#{row.bindings.PayMode.inputValue}" label="#{row.bindings.PayMode.label}"
+                                      required="#{bindings.MmInvcPmtSchdl.hints.PayMode.mandatory}"
+                                      shortDesc="#{bindings.MmInvcPmtSchdl.hints.PayMode.tooltip}" id="soc14"
+                                      readOnly="true" contentStyle="color:Green;font-weight:300;font-weight:bold;">
+                    <f:selectItems value="#{row.bindings.PayMode.items}" id="si15"/>
+                  </af:selectOneChoice>
+                </af:column>
+                <af:column headerText="#{bundle['LBL.53']}" id="c43" align="center" width="60">
+                  <af:selectBooleanCheckbox value="#{row.bindings.AdvFlg.inputValue}"
+                                            label="#{row.bindings.AdvFlg.label}"
+                                            shortDesc="#{bindings.MmInvcPmtSchdl.hints.AdvFlg.tooltip}" id="sbc4"
+                                            readOnly="true"/>
+                </af:column>
+                <af:column sortProperty="#{bindings.MmInvcPmtSchdl.hints.PayAmtSp.name}" sortable="false"
+                           headerText="#{bundle['LBL.65']} (#{pageFlowScope.PurInvoiceBean.suppCurrencyName})" id="c41"
+                           inlineStyle="text-align:right;" width="150">
+                  <af:inputText value="#{row.bindings.PayAmtSp.inputValue}"
+                                label="#{bindings.MmInvcPmtSchdl.hints.PayAmtSp.label}"
+                                required="#{bindings.MmInvcPmtSchdl.hints.PayAmtSp.mandatory}"
+                                columns="#{bindings.MmInvcPmtSchdl.hints.PayAmtSp.displayWidth}"
+                                maximumLength="#{bindings.MmInvcPmtSchdl.hints.PayAmtSp.precision}"
+                                shortDesc="#{bindings.MmInvcPmtSchdl.hints.PayAmtSp.tooltip}" id="it37" readOnly="true"
+                                contentStyle="text-align:right;color:maroon;font-weight:bold;">
+                    <f:validator binding="#{row.bindings.PayAmtSp.validator}"/>
+                    <af:convertNumber groupingUsed="false" pattern="#{bindings.MmInvcPmtSchdl.hints.PayAmtSp.format}"
+                                      minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                      maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                  </af:inputText>
+                </af:column>
+                <af:column sortProperty="#{bindings.MmInvcPmtSchdl.hints.PayAmtBs.name}" sortable="false"
+                           headerText="#{bundle['LBL.65']} (#{pageFlowScope.PurInvoiceBean.currencyName})" id="c42"
+                           inlineStyle="text-align:right;" width="150">
+                  <af:inputText value="#{row.bindings.PayAmtBs.inputValue}"
+                                label="#{bindings.MmInvcPmtSchdl.hints.PayAmtBs.label}"
+                                required="#{bindings.MmInvcPmtSchdl.hints.PayAmtBs.mandatory}"
+                                columns="#{bindings.MmInvcPmtSchdl.hints.PayAmtBs.displayWidth}"
+                                maximumLength="#{bindings.MmInvcPmtSchdl.hints.PayAmtBs.precision}"
+                                shortDesc="#{bindings.MmInvcPmtSchdl.hints.PayAmtBs.tooltip}" id="it38" readOnly="true"
+                                contentStyle="text-align:right;color:maroon;font-weight:bold;">
+                    <f:validator binding="#{row.bindings.PayAmtBs.validator}"/>
+                    <af:convertNumber groupingUsed="false" pattern="#{bindings.MmInvcPmtSchdl.hints.PayAmtBs.format}"
+                                      minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                      maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                  </af:inputText>
+                </af:column>
+                <af:column id="c44" width="50">
+                  <af:commandImageLink id="cil15" icon="#{resource['images:enable_delete_blue.png']}"
+                                       disabledIcon="#{resource['images:disabled_delete_white.png']}"
+                                       actionListener="#{pageFlowScope.PurInvoiceBean.deletePaymentScheduleAL}"
+                                       disabled="#{pageFlowScope.ADD_EDIT_MODE=='V'}">
+                    <af:resetActionListener/>
+                  </af:commandImageLink>
+                </af:column>
+              </af:table>
+              <af:popup childCreation="deferred" autoCancel="disabled" id="p9"
+                        binding="#{pageFlowScope.PurInvoiceBean.removePopUpPaymentSchedule}">
+                <af:dialog id="d9" closeIconVisible="false"
+                           dialogListener="#{pageFlowScope.PurInvoiceBean.paymentScheduleDL}">
+                  <f:facet name="buttonBar"/>
+                  <af:panelFormLayout id="pfl12">
+                    <af:outputText value="#{bundle['MSG.1162']}" id="ot18" inlineStyle="color:Red; font-weight:bold;"/>
+                  </af:panelFormLayout>
+                </af:dialog>
+              </af:popup>
+            </af:panelCollection>
+          </af:panelGroupLayout>
+        </af:showDetailItem>
+        <af:showDetailItem text="File Description" id="sdi5" disabled="#{bindings.AuthStat.inputValue != 'Y'}">
+          <af:panelStretchLayout id="psl1" inlineStyle="width:947px;">
+            <f:facet name="center">
+              <af:panelGroupLayout layout="horizontal" id="pgl25" styleClass="AFStretchWidth">
+                <af:panelCollection id="pc14" featuresOff="detach viewMenu statusBar" inlineStyle="width:363px;">
+                  <f:facet name="menus"/>
+                  <f:facet name="toolbar"/>
+                  <f:facet name="statusbar"/>
+                  <af:table value="#{bindings.AppRmrks.collectionModel}" var="row" rows="#{bindings.AppRmrks.rangeSize}"
+                            emptyText="#{bindings.AppRmrks.viewable ? 'No data to display.' : 'Access Denied.'}"
+                            fetchSize="#{bindings.AppRmrks.rangeSize}" rowBandingInterval="0"
+                            selectedRowKeys="#{bindings.AppRmrks.collectionModel.selectedRow}"
+                            selectionListener="#{bindings.AppRmrks.collectionModel.makeCurrent}" rowSelection="single"
+                            id="t32" contentDelivery="immediate">
+                    <af:column sortProperty="#{bindings.AppRmrks.hints.WfRemark.name}" sortable="false"
+                               headerText="Remarks" id="c71" width="110">
+                      <af:inputText value="#{row.bindings.WfRemark.inputValue}"
+                                    label="#{bindings.AppRmrks.hints.WfRemark.label}"
+                                    required="#{bindings.AppRmrks.hints.WfRemark.mandatory}"
+                                    columns="#{bindings.AppRmrks.hints.WfRemark.displayWidth}"
+                                    maximumLength="#{bindings.AppRmrks.hints.WfRemark.precision}"
+                                    shortDesc="#{bindings.AppRmrks.hints.WfRemark.tooltip}" id="it50" rows="2"
+                                    contentStyle="color:Maroon; font-weight:bold;">
+                        <f:validator binding="#{row.bindings.WfRemark.validator}"/>
+                      </af:inputText>
+                    </af:column>
+                    <af:column sortProperty="#{bindings.AppRmrks.hints.UsrIdBy.name}" sortable="false" id="c72"
+                               width="227">
+                      <af:panelGroupLayout id="pgl24" layout="vertical">
+                        <af:panelLabelAndMessage label="Created By :" id="plam6">
+                          <af:selectOneChoice value="#{row.bindings.UsrIdBy.inputValue}"
+                                              label="#{row.bindings.UsrIdBy.label}"
+                                              required="#{bindings.AppRmrks.hints.UsrIdBy.mandatory}"
+                                              shortDesc="#{bindings.AppRmrks.hints.UsrIdBy.tooltip}" id="soc4"
+                                              readOnly="true"
+                                              contentStyle="color:Blue; font-style:italic;">
+                            <f:selectItems value="#{row.bindings.UsrIdBy.items}" id="si22"/>
+                          </af:selectOneChoice>
+                          <af:outputText value="#{row.UsrIdBy}" shortDesc="#{bindings.AppRmrks.hints.UsrIdBy.tooltip}"
+                                         id="ot35" inlineStyle="font-weight:bold;" visible="false">
+                            <af:convertNumber groupingUsed="false" pattern="#{bindings.AppRmrks.hints.UsrIdBy.format}"/>
+                          </af:outputText>
+                        </af:panelLabelAndMessage>
+                        <af:spacer width="10" height="4" id="s30"/>
+                        <af:panelLabelAndMessage label="Date           :" id="plam7">
+                          <af:outputText value="#{row.TxnDt}" shortDesc="#{bindings.AppRmrks.hints.TxnDt.tooltip}"
+                                         id="ot36">
+                            <af:convertDateTime pattern="#{bindings.AppRmrks.hints.TxnDt.format}"/>
+                          </af:outputText>
+                        </af:panelLabelAndMessage>
+                      </af:panelGroupLayout>
+                    </af:column>
+                  </af:table>
+                </af:panelCollection>
+                <af:spacer width="20" height="10" id="s27"/>
+                <af:panelCollection id="pc15" featuresOff="detach viewMenu statusBar">
+                  <f:facet name="menus"/>
+                  <f:facet name="toolbar"/>
+                  <f:facet name="statusbar"/>
+                  <af:table value="#{bindings.AppWfAtch.collectionModel}" var="row"
+                            rows="#{bindings.AppWfAtch.rangeSize}"
+                            emptyText="#{bindings.AppWfAtch.viewable ? 'No data to display.' : 'Access Denied.'}"
+                            fetchSize="#{bindings.AppWfAtch.rangeSize}" rowBandingInterval="0"
+                            selectedRowKeys="#{bindings.AppWfAtch.collectionModel.selectedRow}"
+                            selectionListener="#{bindings.AppWfAtch.collectionModel.makeCurrent}" rowSelection="single"
+                            id="t33" contentDelivery="immediate">
+                    <af:column sortProperty="#{bindings.AppWfAtch.hints.DispFlNm.name}" sortable="false"
+                               headerText="File Name" id="c76" width="120">
+                      <af:spacer width="10" height="2" id="s29"/>
+                      <af:outputText value="#{row.DispFlNm}" shortDesc="#{bindings.AppWfAtch.hints.DispFlNm.tooltip}"
+                                     id="ot39" inlineStyle="font-weight:bold; color:Maroon;" visible="false"/>
+                      <af:inputText value="#{row.bindings.DispFlNm.inputValue}"
+                                    label="#{bindings.AppWfAtch.hints.DispFlNm.label}"
+                                    required="#{bindings.AppWfAtch.hints.DispFlNm.mandatory}"
+                                    columns="#{bindings.AppWfAtch.hints.DispFlNm.displayWidth}"
+                                    maximumLength="#{bindings.AppWfAtch.hints.DispFlNm.precision}"
+                                    shortDesc="#{bindings.AppWfAtch.hints.DispFlNm.tooltip}" id="it52"
+                                    contentStyle="font-weight:bold; color:Maroon;" readOnly="true">
+                        <f:validator binding="#{row.bindings.DispFlNm.validator}"/>
+                      </af:inputText>
+                      <af:spacer height="2" id="s28"/>
+                    </af:column>
+                    <af:column sortProperty="#{bindings.AppWfAtch.hints.UsrIdBy.name}" sortable="false"
+                               headerText="Created By" id="c77" width="120">
+                      <af:outputText value="#{row.UsrIdBy}" shortDesc="#{bindings.AppWfAtch.hints.UsrIdBy.tooltip}"
+                                     id="ot40" visible="false">
+                        <af:convertNumber groupingUsed="false" pattern="#{bindings.AppWfAtch.hints.UsrIdBy.format}"/>
+                      </af:outputText>
+                      <af:selectOneChoice value="#{row.bindings.UsrIdBy.inputValue}"
+                                          label="#{row.bindings.UsrIdBy.label}"
+                                          required="#{bindings.AppWfAtch.hints.UsrIdBy.mandatory}"
+                                          shortDesc="#{bindings.AppWfAtch.hints.UsrIdBy.tooltip}" id="soc10"
+                                          readOnly="true" contentStyle="font-weight:bold;">
+                        <f:selectItems value="#{row.bindings.UsrIdBy.items}" id="si25"/>
+                      </af:selectOneChoice>
+                    </af:column>
+                    <af:column headerText="Created Date" id="c73" width="120">
+                      <af:outputText value="#{row.TxnDt}" shortDesc="#{bindings.AppWfAtch.hints.TxnDt.tooltip}"
+                                     id="ot34" inlineStyle="font-weight:bold;">
+                        <af:convertDateTime pattern="#{bindings.AppWfAtch.hints.TxnDt.format}"/>
+                      </af:outputText>
+                    </af:column>
+                    <af:column id="c74">
+                      <af:commandImageLink text="View File" id="cil22"
+                                           inlineStyle="font-weight:bold; font-style:italic;">
+                        <af:fileDownloadActionListener contentType="#{row.bindings.AttchFlExtn.inputValue}"
+                                                       filename="#{row.bindings.DispFlNm.inputValue}"
+                                                       method="#{pageFlowScope.PurInvoiceBean.viewFileAction}"/>
+                      </af:commandImageLink>
+                    </af:column>
+                    <af:column headerText="#{bindings.AppWfAtch.hints.AttchFlExtn.label}" id="c75" visible="false">
+                      <af:inputText value="#{row.bindings.AttchFlPath.inputValue}"
+                                    label="#{bindings.AppWfAtch.hints.AttchFlPath.label}"
+                                    required="#{bindings.AppWfAtch.hints.AttchFlPath.mandatory}"
+                                    columns="#{bindings.AppWfAtch.hints.AttchFlPath.displayWidth}"
+                                    maximumLength="#{bindings.AppWfAtch.hints.AttchFlPath.precision}"
+                                    shortDesc="#{bindings.AppWfAtch.hints.AttchFlPath.tooltip}" id="it53"
+                                    binding="#{pageFlowScope.PurInvoiceBean.fileNamepath}">
+                        <f:validator binding="#{row.bindings.AttchFlPath.validator}"/>
+                      </af:inputText>
+                      <af:inputText value="#{row.bindings.AttchFlExtn.inputValue}"
+                                    label="#{bindings.AppWfAtch.hints.AttchFlExtn.label}"
+                                    required="#{bindings.AppWfAtch.hints.AttchFlExtn.mandatory}"
+                                    columns="#{bindings.AppWfAtch.hints.AttchFlExtn.displayWidth}"
+                                    maximumLength="#{bindings.AppWfAtch.hints.AttchFlExtn.precision}"
+                                    shortDesc="#{bindings.AppWfAtch.hints.AttchFlExtn.tooltip}" id="it51"
+                                    readOnly="true">
+                        <f:validator binding="#{row.bindings.AttchFlExtn.validator}"/>
+                      </af:inputText>
+                    </af:column>
+                  </af:table>
+                </af:panelCollection>
+              </af:panelGroupLayout>
+            </f:facet>
+          </af:panelStretchLayout>
+        </af:showDetailItem>
+      </af:panelTabbed>
+      <af:panelGroupLayout id="pgl19" inlineStyle="background-color:#F3FFD5;"
+                           visible="#{pageFlowScope.PurInvoiceBean.showSuppInvc}" partialTriggers="soc3 pc11:ctb1">
+        <af:panelHeader text="Supplementary Invoice" id="ph5"
+                        inlineStyle="height:25px; background-color:InfoBackground; border-color:Gray; border-style:groove; width:1277px;"/>
+        <af:panelFormLayout id="pfl15" inlineStyle="color:Blue; background-color:#F3FFD5; width:1273px;" rows="1"
+                            maxColumns="4">
+          <af:inputListOfValues id="itmDescId" popupTitle="#{bundle['LBL.2398']}"
+                                value="#{bindings.ItmDesc.inputValue}" label="#{bundle['LBL.1396']}"
+                                model="#{bindings.ItmDesc.listOfValuesModel}"
+                                required="#{bindings.ItmDesc.hints.mandatory}"
+                                columns="#{bindings.ItmDesc.hints.displayWidth}"
+                                shortDesc="#{bindings.ItmDesc.hints.tooltip}" contentStyle="width:250px;"
+                                autoSubmit="true">
+            <f:validator binding="#{bindings.ItmDesc.validator}"/>
+            <af:autoSuggestBehavior suggestedItems="#{bindings.ItmDesc.suggestedItems}"/>
+          </af:inputListOfValues>
+          <af:inputDate value="#{bindings.FromDate.inputValue}" label="#{bundle['LBL.450']}"
+                        required="#{bindings.FromDate.hints.mandatory}"
+                        columns="#{bindings.FromDate.hints.displayWidth}" shortDesc="#{bindings.FromDate.hints.tooltip}"
+                        id="id7" autoSubmit="true" binding="#{pageFlowScope.PurInvoiceBean.srchFrmDt}">
+            <f:validator binding="#{bindings.FromDate.validator}"/>
+            <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+          </af:inputDate>
+          <af:inputDate value="#{bindings.ToDate.inputValue}" label="#{bundle['LBL.1030']}"
+                        required="#{bindings.ToDate.hints.mandatory}" columns="#{bindings.ToDate.hints.displayWidth}"
+                        shortDesc="#{bindings.ToDate.hints.tooltip}" id="id8" autoSubmit="true"
+                        minValue="#{pageFlowScope.PurInvoiceBean.srchFrmDt.value}" partialTriggers="id7">
+            <f:validator binding="#{bindings.ToDate.validator}"/>
+            <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+          </af:inputDate>
+          <af:commandImageLink id="cil19" icon="#{resource['images:enable_search_blue.png']}"
+                               actionListener="#{pageFlowScope.PurInvoiceBean.searchPurchaseInvoiceAction}"
+                               disabled="#{bindings.SelectedPIItem1.estimatedRowCount >0}"
+                               disabledIcon="#{resource['images:disabled_search_white.png']}"
+                               partialTriggers="ilov1 pc10:t21 pc11:t23 pc11:ctb2 transCurrNameId"/>
+        </af:panelFormLayout>
+        <af:spacer width="1" height="15" id="s20"/>
+        <af:panelGroupLayout id="pgl20" layout="horizontal" inlineStyle="width:1280px;">
+          <af:panelCollection id="pc10" inlineStyle="width:363px;" featuresOff="detach viewMenu">
+            <f:facet name="toolbar">
+              <af:toolbar id="t22">
+                <af:commandButton text="Proceed With Selected Invoice(s)>>>" id="cb1"
+                                  action="#{pageFlowScope.PurInvoiceBean.addNewPurchaseInvoice}"
+                                  disabled="#{bindings.SelectedPIItem1.estimatedRowCount >0}"
+                                  partialTriggers="::ilov1 ::pc11:t23 ::pc11:ctb2 ::transCurrNameId"/>
+              </af:toolbar>
+            </f:facet>
+            <f:facet name="statusbar"/>
+            <af:table value="#{bindings.SrchPurInvcTrans1.collectionModel}" var="row"
+                      rows="#{bindings.SrchPurInvcTrans1.rangeSize}"
+                      emptyText="#{bindings.SrchPurInvcTrans1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                      fetchSize="#{bindings.SrchPurInvcTrans1.rangeSize}" rowBandingInterval="1"
+                      selectedRowKeys="#{bindings.SrchPurInvcTrans1.collectionModel.selectedRow}"
+                      selectionListener="#{bindings.SrchPurInvcTrans1.collectionModel.makeCurrent}" id="t21" width="365" contentDelivery="immediate"
+                      partialTriggers=":::pc11:t23" binding="#{pageFlowScope.PurInvoiceBean.piTableBind}">
+              <af:column id="c52" width="40">
+                <af:selectBooleanCheckbox value="#{row.bindings.TransCheck.inputValue}"
+                                          label="#{row.bindings.TransCheck.label}"
+                                          shortDesc="#{bindings.SrchPurInvcTrans1.hints.TransCheck.tooltip}" id="sbc6"
+                                          disabled="#{bindings.SelectedPIItem1.estimatedRowCount >0}"
+                                          partialTriggers=":::pc11:t23"/>
+              </af:column>
+              <af:column sortProperty="#{bindings.SrchPurInvcTrans1.hints.InvcNo.name}" sortable="false"
+                         headerText="Invoice No." id="c48" width="141">
+                <af:outputText value="#{row.InvcNo}" shortDesc="#{bindings.SrchPurInvcTrans1.hints.InvcNo.tooltip}"
+                               id="ot20" inlineStyle="color:brown; font-weight:bold;"/>
+                <af:spacer width="10" height="3" id="s22"/>
+              </af:column>
+              <af:column sortProperty="#{bindings.SrchPurInvcTrans1.hints.InvcDt.name}" sortable="false"
+                         headerText="Invoice Date" id="c51" width="105">
+                <af:outputText value="#{row.InvcDt}" shortDesc="#{bindings.SrchPurInvcTrans1.hints.InvcDt.tooltip}"
+                               id="ot21" inlineStyle="font-weight:bold;">
+                  <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+                </af:outputText>
+              </af:column>
+            </af:table>
+          </af:panelCollection>
+          <af:panelCollection id="pc11" inlineStyle="width:897px;" featuresOff="detach viewMenu">
+            <f:facet name="toolbar">
+              <af:toolbar id="t24">
+                <af:commandToolbarButton text="&lt;&lt;&lt; Back To Selected Invoice(s)" id="ctb2"
+                                         actionListener="#{pageFlowScope.PurInvoiceBean.goBackAction}"
+                                         disabled="#{bindings.SelectedPIItem1.estimatedRowCount &lt;= 0}"
+                                         partialTriggers="t23"
+                                         binding="#{pageFlowScope.PurInvoiceBean.bindVarGoBackBtn}"/>
+                <af:spacer width="15" height="10" id="s21"/>
+                <af:commandToolbarButton text="Continue With Selected Prices>>>" id="ctb1"
+                                         actionListener="#{pageFlowScope.PurInvoiceBean.insertItemInPIAction}"
+                                         disabled="#{bindings.SelectedPIItem1.estimatedRowCount &lt;= 0}"
+                                         partialTriggers="t23"
+                                         binding="#{pageFlowScope.PurInvoiceBean.bindVarContinueBtn}"/>
+              </af:toolbar>
+            </f:facet>
+            <f:facet name="statusbar"/>
+            <af:table value="#{bindings.SelectedPIItem1.collectionModel}" var="row"
+                      rows="#{bindings.SelectedPIItem1.rangeSize}"
+                      emptyText="#{bindings.SelectedPIItem1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                      fetchSize="#{bindings.SelectedPIItem1.rangeSize}" rowBandingInterval="1"
+                      selectedRowKeys="#{bindings.SelectedPIItem1.collectionModel.selectedRow}"
+                      selectionListener="#{bindings.SelectedPIItem1.collectionModel.makeCurrent}"
+                      id="t23" contentDelivery="immediate" columnStretching="column:c58"
+                      binding="#{pageFlowScope.PurInvoiceBean.selectedTblBind}">
+              <af:column sortProperty="#{bindings.SelectedPIItem1.hints.DocIdRcpt.name}" sortable="false"
+                         headerText="Receipt No." id="c56" width="130">
+                <af:selectOneChoice value="#{row.bindings.DocIdRcpt.inputValue}" label="#{row.bindings.DocIdRcpt.label}"
+                                    required="#{bindings.SelectedPIItem1.hints.DocIdRcpt.mandatory}"
+                                    shortDesc="#{bindings.SelectedPIItem1.hints.DocIdRcpt.tooltip}" readOnly="true"
+                                    id="soc19" contentStyle="color:green;font-weight:bold;">
+                  <f:selectItems value="#{row.bindings.DocIdRcpt.items}" id="si20"/>
+                </af:selectOneChoice>
+              </af:column>
+              <af:column sortProperty="#{bindings.SelectedPIItem1.hints.DocIdPo.name}" sortable="false"
+                         headerText="Order No." id="c57">
+                <af:selectOneChoice value="#{row.bindings.DocIdPo.inputValue}" label="#{row.bindings.DocIdPo.label}"
+                                    required="#{bindings.SelectedPIItem1.hints.DocIdPo.mandatory}"
+                                    shortDesc="#{bindings.SelectedPIItem1.hints.DocIdPo.tooltip}" readOnly="true"
+                                    id="soc20" contentStyle="color:brown;font-weight:bold;">
+                  <f:selectItems value="#{row.bindings.DocIdPo.items}" id="si21"/>
+                </af:selectOneChoice>
+              </af:column>
+              <af:column sortProperty="#{bindings.SelectedPIItem1.hints.ItmId.name}" sortable="false"
+                         headerText="Item Desc" id="c58">
+                <af:outputText value="#{row.TransItmDesc}"
+                               shortDesc="#{bindings.SelectedPIItem1.hints.TransItmDesc.tooltip}" id="ot27"
+                               inlineStyle="color:blue;font-weight:bold;"/>
+                <af:spacer width="10" height="5" id="s2"/>
+              </af:column>
+              <af:column sortProperty="#{bindings.SelectedPIItem1.hints.ItmPrice.name}" sortable="false"
+                         headerText="Old Price" id="c59" align="right">
+                <af:outputText value="#{row.ItmPrice}" shortDesc="#{bindings.SelectedPIItem1.hints.ItmPrice.tooltip}"
+                               id="ot22">
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.SelectedPIItem1.hints.ItmPrice.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:outputText>
+              </af:column>
+              <af:column sortProperty="#{bindings.SelectedPIItem1.hints.NewPrice.name}" sortable="false"
+                         headerText="New Price" id="c60" align="right">
+                <af:inputText value="#{row.bindings.NewPrice.inputValue}"
+                              required="#{bindings.SelectedPIItem1.hints.NewPrice.mandatory}"
+                              columns="#{bindings.SelectedPIItem1.hints.NewPrice.displayWidth}"
+                              maximumLength="#{bindings.SelectedPIItem1.hints.NewPrice.precision}"
+                              shortDesc="#{bindings.SelectedPIItem1.hints.NewPrice.tooltip}" id="it41"
+                              contentStyle="color:black;text-align:right;font-weight:bold;" inlineStyle="text-align:right;"
+                              validator="#{pageFlowScope.PurInvoiceBean.newPriceValidator}"
+                              autoSubmit="true"
+                              valueChangeListener="#{pageFlowScope.PurInvoiceBean.priceDifferenceValueChangeListener}">
+                  <f:validator binding="#{row.bindings.NewPrice.validator}"/>
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.SelectedPIItem1.hints.NewPrice.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                  <f:attribute name="bindOldPriceVar" value="#{row.ItmPrice}"/>
+                </af:inputText>
+              </af:column>
+              <af:column sortProperty="#{bindings.SelectedPIItem1.hints.DiffPrice.name}" sortable="false"
+                         headerText="Price Difference" id="c61" align="right">
+                <af:outputText value="#{row.DiffPrice}" shortDesc="#{bindings.SelectedPIItem1.hints.DiffPrice.tooltip}"
+                               id="ot24">
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.SelectedPIItem1.hints.DiffPrice.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:outputText>
+              </af:column>
+            </af:table>
+            <f:facet name="secondaryToolbar">
+              <af:toolbar id="t25">
+                <af:selectOneRadio id="sor1" layout="horizontal" value="Amt"
+                                   disabled="#{bindings.SelectedPIItem1.estimatedRowCount &lt;= 0}"
+                                   partialTriggers="t23" binding="#{pageFlowScope.PurInvoiceBean.bindOperationVar}"
+                                   autoSubmit="true">
+                  <af:selectItem label="Amount" value="Amt" id="si23"/>
+                  <af:selectItem label="Percentage" value="Per" id="si24"/>
+                </af:selectOneRadio>
+                <af:inputText id="it43" inlineStyle="width:150px;text-align:right;"
+                              contentStyle="color:black;text-align:right;font-weight:bold;"
+                              disabled="#{bindings.SelectedPIItem1.estimatedRowCount &lt;= 0}"
+                              partialTriggers="t23"
+                              binding="#{pageFlowScope.PurInvoiceBean.bindAmtAdjtVar}" autoSubmit="true"
+                              validator="#{pageFlowScope.PurInvoiceBean.amountPerValidator}" maximumLength="8"
+                               >
+                  <af:convertNumber minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+                <af:commandButton text="Apply" id="cb2" partialTriggers="t23"
+                                  disabled="#{bindings.SelectedPIItem1.estimatedRowCount &lt;= 0}"
+                                  actionListener="#{pageFlowScope.PurInvoiceBean.applyAmtPerAction}"
+                                  binding="#{pageFlowScope.PurInvoiceBean.bindVarApplyBtn}"/>
+              </af:toolbar>
+            </f:facet>
+          </af:panelCollection>
+        </af:panelGroupLayout>
+      </af:panelGroupLayout>
+      <af:panelGroupLayout id="pgl22" partialTriggers="soc3 pc13:ctb4" inlineStyle="background-color:#F3FFD5;"
+                           visible="#{pageFlowScope.PurInvoiceBean.showSuppTrfInvc}">
+        <af:panelHeader text="Supplementary Transfer Invoice" id="ph6"
+                        inlineStyle="height:25px; background-color:InfoBackground; border-color:Gray; border-style:groove; width:1277px;"/>
+        <af:panelFormLayout id="pfl17" maxColumns="4" rows="1">
+          <af:inputListOfValues id="itmDesc1Id" popupTitle="Search and Select: #{bindings.ItmDesc1.hints.label}"
+                                value="#{bindings.ItmDesc1.inputValue}" label="#{bundle['LBL.1396']}"
+                                model="#{bindings.ItmDesc1.listOfValuesModel}"
+                                required="#{bindings.ItmDesc1.hints.mandatory}"
+                                columns="#{bindings.ItmDesc1.hints.displayWidth}"
+                                shortDesc="#{bindings.ItmDesc1.hints.tooltip}" contentStyle="width:250px;"
+                                autoSubmit="true">
+            <f:validator binding="#{bindings.ItmDesc1.validator}"/>
+            <af:autoSuggestBehavior suggestedItems="#{bindings.ItmDesc1.suggestedItems}"/>
+          </af:inputListOfValues>
+          <af:inputDate value="#{bindings.FromDate1.inputValue}" label="#{bundle['LBL.450']}"
+                        required="#{bindings.FromDate1.hints.mandatory}"
+                        columns="#{bindings.FromDate1.hints.displayWidth}"
+                        shortDesc="#{bindings.FromDate1.hints.tooltip}" id="id9" autoSubmit="true"
+                        binding="#{pageFlowScope.PurInvoiceBean.srchInvFrmDt}">
+            <f:validator binding="#{bindings.FromDate1.validator}"/>
+            <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+          </af:inputDate>
+          <af:inputDate value="#{bindings.ToDate1.inputValue}" label="#{bundle['LBL.1030']}"
+                        required="#{bindings.ToDate1.hints.mandatory}" columns="#{bindings.ToDate1.hints.displayWidth}"
+                        shortDesc="#{bindings.ToDate1.hints.tooltip}" id="id10" autoSubmit="true"
+                        minValue="#{pageFlowScope.PurInvoiceBean.srchInvFrmDt.value}" partialTriggers="id9">
+            <f:validator binding="#{bindings.ToDate1.validator}"/>
+            <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+          </af:inputDate>
+          <af:commandImageLink id="cil21"
+                               icon="#{resource['images:enable_search_blue.png']}"
+                               actionListener="#{pageFlowScope.PurInvoiceBean.searchMMTransferInvoiceAction}"/>
+        </af:panelFormLayout>
+        <af:spacer width="10" height="5" id="s23"/>
+        <af:panelGroupLayout id="pgl23" layout="horizontal">
+          <af:panelCollection id="pc12" featuresOff="detach viewMenu" inlineStyle="width:363px;">
+            <f:facet name="toolbar">
+              <af:toolbar id="t27">
+                <af:commandButton text="Proceed With Selected Invoice(s)>>>" id="cb3"
+                                  action="#{pageFlowScope.PurInvoiceBean.addNewTransferInvoice}"/>
+              </af:toolbar>
+            </f:facet>
+            <f:facet name="statusbar"/>
+            <af:table value="#{bindings.SrchMMInvcTrans.collectionModel}" var="row"
+                      rows="#{bindings.SrchMMInvcTrans.rangeSize}"
+                      emptyText="#{bindings.SrchMMInvcTrans.viewable ? 'No data to display.' : 'Access Denied.'}"
+                      fetchSize="#{bindings.SrchMMInvcTrans.rangeSize}" rowBandingInterval="1" id="t29"
+                      contentDelivery="immediate" binding="#{pageFlowScope.PurInvoiceBean.piTableBind1}">
+              <af:column sortProperty="#{bindings.SrchMMInvcTrans.hints.TransMMCheck.name}" sortable="false" id="c62" width="50">
+                <af:selectBooleanCheckbox value="#{row.bindings.TrMMChk.inputValue}"
+                                          label="#{row.bindings.TrMMChk.label}"
+                                          shortDesc="#{bindings.SrchMMInvcTrans.hints.TrMMChk.tooltip}" id="sbc7" disabled="#{bindings.SelectTIItem.estimatedRowCount >0}"
+                                          partialTriggers=":::pc13:t30"/>
+              </af:column>
+              <af:column sortProperty="#{bindings.SrchMMInvcTrans.hints.InvcNo.name}" sortable="false"
+                         headerText="#{bindings.SrchMMInvcTrans.hints.InvcNo.label}" id="c63" width="150">
+                <af:inputText value="#{row.InvcNo}"
+                              label="#{bindings.SrchMMInvcTrans.hints.InvcNo.label}"
+                              required="#{bindings.SrchMMInvcTrans.hints.InvcNo.mandatory}"
+                              columns="#{bindings.SrchMMInvcTrans.hints.InvcNo.displayWidth}"
+                              maximumLength="#{bindings.SrchMMInvcTrans.hints.InvcNo.precision}"
+                              shortDesc="#{bindings.SrchMMInvcTrans.hints.InvcNo.tooltip}" id="it47" readOnly="true"
+                              inlineStyle="color:brown; font-weight:bold;"
+                              contentStyle="color:brown; font-weight:bold;">
+                  <f:validator binding="#{row.bindings.InvcNo.validator}"/>
+                </af:inputText>
+                <af:spacer width="10" height="3" id="s26"/>
+              </af:column>
+              <af:column sortProperty="#{bindings.SrchMMInvcTrans.hints.InvcDt.name}" sortable="false"
+                         headerText="Invoice Date" id="c64" width="130">
+                <af:inputDate value="#{row.InvcDt}"
+                              label="#{bindings.SrchMMInvcTrans.hints.InvcDt.label}"
+                              required="#{bindings.SrchMMInvcTrans.hints.InvcDt.mandatory}"
+                              columns="#{bindings.SrchMMInvcTrans.hints.InvcDt.displayWidth}"
+                              shortDesc="#{bindings.SrchMMInvcTrans.hints.InvcDt.tooltip}" id="id11" readOnly="true"
+                              inlineStyle="font-weight:bold;" contentStyle="font-weight:bold;">
+                  <f:validator binding="#{row.bindings.InvcDt.validator}"/>
+                  <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+                </af:inputDate>
+              </af:column>
+            </af:table>
+          </af:panelCollection>
+          <af:panelCollection id="pc13" featuresOff="detach viewMenu" inlineStyle="width:897px;">
+            <f:facet name="toolbar">
+              <af:toolbar id="t28">
+                <af:commandToolbarButton text="&lt;&lt;&lt; Back To Selected Invoice(s)" id="ctb3"
+                                         actionListener="#{pageFlowScope.PurInvoiceBean.TrfGoBackInvoice}"
+                                         disabled="#{bindings.SelectTIItem.estimatedRowCount==0}" partialTriggers="t30"/>
+                <af:spacer width="20" height="10" id="s24"/>
+                <af:commandToolbarButton text="Continue With Selected Prices>>>" id="ctb4"
+                                         actionListener="#{pageFlowScope.PurInvoiceBean.insertItmTrfAction}"
+                                         partialTriggers="t30"
+                                         disabled="#{bindings.SelectTIItem.estimatedRowCount==0}"/>
+              </af:toolbar>
+            </f:facet>
+            <f:facet name="statusbar"/>
+            <af:table value="#{bindings.SelectTIItem.collectionModel}" var="row"
+                      rows="#{bindings.SelectTIItem.rangeSize}"
+                      emptyText="#{bindings.SelectTIItem.viewable ? 'No data to display.' : 'Access Denied.'}"
+                      fetchSize="#{bindings.SelectTIItem.rangeSize}" rowBandingInterval="1" id="t30"
+                      columnStretching="column:c67" contentDelivery="immediate"
+                      binding="#{pageFlowScope.PurInvoiceBean.selectedTblBind1}">
+              <af:column sortProperty="#{bindings.SelectTIItem.hints.DocIdRcpt.name}" sortable="false"
+                         headerText="Issue No." id="c65" width="130">
+                <af:outputText value="#{row.TransIssuNo}" shortDesc="#{bindings.SelectTIItem.hints.TransIssuNo.tooltip}"
+                               id="ot29" inlineStyle="color:green;font-weight:bold;"/>
+              </af:column>
+              <af:column sortProperty="#{bindings.SelectTIItem.hints.DocIdPo.name}" sortable="false"
+                         headerText="Transfer No." id="c66">
+                <af:outputText value="#{row.TransTrfNo}" shortDesc="#{bindings.SelectTIItem.hints.TransTrfNo.tooltip}"
+                               id="ot30" inlineStyle="color:brown;font-weight:bold;"/>
+              </af:column>
+              <af:column sortProperty="#{bindings.SelectTIItem.hints.ItmId.name}" sortable="false"
+                         headerText="Item Desc" id="c67">
+                <af:outputText value="#{row.TransItmDesc}"
+                               shortDesc="#{bindings.SelectTIItem.hints.TransItmDesc.tooltip}" id="ot33"
+                               inlineStyle="color:blue;font-weight:bold;"/>
+                <af:spacer width="10" height="4" id="s25"/>
+              </af:column>
+              <af:column sortProperty="#{bindings.SelectTIItem.hints.ItmPrice.name}" sortable="false"
+                         headerText="Old Price" id="c68" align="right">
+                <af:outputText value="#{row.ItmPrice}" shortDesc="#{bindings.SelectTIItem.hints.ItmPrice.tooltip}"
+                               id="ot32">
+                  <af:convertNumber minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:outputText>
+              </af:column>
+              <af:column headerText="New Price" id="c70" align="right">
+                <af:inputText value="#{row.bindings.NewPrice.inputValue}"
+                              label="#{bindings.SelectTIItem.hints.NewPrice.label}"
+                              required="#{bindings.SelectTIItem.hints.NewPrice.mandatory}"
+                              columns="#{bindings.SelectTIItem.hints.NewPrice.displayWidth}"
+                              maximumLength="#{bindings.SelectTIItem.hints.NewPrice.precision}"
+                              shortDesc="#{bindings.SelectTIItem.hints.NewPrice.tooltip}" id="it46"
+                              contentStyle="color:black;text-align:right;font-weight:bold;"
+                              inlineStyle="text-align:right;" autoSubmit="true">
+                  <f:validator binding="#{row.bindings.NewPrice.validator}"/>
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.SelectTIItem.hints.NewPrice.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+              </af:column>
+              <af:column headerText="Price Difference" id="c69" align="right">
+                <af:outputText value="#{row.DiffPrice}" shortDesc="#{bindings.SelectTIItem.hints.DiffPrice.tooltip}"
+                               id="ot31">
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.SelectTIItem.hints.DiffPrice.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:outputText>
+              </af:column>
+            </af:table>
+            <f:facet name="secondaryToolbar">
+              <af:toolbar id="t31">
+                <af:selectOneRadio id="sor2" layout="horizontal" value="Amt"
+                                   binding="#{pageFlowScope.PurInvoiceBean.bindOperationVar1}">
+                  <af:selectItem label="Amount" value="Amt" id="si4"/>
+                  <af:selectItem label="Percentage" value="Per" id="si10"/>
+                </af:selectOneRadio>
+                <af:inputText id="it48" contentStyle="color:black;text-align:right;font-weight:bold;"
+                              inlineStyle="text-align:right;" binding="#{pageFlowScope.PurInvoiceBean.bindAmtAdjtVar1}"
+                              validator="#{pageFlowScope.PurInvoiceBean.amountPerValidator1}" autoSubmit="true"
+                              maximumLength="6">
+                  <af:convertNumber minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+                <af:commandButton text="Apply" id="cb4" binding="#{pageFlowScope.PurInvoiceBean.bindVarApplyBtn1}"
+                                  actionListener="#{pageFlowScope.PurInvoiceBean.applyAmtPerAction1}"/>
+              </af:toolbar>
+            </f:facet>
+          </af:panelCollection>
+        </af:panelGroupLayout>
+      </af:panelGroupLayout>
+    </af:panelGroupLayout>
+    <af:panelGroupLayout id="pgl7" layout="vertical" halign="center" inlineStyle="background-color:Silver;height:20px;">
+      <af:inputText value="#{bindings.TransInvcAmtSp.inputValue}" label="#{bundle['LBL.3092']}"
+                    required="#{bindings.TransInvcAmtSp.hints.mandatory}"
+                    columns="#{bindings.TransInvcAmtSp.hints.displayWidth}"
+                    maximumLength="#{bindings.TransInvcAmtSp.hints.precision}"
+                    shortDesc="#{bindings.TransInvcAmtSp.hints.tooltip}" id="it23" disabled="true"
+                    contentStyle="color:red;text-align:right;font-weight:bold;"
+                    partialTriggers="pc1:t3 pc2:t4 pc3:t2 si14 pc3:cil5"
+                    binding="#{pageFlowScope.PurInvoiceBean.rcptTotalVar}" autoSubmit="true"
+                    validator="#{pageFlowScope.PurInvoiceBean.adjustmentValidator}">
+        <f:validator binding="#{bindings.TransInvcAmtSp.validator}"/>
+        <af:convertNumber groupingUsed="false" pattern="#{bindings.TransInvcAmtSp.format}"
+                          minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                          maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+      </af:inputText>
+    </af:panelGroupLayout>
+  </af:panelGroupLayout>
+</jsp:root>

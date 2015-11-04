@@ -1,0 +1,627 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Other_Voucher" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Empty">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Org_Id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="From_Voucher_No" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Voucher_Type" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AmountX1" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AmountX2" class="java.math.BigDecimal">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="From_Date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="To_Date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Path" class="java.lang.String"/>
+	<parameter name="Doc_Id" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT	VOUCHER_ID,
+	TYPE_NAME,
+	VOUCHER_NO,
+	VOUCHER_DATE,
+	NARRATION,
+	AMOUNT_TYPE,
+	AMOUNT,
+	AMOUNT_BASE,
+	DEBIT_AMOUNT,
+	CREDIT_AMOUNT,
+	ORGID,
+	SLOCID,
+	COAID,
+	ORGANISATION,
+	COANAME,
+	COGID,
+	COGNAME,
+	USR_NAME,
+          posted_by,
+	GL_HO_ORG_ID,
+	GL_CLD_ID,
+        (select adds from app.app$adds$vw where adds_id = (select org_add_id1 from app.org$oth$dtl where org_id = $P{Org_Id})) Org_Address,
+         gl_curr_id_sp
+FROM
+	(
+	SELECT	substr(F.DOC_TXN_ID_DISP,3) VOUCHER_ID,
+		G.DOC_TYP TYPE_NAME,
+		A.GL_VOU_ID VOUCHER_NO,
+		A.GL_VOU_DT VOUCHER_DATE,
+		substr(A.GL_NARR,1) NARRATION,
+		a.GL_AMT_TYP AMOUNT_TYPE,
+		A.GL_AMT_SP AMOUNT,
+		A.GL_AMT_BS  AMOUNT_BASE,
+		decode(  a.GL_AMT_TYP,'Dr', A.GL_AMT_SP,NULL) DEBIT_AMOUNT,
+		decode(  a.GL_AMT_TYP,'Cr', A.GL_AMT_SP,NULL) CREDIT_AMOUNT,
+		A.GL_ORG_ID ORGID,
+		A.GL_SLOC_ID SLOCID,
+		A.GL_COA_ID COAID,
+		D.ORG_DESC ORGANISATION,
+		C.COA_NM COANAME,
+		a.GL_COG_ID COGID,
+		E.COG_NM COGNAME,
+		H.USR_NAME,
+		H.usr_name posted_by,
+		A.GL_HO_ORG_ID,
+		A.GL_CLD_ID,
+                    a.gl_curr_id_sp
+
+	from GL_LINES A,
+		gl gl,
+		FIN$COA C,
+		APP.ORG D,
+		FIN.FIN$COG e,
+		APP.APP$DOC$TXN f,
+		APP.APP$DOC$TYP_VW G,
+		APP.APP$SEC$USR H
+
+	where 	a.GL_TYPE_ID=NVL($P{Voucher_Type},a.GL_TYPE_ID)
+	and 	A.GL_TXN_TYP_MIG not in  ('O','MO')
+	AND 	G.DOC_ID = 55
+
+    AND     A.GL_CLD_ID = gl.GL_CLD_ID
+	AND 	A.GL_SLOC_ID=gl.GL_SLOC_ID
+	AND 	A.GL_ORG_ID=gl.GL_ORG_ID
+    AND     A.GL_HO_ORG_ID = gl.GL_HO_ORG_ID
+	AND 	A.GL_VOU_ID=gl.GL_VOU_ID
+
+    AND     A.GL_CLD_ID=c.COA_CLD_ID
+	AND 	A.GL_SLOC_ID=c.COA_SLOC_ID
+    AND     A.GL_HO_ORG_ID=c.COA_HO_ORG_ID
+	AND 	A.GL_COA_ID=c.COA_ID
+
+	AND     A.GL_CLD_ID=D.ORG_CLD_ID
+	AND     A.GL_ORG_ID=D.ORG_ID
+
+	AND     A.GL_CLD_ID=E.COG_CLD_ID
+	AND     A.GL_SLOC_ID=E.COG_SLOC_ID
+	AND     A.GL_HO_ORG_ID=E.COG_ORG_ID
+	AND 	a.GL_COG_ID=E.COG_ID
+
+	AND     A.GL_CLD_ID=F.DOC_CLD_ID
+	AND 	A.GL_SLOC_ID=F.DOC_SLOC_ID
+	AND 	A.GL_ORG_ID=F.DOC_ORG_ID
+	AND 	A.GL_VOU_ID=F.DOC_TXN_ID
+
+	AND     A.GL_CLD_ID = G.DOC_CLD_ID
+	AND 	A.GL_SLOC_ID = G.DOC_SLOC_ID
+	AND 	A.GL_ORG_ID =  G. DOC_ORG_ID
+	AND 	a.GL_TYPE_ID = G.DOC_TYP_ID
+
+	AND     A.GL_SLOC_ID = H.SLOC_ID
+	and     A.USR_ID_CREATE=H.USR_ID
+
+)
+WHERE ORGID= NVL($P{Org_Id},ORGID)
+AND  VOUCHER_DATE BETWEEN TO_DATE($P{From_Date},'YYYY-MM-DD') AND TO_DATE($P{To_Date},'YYYY-MM-DD')
+and AMOUNT between
+decode( nvl($P{AmountX1},'0'), 0, decode(nvl($P{AmountX2},'0'), 0, AMOUNT, nvl($P{AmountX1},'0')),
+nvl($P{AmountX1},'0'))
+AND
+decode( nvl($P{AmountX2},'0'), 0, decode(nvl($P{AmountX1},'0'), 0, AMOUNT, nvl($P{AmountX2},'0') ),
+nvl($P{AmountX2},'0'))
+AND VOUCHER_ID = nvl($P{From_Voucher_No},VOUCHER_ID)
+and voucher_no = nvl($P{Doc_Id},voucher_no)
+AND $P{Voucher_Type} is not null]]>
+	</queryString>
+	<field name="VOUCHER_ID" class="java.lang.String"/>
+	<field name="TYPE_NAME" class="java.lang.String"/>
+	<field name="VOUCHER_NO" class="java.lang.String"/>
+	<field name="VOUCHER_DATE" class="java.sql.Timestamp"/>
+	<field name="NARRATION" class="java.lang.String"/>
+	<field name="AMOUNT_TYPE" class="java.lang.String"/>
+	<field name="AMOUNT" class="java.math.BigDecimal"/>
+	<field name="AMOUNT_BASE" class="java.math.BigDecimal"/>
+	<field name="DEBIT_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="CREDIT_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="ORGID" class="java.lang.String"/>
+	<field name="SLOCID" class="java.math.BigDecimal"/>
+	<field name="COAID" class="java.math.BigDecimal"/>
+	<field name="ORGANISATION" class="java.lang.String"/>
+	<field name="COANAME" class="java.lang.String"/>
+	<field name="COGID" class="java.lang.String"/>
+	<field name="COGNAME" class="java.lang.String"/>
+	<field name="USR_NAME" class="java.lang.String"/>
+	<field name="POSTED_BY" class="java.lang.String"/>
+	<field name="GL_HO_ORG_ID" class="java.lang.String"/>
+	<field name="GL_CLD_ID" class="java.lang.String"/>
+	<field name="ORG_ADDRESS" class="java.lang.String"/>
+	<field name="GL_CURR_ID_SP" class="java.math.BigDecimal"/>
+	<sortField name="ORGANISATION"/>
+	<sortField name="VOUCHER_DATE"/>
+	<sortField name="VOUCHER_ID"/>
+	<sortField name="COANAME"/>
+	<variable name="Sum_Dr_amt" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{DEBIT_AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="Sum_cr_amount" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{CREDIT_AMOUNT}]]></variableExpression>
+	</variable>
+	<group name="Voucher_Id">
+		<groupExpression><![CDATA[$F{VOUCHER_ID}]]></groupExpression>
+		<groupHeader>
+			<band height="32">
+				<staticText>
+					<reportElement mode="Opaque" x="1" y="0" width="425" height="14" backcolor="#C1DDF9"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement mode="Opaque" x="426" y="0" width="129" height="14" backcolor="#C1DDF9"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[On Account INV]]></text>
+				</staticText>
+				<line>
+					<reportElement x="0" y="14" width="555" height="1"/>
+				</line>
+				<line>
+					<reportElement x="0" y="31" width="555" height="1"/>
+				</line>
+				<staticText>
+					<reportElement x="2" y="18" width="70" height="14"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Voucher No. :]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement x="72" y="18" width="77" height="14"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{VOUCHER_ID}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="271" y="18" width="70" height="14"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Voucher Date :]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" pattern="dd-MM-yyyy" isBlankWhenNull="true">
+					<reportElement x="343" y="18" width="84" height="14"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.util.Date"><![CDATA[$F{VOUCHER_DATE}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="43">
+				<staticText>
+					<reportElement x="309" y="15" width="120" height="14"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Prepared By]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="309" y="29" width="120" height="14"/>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{USR_NAME}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="445" y="15" width="110" height="14"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Authorized By]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="445" y="29" width="110" height="14">
+						<printWhenExpression><![CDATA[((($P{Voucher_Type} == 1)
+    || ($P{Voucher_Type} == 2)
+    || ($P{Voucher_Type} == 4)
+    || ($P{Voucher_Type} == 6)
+    || ($P{Voucher_Type} == 7)
+    || ($P{Voucher_Type} == 9)
+    || ($P{Voucher_Type} == 10)
+    || ($P{Voucher_Type} == 13)
+    || ($P{Voucher_Type} == 15)) ? true : false)]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{POSTED_BY}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="167" y="15" width="120" height="14"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Received by]]></text>
+				</staticText>
+				<line>
+					<reportElement x="0" y="0" width="555" height="1"/>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="107" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="252" y="21" width="303" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TYPE_NAME}]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement x="0" y="1" width="219" height="45"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{Path}+"Org-logo.png"]]></imageExpression>
+			</image>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="252" y="1" width="301" height="20" forecolor="#6600CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{Org_Id} == ""?"All Organizations":$F{ORGANISATION}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="104" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.75"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="106" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="1" y="49" width="218" height="54"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ORG_ADDRESS}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="70" splitType="Stretch">
+			<printWhenExpression><![CDATA[((($P{Voucher_Type} == 1) ||
+    ($P{Voucher_Type} == 2) ||
+    ($P{Voucher_Type} == 4) ||
+    ($P{Voucher_Type} == 6) ||
+    ($P{Voucher_Type} == 7) ||
+    ($P{Voucher_Type} == 9) ||
+    ($P{Voucher_Type} == 10) ||
+    ($P{Voucher_Type} == 13) ||
+    ($P{Voucher_Type} == 15)) ? ($F{AMOUNT_TYPE}=="Dr") : ($F{AMOUNT_TYPE}=="Cr"))]]></printWhenExpression>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true" bookmarkLevel="1">
+				<reportElement x="104" y="0" width="451" height="19"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{COANAME}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement stretchType="RelativeToTallestObject" x="10" y="19" width="176" height="50"/>
+				<subreportParameter name="org_id">
+					<subreportParameterExpression><![CDATA[$F{GL_HO_ORG_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="coa_id">
+					<subreportParameterExpression><![CDATA[$F{COAID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Address_SubReport.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="186" y="59" width="81" height="10"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[Ph./Fax/ e-mail : ]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="19" width="555" height="51"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="104" height="19"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[((($P{Voucher_Type} == 2) || ($P{Voucher_Type} == 4))
+    ? "Payment To :-" :
+
+(($P{Voucher_Type} == 3) || ($P{Voucher_Type} == 5))
+? "Received with thanks from :-" :
+
+((($P{Voucher_Type} == 9) || ($P{Voucher_Type} == 10) ||
+    ($P{Voucher_Type} == 11) || ($P{Voucher_Type} == 12))
+? "Issued To :-" : null
+))]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="62">
+			<printWhenExpression><![CDATA[((($P{Voucher_Type} == 1) ||     ($P{Voucher_Type} == 2) ||     ($P{Voucher_Type} == 4) ||     ($P{Voucher_Type} == 6) ||     ($P{Voucher_Type} == 7) ||     ($P{Voucher_Type} == 9) ||     ($P{Voucher_Type} == 10) ||     ($P{Voucher_Type} == 13) ||     ($P{Voucher_Type} == 15)) ? ($F{AMOUNT_TYPE}=="Dr") : ($F{AMOUNT_TYPE}=="Cr"))]]></printWhenExpression>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="492" y="16" width="58" height="44">
+					<printWhenExpression><![CDATA[((($P{Voucher_Type} == 1) || ($P{Voucher_Type} == 2) || ($P{Voucher_Type} == 4) || ($P{Voucher_Type} == 6) || ($P{Voucher_Type} == 7) || ($P{Voucher_Type} == 9) || ($P{Voucher_Type} == 10) || ($P{Voucher_Type} == 13) || ($P{Voucher_Type} == 15)) ? false : true)]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{CREDIT_AMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement x="427" y="16" width="58" height="44">
+					<printWhenExpression><![CDATA[((($P{Voucher_Type} == 1) || ($P{Voucher_Type} == 2) || ($P{Voucher_Type} == 4) || ($P{Voucher_Type} == 6) || ($P{Voucher_Type} == 7) || ($P{Voucher_Type} == 9) || ($P{Voucher_Type} == 10) || ($P{Voucher_Type} == 13) || ($P{Voucher_Type} == 15)) ? true : false)]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{DEBIT_AMOUNT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="14" width="555" height="46"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement markup="none"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="53" y="42" width="374" height="18"/>
+				<textElement>
+					<font fontName="Arial" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{NARRATION} == null ? $F{NARRATION} : "           "+$F{NARRATION}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="99" y="14" width="108" height="26"/>
+				<subreportParameter name="org_id">
+					<subreportParameterExpression><![CDATA[$F{ORGID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="vou_id">
+					<subreportParameterExpression><![CDATA[$F{VOUCHER_NO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="coa_id">
+					<subreportParameterExpression><![CDATA[$F{COAID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="cld_id">
+					<subreportParameterExpression><![CDATA[$F{GL_CLD_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Others_Instrument_SubReport.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement x="120" y="0" width="305" height="14" isRemoveLineWhenBlank="true"/>
+				<subreportParameter name="NumberValue">
+					<subreportParameterExpression><![CDATA[$F{DEBIT_AMOUNT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Curr_Id">
+					<subreportParameterExpression><![CDATA[$F{GL_CURR_ID_SP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NumberValue1">
+					<subreportParameterExpression><![CDATA[$F{CREDIT_AMOUNT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{Path}+"SubReport/Number_to_word_with_currency.jasper"]]></subreportExpression>
+			</subreport>
+			<staticText>
+				<reportElement x="10" y="0" width="110" height="14"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Amount  (in words) : ]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="40" width="427" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="427" y="14" width="128" height="46"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="14"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="16" width="99" height="24"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[((($P{Voucher_Type} == 2)
+    || ($P{Voucher_Type} == 3)
+    || ($P{Voucher_Type} == 4)
+    || ($P{Voucher_Type} == 5)) ? "By Cash/Cheque/DD.No. " : "")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1" y="42" width="52" height="18"/>
+				<textElement>
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[((($P{Voucher_Type} == 2)
+    || ($P{Voucher_Type} == 3)
+    || ($P{Voucher_Type} == 4)
+    || ($P{Voucher_Type} == 5)) ? "Drawn On :- " : "")]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="23">
+			<line>
+				<reportElement x="0" y="0" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="5" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="2" y="6" width="100" height="15"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="433" y="6" width="80" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement x="513" y="6" width="40" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="44">
+			<line>
+				<reportElement x="0" y="0" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="2.25"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="5" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="1.25" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="0" y="24" width="555" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[----------End Of Report----------
+Generated by ebizframe TRANSFORM]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="dd-MMM-yyyy , h.mm a" isBlankWhenNull="true">
+				<reportElement x="0" y="6" width="100" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="432" y="6" width="80" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement x="512" y="6" width="40" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+</jasperReport>

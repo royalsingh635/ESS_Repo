@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="CategoryGraphVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  UseGlueCode="false">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="miscategory.model.views.CategoryGraphVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindFyId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindCatId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindHoOrgId"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[select RPT_CLD_ID,
+RPT_HO_ORG_ID,
+ORG_ID,
+CAT_ID,
+CAT_NM,
+COA_COG_ID,
+COA_ID,
+COA_NM "Chart of Account",
+OP_BAL,
+OB_TYPE,
+GL_AMT,
+GL_TYPE,
+TOT from
+   (select a.rpt_cld_id,
+               a.rpt_ho_org_id,
+               a.org_id,
+               cat_id,
+               a.cat_nm,
+               a.coa_cog_id,
+               a.coa_id,
+               a.coa_nm,
+               decode(SIGN(nvl(SUM(b.op_bal), 0)), -1, 'Cr', 'Dr') OB_TYPE,
+               decode(SIGN(nvl(SUM(C.gl_amt), 0)), -1, 'Cr', 'Dr') GL_TYPE,
+               ABS((sum(nvl(b.op_bal, 0)))) op_bal,
+               ABS((sum(nvl(c.gl_amt, 0)))) gl_amt,
+               ABS((sum(CASE
+                          WHEN a.amt_typ = 'A' and a.beh_typ = 'Cr' and
+                               sign(op_bal) = -1 and sign(nvl(gl_amt, 0)) =
+-1 then
+                           abs(op_bal) + abs(nvl(gl_amt, 0))
+                          WHEN a.amt_typ = 'A' and a.beh_typ = 'Cr' and
+                               sign(op_bal) in (1, 0) and sign(nvl(gl_amt,
+0)) = -1 then
+                           abs(nvl(gl_amt, 0)) - abs(op_bal)
+                          WHEN a.amt_typ = 'A' and a.beh_typ = 'Cr' and
+                               sign(op_bal) in - 1 and sign(nvl(gl_amt, 0))
+in (1, 0) then
+                           abs(op_bal) - abs(nvl(gl_amt, 0))
+                          WHEN a.amt_typ = 'A' and a.beh_typ = 'Cr' and
+                               sign(op_bal) in (1, 0) and
+                               sign(nvl(gl_amt, 0)) in (1, 0) then
+                           - (op_bal + nvl(gl_amt, 0))
+                       
+                          WHEN a.amt_typ = 'A' and a.beh_typ = 'Dr' and
+                               sign(op_bal) = -1 and sign(nvl(gl_amt, 0)) =
+-1 then
+                           - (op_bal + nvl(gl_amt, 0))
+                          WHEN a.amt_typ = 'A' and a.beh_typ = 'Dr' and
+                               sign(op_bal) in (1, 0) and sign(nvl(gl_amt,
+0)) = -1 then
+                           abs(op_bal) - abs(nvl(gl_amt, 0))
+                          WHEN a.amt_typ = 'A' and a.beh_typ = 'Dr' and
+                               sign(op_bal) in - 1 and sign(nvl(gl_amt, 0))
+in (1, 0) then
+                           abs(nvl(gl_amt, 0)) - abs(op_bal)
+                          WHEN a.amt_typ = 'A' and a.beh_typ = 'Dr' and
+                               sign(op_bal) in (1, 0) and
+                               sign(nvl(gl_amt, 0)) in (1, 0) then
+                           (op_bal + nvl(gl_amt, 0))
+                       
+                          WHEN a.amt_typ = 'S' and a.beh_typ = 'Cr' and
+                               sign(op_bal) = -1 and sign(nvl(gl_amt, 0)) =
+-1 then
+                           - (abs(op_bal) + abs(nvl(gl_amt, 0)))
+                          WHEN a.amt_typ = 'S' and a.beh_typ = 'Cr' and
+                               sign(op_bal) in (1, 0) and sign(nvl(gl_amt,
+0)) = -1 then
+                           - (abs(nvl(gl_amt, 0)) - abs(op_bal))
+                          WHEN a.amt_typ = 'S' and a.beh_typ = 'Cr' and
+                               sign(op_bal) in - 1 and sign(nvl(gl_amt, 0))
+in (1, 0) then
+                           - (abs(op_bal) - abs(nvl(gl_amt, 0)))
+                          WHEN a.amt_typ = 'S' and a.beh_typ = 'Cr' and
+                               sign(op_bal) in (1, 0) and
+                               sign(nvl(gl_amt, 0)) in (1, 0) then
+                           (op_bal + nvl(gl_amt, 0))
+                       
+                          WHEN a.amt_typ = 'S' and a.beh_typ = 'Dr' and
+                               sign(op_bal) = -1 and sign(nvl(gl_amt, 0)) =
+-1 then
+                           (op_bal + nvl(gl_amt, 0))
+                          WHEN a.amt_typ = 'S' and a.beh_typ = 'Dr' and
+                               sign(op_bal) in (1, 0) and sign(nvl(gl_amt,
+0)) = -1 then
+                           - (abs(op_bal) - abs(nvl(gl_amt, 0)))
+                          WHEN a.amt_typ = 'S' and a.beh_typ = 'Dr' and
+                               sign(op_bal) in - 1 and sign(nvl(gl_amt, 0))
+in (1, 0) then
+                           - (abs(nvl(gl_amt, 0)) - abs(op_bal))
+                          WHEN a.amt_typ = 'S' and a.beh_typ = 'Dr' and
+                               sign(op_bal) in (1, 0) and
+                               sign(nvl(gl_amt, 0)) in (1, 0) then
+                           - (op_bal + nvl(gl_amt, 0))
+                        END))) tot
+       
+          from (select a.rpt_cld_id,
+                       a.rpt_ho_org_id,
+                       e.org_id,
+                       a.cog_rpt_cat_id CAT_ID,
+                       c.rpt_cat_desc cat_nm,
+                       d.coa_cog_id,
+                       d.coa_id,
+                       d.coa_nm,
+                       a.cog_rpt_amt_typ amt_typ,
+                       a.cog_rpt_beh_typ beh_typ,
+                       decode(upper(a.cog_rpt_beh_typ), 'DR', 1, 'CR', -1,
+1) typ
+                  from fin.fin$rpt$config a,
+                       fin.fin$rpt$cat_vw c,
+                       fin.fin$coa        d,
+                       app.org            e
+                 where a.rpt_cld_id =:BindCldId--- '0000' --p_cld_id
+                   and a.rpt_org_id =:BindOrgId--- '01' --p_org_id
+                   and a.cog_rpt_cat_id =:BindCatId--- '001' --'001'--p_CAT_id
+                   and a.cog_rpt_grp_flg = 'Y'
+                   and c.rpt_cat_id = a.cog_rpt_cat_id
+                   and d.coa_cld_id = a.rpt_cld_id
+                   and d.coa_ho_org_id = a.rpt_ho_org_id
+                   and d.coa_cog_id like a.cog_rpt_cog_id || '%'
+                   and e.org_cld_id = a.rpt_cld_id
+                   and nvl(e.org_id_parent_l0, e.org_id) = a.rpt_ho_org_id
+                union
+                select a.rpt_cld_id,
+                       a.rpt_ho_org_id,
+                       e.org_id,
+                       a.cog_rpt_cat_id,
+                       c.rpt_cat_desc cat_nm,
+                       d.coa_cog_id,
+                       d.coa_id,
+                       d.coa_nm,
+                       a.cog_rpt_amt_typ,
+                       a.cog_rpt_beh_typ,
+                       decode(upper(a.cog_rpt_beh_typ), 'DR', 1, 'CR', -1,
+1) typ
+                  from fin.fin$rpt$config     a,
+                       fin.fin$rpt$config$coa b,
+                       fin.fin$rpt$cat_vw     c,
+                       fin.fin$coa            d,
+                       app.org                e
+                 where a.rpt_cld_id =:BindCldId --p_cld_id
+                   and a.rpt_org_id = :BindOrgId --p_org_id
+                   and a.cog_rpt_cat_id = :BindCatId --'001'--p_CAT_id
+                   and a.cog_rpt_grp_flg = 'N'
+                   and a.rpt_cld_id = b.rpt_cld_id
+                   and a.rpt_ho_org_id = b.rpt_ho_org_id
+                   and a.cog_rpt_cat_id = b.coa_rpt_cat_id
+                   and c.rpt_cat_id = a.cog_rpt_cat_id
+                   and d.coa_cld_id = a.rpt_cld_id
+                   and d.coa_ho_org_id = a.rpt_ho_org_id
+                   and d.coa_cog_id = a.cog_rpt_cog_id
+                   and d.coa_cog_id = b.coa_rpt_cog_id
+                   and d.coa_id = b.coa_rpt_coa_id
+                   and e.org_cld_id = a.rpt_cld_id
+                   and nvl(e.org_id_parent_l0, e.org_id) = a.rpt_ho_org_id)
+a,
+               (SELECT a.org_cld_id cld_id,
+                       nvl(a.org_id_parent_l0, a.org_id) ho_org_id,
+                       a.org_id org_id,
+                       b.org_fy_id fy_id,
+                       c.org_coa_id coa_id,
+                       b.fy_strt,
+                       b.fy_end,
+                       sum(decode(ltrim(rtrim(upper(c.org_coa_op_bal_typ))),
+                                  'DR',
+                                  c.org_coa_op_bal,
+                                  'CR',
+                                  -c.org_coa_op_bal,
+                                  0)) op_bal
+                  FROM app.org a, app.org$fy b, fin.org$coa$fy c
+                 WHERE b.cld_id = :BindCldId --p_cld_id
+                   and b.org_id = :BindOrgId --p_org_id
+                   and b.org_fy_id =:BindFyId --p_fy_id
+                   and b.fy_type = 'FY'
+                   and b.cld_id = a.org_cld_id
+                   and b.org_id = a.org_id
+                   and c.org_coa_cld_id = a.org_cld_id
+                   and c.org_coa_ho_org_id =
+                       nvl(a.org_id_parent_l0, a.org_id)
+                   and c.org_id = a.org_id
+                   and c.org_fy_id = b.org_fy_id
+                 group by a.org_cld_id,
+                          nvl(a.org_id_parent_l0, a.org_id),
+                          a.org_id,
+                          b.org_fy_id,
+                          c.org_coa_id,
+                          b.fy_strt,
+                          b.fy_end) b,
+               (SELECT a.gl_cld_id cld_id,
+                       a.gl_ho_org_id ho_org_id,
+                       a.gl_org_id org_id,
+                       b.org_fy_id fy_id,
+                       a.gl_coa_id coa_id,
+                       sum(decode(ltrim(rtrim(upper(a.gl_amt_typ))),
+                                  'DR',
+                                  a.gl_amt_bs,
+                                  'CR',
+                                  -a.gl_amt_bs,
+                                  0)) gl_amt
+                  from fin.gl_lines a, app.org$fy b
+                 where a.gl_cld_id = :BindCldId --'0000'--p_cld_id
+                   and a.gl_org_id = :BindOrgId --'01'--p_org_id
+                   and a.gl_txn_typ_mig not in ('O', 'MO')
+                   and b.cld_id = a.gl_cld_id
+                   and b.org_id = a.gl_org_id
+                   and b.fy_type = 'FY'
+                   AND b.org_fy_id =:BindFyId --4--p_fy_id
+                   and trunc(a.gl_vou_dt) between b.fy_strt and b.fy_end
+                 group by a.gl_cld_id,
+                          a.gl_ho_org_id,
+                          a.gl_org_id,
+                          b.org_fy_id,
+                          a.gl_coa_id) c
+         where a.rpt_cld_id = b.cld_id
+           and a.rpt_ho_org_id = b.ho_org_id
+           and a.org_id = b.org_id
+           and a.coa_id = b.coa_id
+           and b.cld_id = c.cld_id(+)
+           and b.ho_org_id = c.ho_org_id(+)
+           and b.org_id = c.org_id(+)
+           and b.coa_id = c.coa_id(+)
+           and b.fy_id = c.fy_id(+)
+         group by a.rpt_cld_id,
+                  a.rpt_ho_org_id,
+                  a.org_id,
+                  a.cat_id,
+                  a.cat_nm,
+                  a.coa_cog_id,
+                  a.coa_id,
+                  a.coa_nm
+         order by tot desc)
+where (op_bal <> 0 or gl_amt <> 0)
+and rownum<6]]></SQLQuery>
+  <ViewAttribute
+    Name="RptCldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="RPT_CLD_ID"
+    Expression="RPT_CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="RptHoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="RPT_HO_ORG_ID"
+    Expression="RPT_HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CatId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="3"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CAT_ID"
+    Expression="CAT_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="3"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CatNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="150"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CAT_NM"
+    Expression="CAT_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="150"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaCogId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_COG_ID"
+    Expression="COA_COG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="20"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="INTEGER"
+    AliasName="COA_ID"
+    Expression="COA_ID"
+    SQLType="INTEGER">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="22"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ChartOfAccount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName='"Chart of Account"'
+    Expression='"Chart of Account"'
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OpBal"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="OP_BAL"
+    Expression="OP_BAL"
+    SQLType="NUMERIC">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="22"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ObType"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="OB_TYPE"
+    Expression="OB_TYPE"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlAmt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="GL_AMT"
+    Expression="GL_AMT"
+    SQLType="NUMERIC">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="22"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlType"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_TYPE"
+    Expression="GL_TYPE"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Tot"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="TOT"
+    Expression="TOT"
+    SQLType="NUMERIC">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="22"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewCriteria
+    Name="CategoryGraphVOCriteria"
+    ViewObjectName="miscategory.model.views.CategoryGraphVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="InAdvancedMode"/>
+        <Property
+          Name="autoExecute"
+          Value="true"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="CategoryGraphVOCriteria_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="RptHoOrgId"
+        ViewAttribute="RptHoOrgId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindHoOrgId"
+        IsBindVarValue="true"
+        Required="Optional"/>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="miscategory.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="TopNCustomersVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  UseGlueCode="false">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="slslandingapp.model.views.TopNCustomersVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="CldIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="SlocIdBind"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="HoOrgIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="OrgIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="CountBind"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <SQLQuery><![CDATA[SELECT 
+    EO_NM CUSTOMER,
+    INV_AMT AMOUNT
+FROM (
+        SELECT 
+            EO_NM, 
+            SUM( ROUND(itm_amt_bs,4)) INV_AMT 
+        FROM 
+            SLS$INVOICE$DTL_VW
+        WHERE
+            CLD_ID = :CldIdBind
+            AND SLOC_ID = :SlocIdBind
+            AND HO_ORG_ID = :HoOrgIdBind
+            AND ORG_ID = :OrgIdBind
+            AND INV_MODE = 314
+        GROUP BY 
+            EO_NM
+        ORDER BY 
+            INV_AMT DESC
+       )
+WHERE ROWNUM<= :CountBind]]></SQLQuery>
+  <ViewAttribute
+    Name="Customer"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CUSTOMER"
+    Expression="CUSTOMER"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Amount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="AMOUNT"
+    Expression="AMOUNT"
+    SQLType="NUMERIC"/>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="slslandingapp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

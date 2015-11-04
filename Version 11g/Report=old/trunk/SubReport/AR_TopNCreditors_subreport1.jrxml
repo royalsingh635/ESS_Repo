@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AR_TopNCreditors_subreport1" language="groovy" pageWidth="121" pageHeight="20" columnWidth="121" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Org_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ValueOfN" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="Amount" class="java.math.BigDecimal"/>
+	<parameter name="FromDate" class="java.lang.String"/>
+	<parameter name="todate" class="java.lang.String"/>
+	<parameter name="AmtSel" class="java.lang.String"/>
+	<parameter name="cld_id" class="java.lang.String"/>
+	<parameter name="Amount-X1" class="java.math.BigDecimal"/>
+	<parameter name="Amount-X2" class="java.math.BigDecimal"/>
+	<parameter name="Coa_Id" class="java.math.BigDecimal"/>
+	<parameter name="CurrencyID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CurrencyGrouping" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select  $P{Amount}/sum(amt) TOTAL
+
+
+from
+(
+select 	org_id,
+		org,
+		coa_id,
+		coa_nm,
+		curr_id_sp,
+		curr_desc,
+		amt,
+		myrow,
+		curr_dtl_rank
+from	(
+		select 	org_id,
+				org,
+				coa_id,
+				coa_nm,
+				curr_id_sp,
+				curr_desc,
+				amt,
+				rownum myrow,
+				rank() over(partition by curr_id_sp order by curr_id_sp,amt desc) curr_dtl_rank
+		from	(
+				select	a.AR_org_id org_id,
+						c.org_desc org,
+						a.AR_coa_id coa_id,
+						b.coa_nm coa_nm,
+						a.AR_curr_id_sp curr_id_sp,
+						d.glbl_curr_desc curr_desc,
+						sum(decode($P{AmtSel},'A',decode(ltrim(rtrim(upper(a.AR_amt_typ))),
+																	'DR',nvl(a.AR_amt_sp,0),
+																	'CR',-nvl(a.AR_amt_sp,0),
+																			nvl(a.AR_amt_sp,0)
+																	),
+												'O',decode(ltrim(rtrim(upper(a.AR_amt_typ))),
+																	'DR',(nvl(AR_amt_sp,0) - nvl(AR_amt_adj,0)),
+																	'CR',-(nvl(AR_amt_sp,0) - nvl(AR_amt_adj,0)),
+																			(nvl(AR_amt_sp,0) - nvl(AR_amt_adj,0))
+																	)
+									)
+							) amt
+				from	ar a,
+						fin$coa b,
+						app.org c,
+						app.app$glbl$curr d
+				where	a.gl_cld_id = $P{cld_id}
+				and		a.AR_org_id = nvl($P{Org_ID},a.AR_org_id)
+				and		trunc(a.AR_vou_dt) between to_date(NVL($P{FromDate},'1000-01-01'),'YYYY-MM-DD') and to_date(NVL($P{todate},sysdate),'YYYY-MM-DD')
+				and 	decode($P{AmtSel},'A',nvl(AR_amt_sp,0),'O',abs(nvl(AR_amt_sp,0) - nvl(AR_amt_adj,0)),nvl(AR_amt_sp,0))
+							between nvl($P{Amount-X1},0) AND nvl($P{Amount-X2},999999999999999999)
+				and 	a.AR_curr_id_sp = nvl($P{CurrencyID},a.AR_curr_id_sp)
+				and		a.AR_coa_id = nvl($P{Coa_Id},a.AR_coa_id)
+				and		a.AR_txn_typ_adv ='N'
+
+				and		decode($P{AmtSel},'A',nvl(a.AR_amt_sp,0),'O',abs(nvl(AR_amt_sp,0) - nvl(AR_amt_adj,0))) > 0
+				and		b.coa_cld_id = a.gl_cld_id
+				and		b.coa_sloc_id = a.AR_sloc_id
+				and		b.coa_ho_org_id = app.fn_get_parent_org_l0(a.gl_cld_id,a.AR_org_id)
+				and		b.coa_id = a.AR_coa_id
+
+				and 	c.org_id = a.AR_org_id
+
+				and		d.glbl_curr_id = a.AR_curr_id_sp
+				having	sum(decode($P{AmtSel},'A',decode(ltrim(rtrim(upper(a.AR_amt_typ))),
+																				'DR',nvl(a.AR_amt_sp,0),
+																				'CR',-nvl(a.AR_amt_sp,0),
+																						nvl(a.AR_amt_sp,0)
+																		),
+															'O',decode(ltrim(rtrim(upper(a.AR_amt_typ))),
+																				'DR',(nvl(AR_amt_sp,0) - nvl(AR_amt_adj,0)),
+																				'CR',-(nvl(AR_amt_sp,0) - nvl(AR_amt_adj,0)),
+																						(nvl(AR_amt_sp,0) - nvl(AR_amt_adj,0))
+																		)
+											)
+								) <> 0
+								group by a.AR_org_id,
+						c.org_desc,
+						a.AR_coa_id,
+						b.coa_nm,
+						a.AR_curr_id_sp,
+						d.glbl_curr_desc
+				order by amt desc
+				)
+		order by myrow
+		)
+where decode($P{CurrencyGrouping},'T',myrow,'C',curr_dtl_rank) <= $P{ValueOfN})]]>
+	</queryString>
+	<field name="TOTAL" class="java.math.BigDecimal"/>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField pattern="#,##0.00 %" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="110" height="20"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{TOTAL}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="121" height="20"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</detail>
+</jasperReport>

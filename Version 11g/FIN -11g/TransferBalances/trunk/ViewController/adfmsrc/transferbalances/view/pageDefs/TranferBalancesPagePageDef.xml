@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<pageDefinition xmlns="http://xmlns.oracle.com/adfm/uimodel" version="11.1.2.60.81" id="TranferBalancesPagePageDef"
+                Package="transferbalances.view.pageDefs">
+  <parameters/>
+  <executables>
+    <variableIterator id="variables"/>
+    <iterator Binds="AssetsLiability" RangeSize="25" DataControl="TransferBalancesAMDataControl"
+              id="AssetsLiabilityIterator"/>
+    <searchRegion Binds="AssetsLiabilityIterator" Criteria=""
+                  Customizer="oracle.jbo.uicli.binding.JUSearchBindingCustomizer" id="AssetsLiabilityQuery"/>
+    <iterator Binds="LovOrgFy" RangeSize="25" DataControl="TransferBalancesAMDataControl" id="LovOrgFyIterator"/>
+    <iterator Binds="IncomeExpence" RangeSize="25" DataControl="TransferBalancesAMDataControl"
+              id="IncomeExpenceIterator"/>
+    <searchRegion Binds="IncomeExpenceIterator" Criteria=""
+                  Customizer="oracle.jbo.uicli.binding.JUSearchBindingCustomizer" id="IncomeExpenceQuery"/>
+  </executables>
+  <bindings>
+    <tree IterBinding="AssetsLiabilityIterator" id="AssetsLiability">
+      <nodeDefinition DefName="transferbalances.model.views.AssetsLiabilityVO" Name="AssetsLiability0">
+        <AttrNames>
+          <Item Value="CoaNm"/>
+          <Item Value="OrgCoaClBal"/>
+          <Item Value="OrgCoaClBalTyp"/>
+          <Item Value="TransferredBalance"/>
+          <Item Value="TrafBalType" Binds="TrafBalType"/>
+          <Item Value="CoaSlocId"/>
+          <Item Value="ClosingBal"/>
+        </AttrNames>
+      </nodeDefinition>
+    </tree>
+    <methodAction id="callmaxno" InstanceName="data.TransferBalancesAMDataControl.dataProvider"
+                  DataControl="TransferBalancesAMDataControl" RequiresUpdateModel="true" Action="invokeMethod"
+                  MethodName="callmaxno" IsViewObjectMethod="false"
+                  ReturnName="data.TransferBalancesAMDataControl.methodResults.callmaxno_TransferBalancesAMDataControl_dataProvider_callmaxno_result">
+      <NamedData NDName="userid" NDValue="#{pageFlowScope.GLBL_APP_USR}" NDType="java.lang.Integer"/>
+      <NamedData NDName="OrgId" NDValue="#{pageFlowScope.GLBL_APP_USR_ORG}" NDType="java.lang.String"/>
+      <NamedData NDName="slocid" NDValue="#{pageFlowScope.GLBL_APP_SERV_LOC}" NDType="java.lang.Integer"/>
+      <NamedData NDName="docId" NDValue="#{TransferBalancesBean.docid}" NDType="java.lang.Integer"/>
+    </methodAction>
+    <methodAction id="generateDocNo" InstanceName="data.TransferBalancesAMDataControl.dataProvider"
+                  DataControl="TransferBalancesAMDataControl" RequiresUpdateModel="true" Action="invokeMethod"
+                  MethodName="generateDocNo" IsViewObjectMethod="false">
+      <NamedData NDName="vouId" NDValue="#{TransferBalancesBean.vouid}" NDType="java.lang.String"/>
+      <NamedData NDName="usrId" NDValue="#{pageFlowScope.GLBL_APP_USR}" NDType="java.lang.Integer"/>
+      <NamedData NDName="vouDt" NDValue="#{TransferBalancesBean.voudt}" NDType="oracle.jbo.domain.Date"/>
+    </methodAction>
+    <action id="Commit" InstanceName="TransferBalancesAMDataControl" DataControl="TransferBalancesAMDataControl"
+            RequiresUpdateModel="true" Action="commitTransaction"/>
+    <list IterBinding="LovOrgFyIterator" StaticList="false" Uses="LOV_OrgFyId" id="OrgFyId" DTSupportsMRU="true"
+          SelectItemValueMode="ListObject"/>
+    <methodAction id="getClosingBalances" InstanceName="data.TransferBalancesAMDataControl.dataProvider"
+                  DataControl="TransferBalancesAMDataControl" RequiresUpdateModel="true" Action="invokeMethod"
+                  MethodName="getClosingBalances" IsViewObjectMethod="false"
+                  ReturnName="data.TransferBalancesAMDataControl.methodResults.getClosingBalances_TransferBalancesAMDataControl_dataProvider_getClosingBalances_result">
+      <NamedData NDName="P_SLOC_ID" NDType="java.lang.Integer"/>
+      <NamedData NDName="P_ORG_ID" NDType="java.lang.String"/>
+      <NamedData NDName="P_ASON_DT" NDType="oracle.jbo.domain.Date"/>
+      <NamedData NDName="P_COA_ID" NDType="java.lang.Integer"/>
+      <NamedData NDName="P_INC_TEMP" NDType="java.lang.String"/>
+      <NamedData NDName="P_INC_POST" NDType="java.lang.String"/>
+      <NamedData NDName="P_INC_OP_BAL" NDType="java.lang.String"/>
+    </methodAction>
+    <tree IterBinding="IncomeExpenceIterator" id="IncomeExpence">
+      <nodeDefinition DefName="transferbalances.model.views.IncomeExpenceVO" Name="IncomeExpence0">
+        <AttrNames>
+          <Item Value="CoaNm"/>
+          <Item Value="ClosingBal"/>
+          <Item Value="OrgCoaClBalTyp"/>
+        </AttrNames>
+      </nodeDefinition>
+    </tree>
+    <list IterBinding="AssetsLiabilityIterator" id="TrafBalType" DTSupportsMRU="true" SelectItemValueMode="ListObject"
+          StaticList="true">
+      <AttrNames>
+        <Item Value="TrafBalType"/>
+      </AttrNames>
+      <ValueList>
+        <Item Value="Dr"/>
+        <Item Value="Cr"/>
+      </ValueList>
+    </list>
+  </bindings>
+</pageDefinition>

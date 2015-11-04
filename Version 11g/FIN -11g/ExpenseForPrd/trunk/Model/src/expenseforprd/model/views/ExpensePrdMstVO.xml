@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="ExpensePrdMstVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full"
+  UseGlueCode="false">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="expenseforprd.model.views.ExpensePrdMstVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldId"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindStrDt"
+    Kind="where"
+    Type="oracle.jbo.domain.Date"/>
+  <Variable
+    Name="BindEndDt"
+    Kind="where"
+    Type="oracle.jbo.domain.Date"/>
+  <Variable
+    Name="BindCoaNm"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[select a.gl_cld_id,
+       a.gl_sloc_id,
+       a.gl_ho_org_id,
+       a.gl_org_id,
+       a.gl_coa_id,
+       b.coa_nm,
+       a.gl_curr_id_bs,
+       e.glbl_curr_desc curr_nm_bs,
+       a.gl_curr_id_sp,
+       f.glbl_curr_desc curr_nm_sp,
+     decode(sign(Sum(decode(a.gl_amt_typ,
+                      'Dr',
+                      a.gl_amt_bs,
+                      'Cr',
+                      (-1 * a.gl_amt_bs)))),-1,'Cr',1,'Dr') gl_amt_typ,  
+       abs(Sum(decode(a.gl_amt_typ,
+                      'Dr',
+                      a.gl_amt_bs,
+                      'Cr',
+                      (-1 * a.gl_amt_bs)))) gl_amt_bs,
+       abs(Sum(decode(a.gl_amt_typ,
+                      'Dr',
+                      a.gl_amt_sp,
+                      'Cr',
+                      (-1 * a.gl_amt_sp)))) gl_amt_sp
+
+  from fin.gl_lines      a,
+       fin.fin$coa       b,
+       app.app$doc$txn   c,
+       app.app$glbl$curr e,
+       app.app$glbl$curr f
+where a.gl_cld_id = b.coa_cld_id
+   and a.gl_sloc_id = b.coa_sloc_id
+   and a.gl_ho_org_id = b.coa_ho_org_id
+   and b.coa_ho_org_id = app.fn_get_parent_org_l0(a.gl_cld_id, a.gl_org_id)
+   and a.gl_coa_id = b.coa_id
+   and a.gl_cld_id = c.doc_cld_id
+   and a.gl_sloc_id = c.doc_sloc_id
+   and a.gl_vou_id = c.doc_txn_id
+   and c.doc_id = 56
+   and b.coa_cog_id like '4%'
+   and e.glbl_curr_id = a.gl_curr_id_bs
+   and f.glbl_curr_id = a.gl_curr_id_sp
+   and A.gl_vou_dt between nvl(:BindStrDt,APP.pkg_app.get_fy_start_date(TRUNC(SYSDATE),
+                                                             'FY',
+                                                             A.GL_ORG_ID,
+                                                             A.gl_cld_id)) and nvl(:BindEndDt,TRUNC(sysdate))
+group by a.gl_cld_id,
+          a.gl_sloc_id,
+          a.gl_ho_org_id,
+          a.gl_org_id,
+          a.gl_coa_id,
+          b.coa_nm,
+          a.gl_curr_id_bs,
+          e.glbl_curr_desc,
+          a.gl_curr_id_sp,
+          f.glbl_curr_desc
+          
+order by a.gl_cld_id,
+          a.gl_sloc_id,
+          a.gl_ho_org_id,
+          a.gl_org_id,
+          a.gl_coa_id,
+          b.coa_nm]]></SQLQuery>
+  <ViewAttribute
+    Name="GlCldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_CLD_ID"
+    Expression="GL_CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlSlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="GL_SLOC_ID"
+    Expression="GL_SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="GlHoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_HO_ORG_ID"
+    Expression="GL_HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_ORG_ID"
+    Expression="GL_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlCoaId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.math.BigInteger"
+    ColumnType="NUMBER"
+    AliasName="GL_COA_ID"
+    Expression="GL_COA_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="CoaNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_NM"
+    Expression="COA_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlCurrIdBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Scale="0"
+    Type="java.math.BigInteger"
+    ColumnType="NUMBER"
+    AliasName="GL_CURR_ID_BS"
+    Expression="GL_CURR_ID_BS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="CurrNmBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CURR_NM_BS"
+    Expression="CURR_NM_BS"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlCurrIdSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="GL_CURR_ID_SP"
+    Expression="GL_CURR_ID_SP"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="CurrNmSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CURR_NM_SP"
+    Expression="CURR_NM_SP"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlAmtTyp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_AMT_TYP"
+    Expression="GL_AMT_TYP"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="GlAmtBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="GL_AMT_BS"
+    Expression="GL_AMT_BS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="GlAmtSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="GL_AMT_SP"
+    Expression="GL_AMT_SP"
+    SQLType="NUMERIC"/>
+  <ViewCriteria
+    Name="ExpensePrdMstVOCriteria"
+    ViewObjectName="expenseforprd.model.views.ExpensePrdMstVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="InBasicMode"/>
+        <Property
+          Name="autoExecute"
+          Value="true"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="ExpensePrdMstVOCriteria_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="GlCldId"
+        ViewAttribute="GlCldId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindCldId"
+        UpperColumns="0"
+        GenerateIsNullClauseForBindVars="false"
+        IsBindVarValue="true"
+        Required="Optional">
+        <Properties>
+          <CustomProperties>
+            <Property
+              Name="renderedMode"
+              Value="Never"/>
+          </CustomProperties>
+        </Properties>
+      </ViewCriteriaItem>
+      <ViewCriteriaItem
+        Name="GlOrgId"
+        ViewAttribute="GlOrgId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindOrgId"
+        UpperColumns="0"
+        GenerateIsNullClauseForBindVars="false"
+        IsBindVarValue="true"
+        Required="Optional">
+        <Properties>
+          <CustomProperties>
+            <Property
+              Name="renderedMode"
+              Value="Never"/>
+          </CustomProperties>
+        </Properties>
+      </ViewCriteriaItem>
+      <ViewCriteriaItem
+        Name="ExpensePrdMstVOCriteria_ExpensePrdMstVOCriteria_row_0_CoaNm"
+        ViewAttribute="CoaNm"
+        Operator="STARTSWITH"
+        Conjunction="AND"
+        Value=":BindCoaNm"
+        IsBindVarValue="true"
+        Required="Optional"/>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+  <ViewLinkAccessor
+    Name="ExpensePrd"
+    ViewLink="expenseforprd.model.views.links.ExpenseMstToExpenseDtlVL"
+    Type="oracle.jbo.RowIterator"
+    IsUpdateable="false"/>
+</ViewObject>

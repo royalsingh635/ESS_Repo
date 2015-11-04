@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="ArGraphVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full"
+  UseGlueCode="false">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="accountsrecievable.model.views.ArGraphVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindDate"
+    Kind="where"
+    Type="oracle.jbo.domain.Timestamp"/>
+  <Variable
+    Name="BindDtType"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[select distinct
+       cld_id,
+       1 sloc_id,
+       ar_org_id,
+       org_desc,
+       to_date(ar_vou_dt,'RRRR-MM') ar_vou_dt,
+       to_char(to_date(ar_vou_dt,'RRRR-MM'),'Mon-rr') "Month ",
+       to_number(to_char(to_date(ar_vou_dt,'RRRR-MM'),'rrrrmm'))  ar_vou_year,
+       to_char(to_date(ar_vou_dt,'RRRR-MM'),'MON') ar_vou_mon,
+       sum(ar_amt_bs) amt_bs,
+       sum(ar_amt_adj_bs) ar_amt_adj_bs,
+       sum(ar_amt_os_bs) ar_amt_os_bs
+FROM ( select  a.gl_cld_id cld_id,
+              a.ar_org_id,
+              b.org_desc,
+              a.ar_coa_id,
+              c.coa_nm,
+              a.curr_id_sp,
+              e.glbl_curr_desc curr_nm,
+              a.ar_vou_id ,
+              TO_CHAR(ar_vou_dt,'RRRR-MM') ar_vou_dt,
+               nvl(a.ar_amt_sp,0)*nvl(A.AR_CC,1) ar_amt_bs,
+              a.ar_amt_sp,
+              a.ar_amt_sp_signed,
+               nvl(a.ar_amt_adj,0)*nvl(A.AR_CC,1) ar_amt_adj_bs,
+              a.ar_amt_adj,
+              a.ar_amt_adj_signed,
+               nvl(a.ar_amt_os,0)*nvl(A.AR_CC,1) ar_amt_os_bs,
+              ar_amt_os,
+              ar_amt_os_signed,
+              os_days
+       from   (
+              select gl_cld_id,
+                     ar_org_id,
+                     ar_sloc_id,
+                     ar_coa_id,
+                     ar_curr_id_sp curr_id_sp,
+                     ar_vou_id,
+                     ar_vou_dt,
+                     ar_ext_doc_no,
+                     ar_ext_doc_dt,
+                     ar_vou_due_dt,
+                     ar_amt_sp,
+                     ar_amt_typ,
+                     AR_CC,
+                     decode(ar_amt_typ,'Dr',nvl(ar_amt_sp,0),'Cr',-nvl(ar_amt_sp,0),nvl(ar_amt_sp,0)) ar_amt_sp_signed,
+                     nvl(ar_amt_adj,0) ar_amt_adj,
+                     decode(ar_amt_typ,'Dr',nvl(ar_amt_adj,0),'Cr',-nvl(ar_amt_adj,0),nvl(ar_amt_adj,0)) ar_amt_adj_signed,
+                     nvl(ar_amt_sp,0) - nvl(ar_amt_adj,0) ar_amt_os,
+                     decode(ar_amt_typ,'Dr',nvl(ar_amt_sp,0) - nvl(ar_amt_adj,0),
+                                  'Cr',-(nvl(ar_amt_sp,0) - nvl(ar_amt_adj,0)),
+                     nvl(ar_amt_sp,0) - nvl(ar_amt_adj,0)) ar_amt_os_signed,
+                     nvl(to_date(:BindDate,'yyyy-mm-dd'),trunc(sysdate)) - decode(:BindDtType,'I',ar_ext_doc_dt,'V', ar_vou_dt,'D',ar_vou_due_dt,ar_vou_dt) os_days
+              from   fin.ar
+              where  nvl(ar_amt_sp,0) - nvl(ar_amt_adj,0) > 0
+              --and ar_txn_typ_adv = 'N'
+              --and ar_type_id  = 7
+             and ar.gl_cld_id=:BindCldId 
+                  and ar.ar_org_id=:BindOrgId  
+              ) a,
+              app.org b,
+              fin.fin$coa c,
+              app.app$doc$txn d,
+              app.app$glbl$curr e
+       where  a.os_days > 0
+       and    d.doc_cld_id = a.gl_cld_id
+       and    d.doc_org_id = a.ar_org_id
+       and    d.doc_sloc_id = a.ar_sloc_id
+       and    d.doc_txn_id = a.ar_vou_id
+       and    b.org_cld_id = a.gl_cld_id
+       and    b.org_id = a.ar_org_id
+       and    c.coa_cld_id = a.gl_cld_id
+       and    c.coa_sloc_id = a.ar_sloc_id
+       and    c.coa_ho_org_id = app.fn_get_parent_org_l0(a.gl_cld_id,a.ar_org_id)
+       and    c.coa_id = a.ar_coa_id
+       and    e.glbl_curr_id = a.curr_id_sp
+       and b.org_id=:BindOrgId  
+       and b.org_cld_id=:BindCldId 
+ 
+       ) a
+group by cld_id,
+       ar_org_id,
+       org_desc,
+       ar_vou_dt
+order by ar_vou_year]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ArOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="AR_ORG_ID"
+    Expression="AR_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_DESC"
+    Expression="ORG_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ArVouDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="AR_VOU_DT"
+    Expression="AR_VOU_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="Month"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="15"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName='"Month "'
+    Expression='"Month "'
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="15"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ArVouYear"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AR_VOU_YEAR"
+    Expression="AR_VOU_YEAR"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ArVouMon"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="12"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="AR_VOU_MON"
+    Expression="AR_VOU_MON"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="12"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="AmtBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AMT_BS"
+    Expression="AMT_BS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ArAmtAdjBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AR_AMT_ADJ_BS"
+    Expression="AR_AMT_ADJ_BS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ArAmtOsBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AR_AMT_OS_BS"
+    Expression="AR_AMT_OS_BS"
+    SQLType="NUMERIC"/>
+  <AttrArray Name="KeyAttributes">
+    <Item Value="CldId"/>
+    <Item Value="SlocId"/>
+    <Item Value="ArOrgId"/>
+    <Item Value="ArVouDt"/>
+  </AttrArray>
+</ViewObject>

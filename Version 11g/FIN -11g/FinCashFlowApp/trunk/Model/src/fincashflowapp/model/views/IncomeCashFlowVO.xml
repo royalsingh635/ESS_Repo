@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="IncomeCashFlowVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  UseGlueCode="false">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="fincashflowapp.model.views.IncomeCashFlowVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindFyId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindCoaId"
+    Kind="where"
+    Type="oracle.jbo.domain.Number"/>
+  <Variable
+    Name="BindQtrId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindMonId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <SQLQuery><![CDATA[select	a.gl_cld_id CLD_ID,
+			a.gl_org_id ORG_ID,
+			a.gl_fy_id ORG_FY_ID,
+			b.gl_coa_id COA_ID,
+			b.coa_nm COA_NM,			
+			sum(b.amt_txn) INCOME_AMT
+from	(
+		select	a.gl_cld_id,
+				a.gl_org_id,
+				b.org_fy_id gl_fy_id,
+				case
+					when a.gl_vou_dt between FY_STRT and add_months(FY_STRT,3) - 1 then 'QTR 1'
+					when a.gl_vou_dt between add_months(FY_STRT,3) and add_months(FY_STRT,6) - 1 then 'QTR 2'
+					when a.gl_vou_dt between add_months(FY_STRT,6) and add_months(FY_STRT,9) - 1 then 'QTR 3'
+					when a.gl_vou_dt between add_months(FY_STRT,9) and FY_END then 'QTR 4'
+				end gl_qtr,
+				to_number(to_char(gl_vou_dt,'MM')) gl_mon,
+				case
+					when a.gl_vou_dt between FY_STRT and add_months(FY_STRT,3) - 1 then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(FY_STRT,'MM')) + 1
+					when a.gl_vou_dt between add_months(FY_STRT,3) and add_months(FY_STRT,6) - 1 then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(add_months(FY_STRT,3),'MM')) + 1
+					when a.gl_vou_dt between add_months(FY_STRT,6) and add_months(FY_STRT,9) - 1 then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(add_months(FY_STRT,6),'MM')) + 1
+					when a.gl_vou_dt between add_months(FY_STRT,9) and FY_END then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(add_months(FY_STRT,9),'MM')) + 1
+				end gl_qtr_mon,
+				a.gl_coa_id gl_coa_id_bnk,
+				a.gl_vou_id,
+				sum(decode(a.gl_amt_typ, 'Dr', round(a.gl_amt_bs,2),'Cr', -round(a.gl_amt_bs,2))) amt_bnk
+		from 	fin.gl_lines a,
+				app.org$fy b
+		where 	a.gl_cld_id = b.cld_id
+		and 	a.gl_org_id = b.org_id
+		and 	b.FY_TYPE = 'FY'
+		and 	a.gl_vou_dt between trunc(b.fy_strt) and trunc(b.fy_end)
+		and 	a.gl_txn_typ_mig not in ('O','MO')
+		and  a.GL_TYPE_ID in (3,5)	--BANK RECEIPT VOUCHER,CASH RECEIPT VOUCHER
+		and 	exists (select 1
+				from fin$acc$na fc
+				where fc.ACC_CLD_ID = a.GL_CLD_ID
+				and fc.ACC_SLOC_ID = a.GL_SLOC_ID
+				and fc.HO_ORG_ID = a.GL_HO_ORG_ID
+				and fc.acc_id = a.gl_na_id
+				and fc.acc_type in (78, 79)
+				)
+		group by a.gl_cld_id,
+				a.gl_org_id,
+				b.org_fy_id,
+				case
+					when a.gl_vou_dt between FY_STRT and add_months(FY_STRT,3) - 1 then 'QTR 1'
+					when a.gl_vou_dt between add_months(FY_STRT,3) and add_months(FY_STRT,6) - 1 then 'QTR 2'
+					when a.gl_vou_dt between add_months(FY_STRT,6) and add_months(FY_STRT,9) - 1 then 'QTR 3'
+					when a.gl_vou_dt between add_months(FY_STRT,9) and FY_END then 'QTR 4'
+				end,
+				to_number(to_char(gl_vou_dt,'MM')),
+				case
+					when a.gl_vou_dt between FY_STRT and add_months(FY_STRT,3) - 1 then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(FY_STRT,'MM')) + 1
+					when a.gl_vou_dt between add_months(FY_STRT,3) and add_months(FY_STRT,6) - 1 then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(add_months(FY_STRT,3),'MM')) + 1
+					when a.gl_vou_dt between add_months(FY_STRT,6) and add_months(FY_STRT,9) - 1 then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(add_months(FY_STRT,6),'MM')) + 1
+					when a.gl_vou_dt between add_months(FY_STRT,9) and FY_END then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(add_months(FY_STRT,9),'MM')) + 1
+				end,
+				a.gl_coa_id,
+				a.gl_vou_id
+		) a,
+		(
+		select	a.gl_cld_id,
+				a.gl_org_id,
+				b.org_fy_id gl_fy_id,
+				case
+					when a.gl_vou_dt between FY_STRT and add_months(FY_STRT,3) - 1 then 'QTR 1'
+					when a.gl_vou_dt between add_months(FY_STRT,3) and add_months(FY_STRT,6) - 1 then 'QTR 2'
+					when a.gl_vou_dt between add_months(FY_STRT,6) and add_months(FY_STRT,9) - 1 then 'QTR 3'
+					when a.gl_vou_dt between add_months(FY_STRT,9) and FY_END then 'QTR 4'
+				end gl_qtr,
+				to_number(to_char(gl_vou_dt,'MM')) gl_mon,
+				case
+					when a.gl_vou_dt between FY_STRT and add_months(FY_STRT,3) - 1 then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(FY_STRT,'MM')) + 1
+					when a.gl_vou_dt between add_months(FY_STRT,3) and add_months(FY_STRT,6) - 1 then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(add_months(FY_STRT,3),'MM')) + 1
+					when a.gl_vou_dt between add_months(FY_STRT,6) and add_months(FY_STRT,9) - 1 then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(add_months(FY_STRT,6),'MM')) + 1
+					when a.gl_vou_dt between add_months(FY_STRT,9) and FY_END then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(add_months(FY_STRT,9),'MM')) + 1
+				end gl_qtr_mon,
+				a.gl_coa_id,
+				c.coa_nm,
+				a.gl_vou_id,
+				sum(decode(a.gl_amt_typ, 'Cr', round(a.gl_amt_bs,2),'Dr', -round(a.gl_amt_bs,2))) amt_txn
+		from 	fin.gl_lines a,
+				app.org$fy b,
+				fin$coa c
+		where 	a.gl_cld_id = b.cld_id
+		and 	a.gl_org_id = b.org_id
+		and 	b.FY_TYPE = 'FY'
+		and 	a.gl_vou_dt between trunc(b.fy_strt) and trunc(b.fy_end)
+		and 	a.gl_txn_typ_mig not in ('O','MO')
+		and  a.GL_TYPE_ID in (3,5)	--BANK RECEIPT VOUCHER,CASH RECEIPT VOUCHER
+		and c.coa_cld_id = a.gl_cld_id
+		and c.coa_sloc_id = a.gl_sloc_id
+		and c.coa_ho_org_id = a.gl_ho_org_id
+		and c.coa_id = a.gl_coa_id
+		and 	not exists (select 1
+				from fin$acc$na fc
+				where fc.ACC_CLD_ID = a.GL_CLD_ID
+				and fc.ACC_SLOC_ID = a.GL_SLOC_ID
+				and fc.HO_ORG_ID = a.GL_HO_ORG_ID
+				and fc.acc_id = a.gl_na_id
+				and fc.acc_type in (78, 79)
+				)
+		group by a.gl_cld_id,
+				a.gl_org_id,
+				b.org_fy_id,
+				case
+					when a.gl_vou_dt between FY_STRT and add_months(FY_STRT,3) - 1 then 'QTR 1'
+					when a.gl_vou_dt between add_months(FY_STRT,3) and add_months(FY_STRT,6) - 1 then 'QTR 2'
+					when a.gl_vou_dt between add_months(FY_STRT,6) and add_months(FY_STRT,9) - 1 then 'QTR 3'
+					when a.gl_vou_dt between add_months(FY_STRT,9) and FY_END then 'QTR 4'
+				end,
+				to_number(to_char(gl_vou_dt,'MM')),
+				case
+					when a.gl_vou_dt between FY_STRT and add_months(FY_STRT,3) - 1 then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(FY_STRT,'MM')) + 1
+					when a.gl_vou_dt between add_months(FY_STRT,3) and add_months(FY_STRT,6) - 1 then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(add_months(FY_STRT,3),'MM')) + 1
+					when a.gl_vou_dt between add_months(FY_STRT,6) and add_months(FY_STRT,9) - 1 then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(add_months(FY_STRT,6),'MM')) + 1
+					when a.gl_vou_dt between add_months(FY_STRT,9) and FY_END then
+						to_number(to_char(gl_vou_dt,'MM')) - to_number(to_char(add_months(FY_STRT,9),'MM')) + 1
+				end,
+				a.gl_coa_id,
+				c.coa_nm,
+				a.gl_vou_id
+		) b
+where a.gl_cld_id = nvl(:BindCldId,a.gl_cld_id)
+and a.gl_org_id = nvl(:BindOrgId, a.gl_org_id)
+and a.gl_fy_id = nvl(:BindFyId,a.gl_fy_id)
+and a.gl_qtr = nvl(:BindQtrId,a.gl_qtr)
+and a.gl_qtr_mon = nvl(:BindMonId,a.gl_qtr_mon)
+and a.gl_coa_id_bnk = nvl(:BindCoaId,a.gl_coa_id_bnk)
+and a.gl_cld_id = b.gl_cld_id
+and a.gl_org_id = b.gl_org_id
+and a.gl_fy_id = b.gl_fy_id
+and a.gl_qtr = b.gl_qtr
+and a.gl_qtr_mon = b.gl_qtr_mon
+and a.gl_vou_id = b.gl_vou_id
+group by a.gl_cld_id,
+			a.gl_org_id,
+			a.gl_fy_id,			
+			b.gl_coa_id,
+			b.coa_nm			
+order by 1,2,3,4]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="CHAR"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgFyId"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="INTEGER"
+    AliasName="ORG_FY_ID"
+    Expression="ORG_FY_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="CoaId"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="COA_ID"
+    Expression="COA_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="CoaNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_NM"
+    Expression="COA_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="IncomeAmt"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="INCOME_AMT"
+    Expression="INCOME_AMT"
+    SQLType="NUMERIC"/>
+  <ViewCriteria
+    Name="IncomeCashFlowVOCriteria"
+    ViewObjectName="fincashflowapp.model.views.IncomeCashFlowVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="InAdvancedMode"/>
+        <Property
+          Name="autoExecute"
+          Value="false"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="IncomeCashFlowVOCriteria_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="IncomeCashFlowVOCriteria_IncomeCashFlowVOCriteria_row_0_CldId"
+        ViewAttribute="CldId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindCldId"
+        IsBindVarValue="true"
+        Required="Optional">
+        <Properties>
+          <CustomProperties>
+            <Property
+              Name="renderedMode"
+              Value="Never"/>
+          </CustomProperties>
+        </Properties>
+      </ViewCriteriaItem>
+      <ViewCriteriaItem
+        Name="OrgId"
+        ViewAttribute="OrgId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindOrgId"
+        IsBindVarValue="true"
+        Required="Optional">
+        <Properties>
+          <CustomProperties>
+            <Property
+              Name="renderedMode"
+              Value="Never"/>
+          </CustomProperties>
+        </Properties>
+      </ViewCriteriaItem>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="fincashflowapp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="TopSupplierOsVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  UseGlueCode="false"
+  ComponentClass="graphTickerApp.model.views.TopSupplierOsVOImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Coll"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="graphTickerApp.model.views.TopSupplierOsVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindSlocId"
+    Kind="viewcriteria"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindCldId"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <Variable
+    Name="CldIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="OrgIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[SELECT ORG_DESC,COA_NM,ORG_ID,COA_ID,OS_30_DAYS,
+       OS_60_DAYS,OS_90_DAYS,abs(ap_amt_bs_org) AP_AMT_OS,
+       1 ap_sloc_id,cld_id gl_cld_id
+  FROM (select cld_id,org_id,org_desc,coa_id,coa_nm,curr_id,curr_nm,sum(ap_amt_bs_org) ap_amt_bs_org,
+                sum(ap_amt_sp_signed) ap_amt_sp,sum(ap_amt_adj_signed) ap_amt_adj,sum(ap_amt_os_signed) ap_amt_os,
+                sum(os_30_days) os_30_days,sum(os_60_days) os_60_days,sum(os_90_days) os_90_days,sum(os_120_days) os_120_days,
+                sum(os_180_days) os_180_days,sum(os_1_yr) os_1_yr,sum(os_greater_1_yr) os_greater_1_yr
+          from (select a.gl_cld_id cld_id,a.ap_org_id org_id,b.org_desc,
+                a.ap_coa_id coa_id,c.coa_nm,a.curr_id_sp curr_id,e.glbl_curr_desc curr_nm,a.ap_vou_id,
+                a.ap_vou_dt,ap_amt_bs_org,a.ap_amt_sp,a.ap_amt_sp_signed,a.ap_amt_adj,
+                a.ap_amt_adj_signed,ap_amt_os,ap_amt_os_signed,os_days,
+                decode(sign(30 - os_days), -1, 0, ap_amt_os_signed) os_30_days,
+                decode(sign(60 - os_days) * sign(os_days - 31),-1,0,ap_amt_os_signed) os_60_days,
+                decode(sign(90 - os_days) * sign(os_days - 61),-1,0,ap_amt_os_signed) os_90_days,
+                decode(sign(120 - os_days) * sign(os_days - 91),-1,0,ap_amt_os_signed) os_120_days,
+                decode(sign(180 - os_days) * sign(os_days - 121),-1,0,ap_amt_os_signed) os_180_days,
+                decode(sign(365 - os_days) * sign(os_days - 181),-1,0,ap_amt_os_signed) os_1_yr,
+                decode(sign(os_days - 366), -1, 0, ap_amt_os_signed) os_greater_1_yr
+          from (select gl_cld_id,ap_org_id,ap_sloc_id,ap_coa_id,ap_curr_id_sp curr_id_sp,
+                ap_vou_id,ap_vou_dt,ap_amt_sp,ap_amt_typ,
+                decode(ap_amt_typ,'Cr',nvl(ap.ap_amt_bs_orig, 0),'Dr',-nvl(ap_amt_bs_orig, 0),nvl(ap_amt_bs_orig, 0)) ap_amt_bs_org,
+                decode(ap_amt_typ,'Cr',nvl(ap.ap_amt_sp, 0),'Dr',-nvl(ap_amt_sp, 0),nvl(ap_amt_sp, 0)) ap_amt_sp_signed,
+                nvl(ap_amt_adj, 0) ap_amt_adj,decode(ap_amt_typ,'Cr',nvl(ap_amt_adj, 0),'Dr',-nvl(ap_amt_adj, 0),nvl(ap_amt_adj, 0)) ap_amt_adj_signed,
+                nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0) ap_amt_os,
+                decode(ap_amt_typ,'Cr',nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0),'Dr',- (nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0)),
+                nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0)) ap_amt_os_signed,
+                trunc(sysdate) - decode('I','I',trunc(nvl(ap_ext_doc_dt,ap_vou_dt)),'V', ap_vou_dt,'D',trunc(nvl(ap_vou_due_dt,ap_vou_dt)),ap_vou_dt) os_days
+                from ap
+          where nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0) > 0) a,
+                app.org b,
+                fin$coa c,
+                app.app$doc$txn d,
+                app.app$glbl$curr e
+         where a.os_days > 0
+           and d.doc_cld_id = a.gl_cld_id
+           and d.doc_org_id = a.ap_org_id
+           and d.doc_sloc_id = a.ap_sloc_id
+           and d.doc_txn_id = a.ap_vou_id
+           and b.org_cld_id = a.gl_cld_id
+           and b.org_id = a.ap_org_id
+           and c.coa_cld_id = a.gl_cld_id
+           and c.coa_sloc_id = a.ap_sloc_id
+           and c.coa_ho_org_id = app.fn_get_parent_org_l0(a.gl_cld_id, a.ap_org_id)
+           and c.coa_id = a.ap_coa_id
+           and e.glbl_curr_id = a.curr_id_sp
+           and ORG_ID = :OrgIdBind
+           and a.gl_cld_id = :CldIdBind)
+group by cld_id, org_id, org_desc, coa_id, coa_nm , curr_id, curr_nm
+  order by ap_amt_os asc)
+where rownum <= 5]]></SQLQuery>
+  <ViewAttribute
+    Name="OrgDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_DESC"
+    Expression="ORG_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_NM"
+    Expression="COA_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+    <Properties>
+      <SchemaBasedProperties>
+        <LABEL
+          ResId="graphTickerApp.model.views.TopSupplierOsVO.CoaNm_LABEL"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="INTEGER"
+    AliasName="COA_ID"
+    Expression="COA_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="Os30Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="OS_30_DAYS"
+    Expression="OS_30_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os60Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="OS_60_DAYS"
+    Expression="OS_60_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Os90Days"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="OS_90_DAYS"
+    Expression="OS_90_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtOs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_OS"
+    Expression="AP_AMT_OS"
+    SQLType="NUMERIC">
+    <Properties>
+      <SchemaBasedProperties>
+        <LABEL
+          ResId="graphTickerApp.model.views.TopSupplierOsVO.ApAmtOs_LABEL"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApSlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="AP_SLOC_ID"
+    Expression="AP_SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="GlCldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="4"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="GL_CLD_ID"
+    Expression="GL_CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewCriteria
+    Name="TopSupplierOsVOCriteria"
+    ViewObjectName="graphTickerApp.model.views.TopSupplierOsVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="InAdvancedMode"/>
+        <Property
+          Name="autoExecute"
+          Value="false"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="TopSupplierOsVOCriteria_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="OrgId"
+        ViewAttribute="OrgId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindOrgId"
+        IsBindVarValue="true"
+        Required="Optional"/>
+      <ViewCriteriaItem
+        Name="ApSlocId"
+        ViewAttribute="ApSlocId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindSlocId"
+        IsBindVarValue="true"
+        Required="Optional"/>
+      <ViewCriteriaItem
+        Name="GlCldId"
+        ViewAttribute="GlCldId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindCldId"
+        IsBindVarValue="true"
+        Required="Optional"/>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+  <AttrArray Name="KeyAttributes">
+    <Item Value="OrgId"/>
+    <Item Value="CoaId"/>
+  </AttrArray>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="graphTickerApp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

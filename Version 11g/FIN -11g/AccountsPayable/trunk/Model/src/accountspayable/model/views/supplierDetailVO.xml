@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="supplierDetailVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  UseGlueCode="false"
+  RowClass="accountspayable.model.views.supplierDetailVORowImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Access"/>
+    <Attr Name="_isCodegen" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="accountspayable.model.views.supplierDetailVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="coaIdBind"
+    Kind="viewcriteria"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="cldIdBind"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <Variable
+    Name="slocIdBind"
+    Kind="viewcriteria"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="orgIdBind"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindDate"
+    Kind="where"
+    Type="java.sql.Timestamp"/>
+  <Variable
+    Name="BindDtType"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindOrgId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindCldId"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindSlocId"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <SQLQuery><![CDATA[select    a.gl_cld_id cld_id,
+    a.ap_sloc_id sloc_id,
+    b.org_id,
+    b.org_desc,
+    c.coa_id,
+    c.coa_nm,
+    substr(d.doc_txn_id_disp, 3) voucher_id,
+    a.ap_vou_dt voucher_dt, --renamed from usr_id_create_dt,
+    a.ap_ext_doc_no bill_no,
+    a.ap_ext_doc_dt bill_date,
+    (select curr_desc from app.app$curr where curr_id=a.ap_curr_id_sp and cld_id =a.gl_cld_id and curr_sloc_id=a.ap_sloc_id  and rownum=1) curr_desc_SP,
+    a.ap_amt_sp,
+     (select curr_desc from app.app$curr where curr_id=b.org_curr_id_bs and cld_id =b.org_cld_id and curr_sloc_id=b.org_create_ref_sloc_id and rownum=1) curr_desc_BS,
+        a.ap_amt_bs_orig,
+    a.ap_amt_adj,
+    nvl(a.ap_amt_sp, 0) - nvl(a.ap_amt_adj, 0) ap_amt_os,
+    
+	nvl(to_date(:BindDate,'yyyy-mm-dd'),trunc(sysdate)) - decode(:BindDtType,'I',trunc(nvl(ap_ext_doc_dt,ap_vou_dt)),'V', ap_vou_dt,'D',trunc(nvl(ap_vou_due_dt,ap_vou_dt)),ap_vou_dt) os_days,
+        d.doc_txn_id doc_txn_id,
+decode(a.ap_amt_typ,'Dr',nvl(a.ap_amt_sp, 0) - nvl(a.ap_amt_adj, 0),'Cr',-(nvl(a.ap_amt_sp, 0) - nvl(a.ap_amt_adj, 0))) ap_amt_os1,
+decode(a.ap_amt_typ,'Dr',nvl(a.ap_amt_sp, 0),'Cr',-nvl(a.ap_amt_sp, 0)) ap_amt_sp1,
+decode(a.ap_amt_typ,'Dr',nvl(a.ap_amt_adj, 0),'Cr',-nvl(a.ap_amt_adj, 0)) ap_amt_adj1,
+decode(a.ap_amt_typ,'Dr',nvl(a.ap_amt_bs_orig, 0),'Cr',-nvl(a.ap_amt_bs_orig, 0)) ap_amt_bs_orig1,
+    a.ap_amt_typ
+from     ap a,
+    app.org b,
+    fin$coa c,
+    app.app$doc$txn d
+where    d.doc_cld_id = a.gl_cld_id
+and    d.doc_org_id = a.ap_org_id
+and    d.doc_sloc_id = a.ap_sloc_id
+and    d.doc_txn_id = a.ap_vou_id
+and    b.org_cld_id = a.gl_cld_id
+and    b.org_id = a.ap_org_id
+and    c.coa_cld_id = a.gl_cld_id
+and    c.coa_sloc_id = a.ap_sloc_id
+and    c.coa_ho_org_id = app.fn_get_parent_org_l0(a.gl_cld_id,a.ap_org_id)
+and    c.coa_id = a.ap_coa_id
+and nvl(ap_amt_sp, 0) - nvl(ap_amt_adj, 0) > 0
+--and ap_txn_typ_adv = 'N'
+--and ap_type_id in (8, 14)
+and b.org_id = :BindOrgId
+and a.gl_cld_id = :BindCldId
+and a.ap_sloc_id = :BindSlocId]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_DESC"
+    Expression="ORG_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CoaId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="INTEGER"
+    AliasName="COA_ID"
+    Expression="COA_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="CoaNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="COA_NM"
+    Expression="COA_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="VoucherId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="38"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="VOUCHER_ID"
+    Expression="VOUCHER_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="38"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="VoucherDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="VOUCHER_DT"
+    Expression="VOUCHER_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="BillNo"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="BILL_NO"
+    Expression="BILL_NO"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="BillDate"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="BILL_DATE"
+    Expression="BILL_DATE"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="CurrDescSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CURR_DESC_SP"
+    Expression="CURR_DESC_SP"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApAmtSp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_SP"
+    Expression="AP_AMT_SP"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="CurrDescBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CURR_DESC_BS"
+    Expression="CURR_DESC_BS"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApAmtBsOrig"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_BS_ORIG"
+    Expression="AP_AMT_BS_ORIG"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtAdj"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_ADJ"
+    Expression="AP_AMT_ADJ"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtOs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_OS"
+    Expression="AP_AMT_OS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="OsDays"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="OS_DAYS"
+    Expression="OS_DAYS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="DocTxnId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="40"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="DOC_TXN_ID"
+    Expression="DOC_TXN_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApAmtOs1"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_OS1"
+    Expression="AP_AMT_OS1"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtSp1"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_SP1"
+    Expression="AP_AMT_SP1"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtAdj1"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_ADJ1"
+    Expression="AP_AMT_ADJ1"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtBsOrig1"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AP_AMT_BS_ORIG1"
+    Expression="AP_AMT_BS_ORIG1"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ApAmtTyp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="AP_AMT_TYP"
+    Expression="AP_AMT_TYP"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApAmtSpTrans"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC"
+    IsUpdateable="false">
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <TransientExpression><![CDATA[object.getRowSet().sum("ApAmtSp1") == null ? 0.00 : object.getRowSet().sum("ApAmtSp1")]]></TransientExpression>
+    <Dependencies>
+      <Item
+        Value="ApAmtSp1"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApAmtAdjTrans"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC"
+    IsUpdateable="false">
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <TransientExpression><![CDATA[object.getRowSet().sum("ApAmtAdj1") == null ? 0.00 : object.getRowSet().sum("ApAmtAdj1")]]></TransientExpression>
+    <Dependencies>
+      <Item
+        Value="ApAmtAdj1"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="ApAmtOsTrans"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="VIEW_ATTR"
+    SQLType="NUMERIC"
+    IsUpdateable="false">
+    <RecalcCondition><![CDATA[true]]></RecalcCondition>
+    <TransientExpression><![CDATA[object.getRowSet().sum("ApAmtOs1") == null ? 0.00 : object.getRowSet().sum("ApAmtOs1")]]></TransientExpression>
+    <Dependencies>
+      <Item
+        Value="ApAmtOs1"/>
+    </Dependencies>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DateTrans"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Timestamp"
+    ColumnType="DATE"
+    AliasName="VIEW_ATTR"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="OsDaysTrans"
+    IsSelected="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="VIEW_ATTR"
+    SQLType="VARCHAR"/>
+  <ViewCriteria
+    Name="supplierDetailVOCriteria"
+    ViewObjectName="accountspayable.model.views.supplierDetailVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="InAdvancedMode"/>
+        <Property
+          Name="autoExecute"
+          Value="false"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="supplierDetailVOCriteria_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="CldId"
+        ViewAttribute="CldId"
+        Operator="="
+        Conjunction="AND"
+        Value=":cldIdBind"
+        IsBindVarValue="true"
+        Required="Optional"/>
+      <ViewCriteriaItem
+        Name="OrgId"
+        ViewAttribute="OrgId"
+        Operator="="
+        Conjunction="AND"
+        Value=":orgIdBind"
+        IsBindVarValue="true"
+        Required="Optional"/>
+      <ViewCriteriaItem
+        Name="CoaId"
+        ViewAttribute="CoaId"
+        Operator="="
+        Conjunction="AND"
+        Value=":coaIdBind"
+        IsBindVarValue="true"
+        Required="Optional"/>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+  <AttrArray Name="KeyAttributes">
+    <Item Value="CldId"/>
+    <Item Value="SlocId"/>
+    <Item Value="OrgId"/>
+    <Item Value="CoaId"/>
+    <Item Value="VoucherId"/>
+    <Item Value="VoucherDt"/>
+    <Item Value="BillNo"/>
+  </AttrArray>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="accountspayable.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

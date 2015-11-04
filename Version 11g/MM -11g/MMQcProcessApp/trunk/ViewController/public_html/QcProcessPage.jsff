@@ -1,0 +1,783 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<jsp:root xmlns:jsp="http://java.sun.com/JSP/Page" version="2.1" xmlns:af="http://xmlns.oracle.com/adf/faces/rich"
+          xmlns:f="http://java.sun.com/jsf/core">
+  <af:panelStretchLayout id="psl1" endWidth="0px" startWidth="0px" bottomHeight="0px" dimensionsFrom="auto"
+                         topHeight="30px">
+    <f:facet name="bottom"/>
+    <f:facet name="center">
+      <af:panelGroupLayout id="pgl3">
+        <af:panelBox id="pb1" contentStyle="background-color:rgb(214,255,214);" showDisclosure="false">
+          <f:facet name="toolbar"/>
+          <af:panelGroupLayout id="pgl2" layout="horizontal">
+            <af:panelFormLayout id="pfl3" rows="1" maxColumns="5" fieldWidth="120" labelWidth="120">
+              <af:selectOneChoice value="#{bindings.QcItmType.inputValue}" label="#{bundle['LBL.2309']}" required="true"
+                                  shortDesc="#{bindings.QcItmType.hints.tooltip}" id="soc1"
+                                  contentStyle="width:150px;color:Blue; font-weight:bolder;" autoSubmit="true"
+                                  disabled='#{pageFlowScope.QcProcessBean.mode == "V" or bindings.MmMtlQcSrc1.estimatedRowCount>0}'
+                                  valueChangeListener="#{pageFlowScope.QcProcessBean.QcTypeVCL}">
+                <f:selectItems value="#{bindings.QcItmType.items}" id="si1"/>
+              </af:selectOneChoice>
+              <af:selectOneChoice value="#{bindings.QcSrcTxnId.inputValue}" label="#{bundle['LBL.2094']}"
+                                  shortDesc="#{bindings.QcSrcTxnId.hints.tooltip}" id="soc3"
+                                  contentStyle="width:150px;color:Blue; font-weight:bolder;" partialTriggers="soc1"
+                                  autoSubmit="true"
+                                  disabled='#{pageFlowScope.QcProcessBean.mode == "V" or bindings.QcItmType.inputValue &lt;280 or bindings.MmMtlQcSrc1.estimatedRowCount>0}'
+                                  binding="#{pageFlowScope.QcProcessBean.receiptNoBind}"
+                                  validator="#{pageFlowScope.QcProcessBean.receiptNoValidation}">
+                <f:selectItems value="#{bindings.QcSrcTxnId.items}" id="si3"/>
+              </af:selectOneChoice>
+              <af:selectOneChoice value="#{bindings.TransEoId.inputValue}" label="#{bundle['LBL.951']}"
+                                  required="#{bindings.TransEoId.hints.mandatory}"
+                                  shortDesc="#{bindings.TransEoId.hints.tooltip}" id="soc4"
+                                  contentStyle="width:200px;color:Blue; font-weight:bolder;" partialTriggers="soc3 soc1"
+                                  visible="#{bindings.QcItmType.inputValue==280}" readOnly="true">
+                <f:selectItems value="#{bindings.TransEoId.items}" id="si4"/>
+              </af:selectOneChoice>
+              <af:inputDate value="#{bindings.QcTxnDt.inputValue}" label="#{bundle['LBL.336']}"
+                            required="#{bindings.QcTxnDt.hints.mandatory}"
+                            columns="#{bindings.QcTxnDt.hints.displayWidth}"
+                            shortDesc="#{bindings.QcTxnDt.hints.tooltip}" id="id2" contentStyle="width:150px"
+                            disabled="true">
+                <f:validator binding="#{bindings.QcTxnDt.validator}"/>
+                <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+              </af:inputDate>
+              <af:inputDate value="#{bindings.QcSrcTxnDt.inputValue}" label="Date"
+                            required="#{bindings.QcSrcTxnDt.hints.mandatory}"
+                            columns="#{bindings.QcSrcTxnDt.hints.displayWidth}"
+                            shortDesc="#{bindings.QcSrcTxnDt.hints.tooltip}" id="id1" contentStyle="width:150px"
+                            partialTriggers="soc1 soc3"
+                            disabled='#{pageFlowScope.QcProcessBean.disable=="V" or pageFlowScope.QcProcessBean.mode == "V"}'
+                            visible="false">
+                <f:validator binding="#{bindings.QcSrcTxnDt.validator}"/>
+                <af:convertDateTime pattern="#{bindings.QcSrcTxnDt.format}"/>
+              </af:inputDate>
+            </af:panelFormLayout>
+          </af:panelGroupLayout>
+          <af:selectOneRadio value="#{bindings.QcChkType.inputValue}" label="#{bundle['LBL.2318']}"
+                             required="#{bindings.QcChkType.hints.mandatory}"
+                             shortDesc="#{bindings.QcChkType.hints.tooltip}" id="sor1" autoSubmit="true"
+                             disabled="#{bindings.ItmId.inputValue !=null or bindings.MmQcParamItmIterator.estimatedRowCount>0 or bindings.MmMtlQcRsltIterator.estimatedRowCount>0}"
+                             partialTriggers="pc1:t1 pc2:t4 it31">
+            <f:selectItems value="#{bindings.QcChkType.items}" id="si2"/>
+          </af:selectOneRadio>
+        </af:panelBox>
+        <af:panelBox id="pb2" partialTriggers="soc3" text="#{bundle['LBL.2008']}" showDisclosure="false">
+          <f:facet name="toolbar">
+            <af:toolbar id="t6">
+              <af:commandButton text="Create" id="cb1" action="#{pageFlowScope.QcProcessBean.createQcProcess}"
+                                inlineStyle="font-weight:bolder;"
+                                partialTriggers="soc3" disabled="#{bindings.MmMtlQcRsltIterator.estimatedRowCount>0}"
+                                visible="false"/>
+              <af:commandButton text="Edit Pending QC" id="cb8" action="#{pageFlowScope.QcProcessBean.editPendingQC}"
+                                inlineStyle="font-weight:bolder;"
+                                disabled="#{bindings.MmMtlQcRsltIterator.estimatedRowCount==0 or pageFlowScope.QcProcessBean.mode == &quot;A&quot;}"
+                                visible="false"/>
+              <af:commandButton text="Save" id="cb2" action="#{pageFlowScope.QcProcessBean.saveAction}"
+                                inlineStyle="font-weight:bolder;"
+                                disabled='#{pageFlowScope.QcProcessBean.mode == "V"}' visible="false"/>
+              <af:commandImageLink id="cil4"
+                                   icon="#{resource['images:enable_add_blue.png']}"
+                                   action="#{pageFlowScope.QcProcessBean.createQcProcess}" partialTriggers="soc3"
+                                   disabled="#{bindings.MmMtlQcRsltIterator.estimatedRowCount>0 or bindings.MmMtlQcSrc1.estimatedRowCount>0}"
+                                   disabledIcon="#{resource['images:disabled_add_white.png']}"
+                                   shortDesc="#{bundle['LBL.256']} : #{bundle['MSG.1248']}" accessKey="I"/>
+              <af:commandImageLink id="cil5"
+                                   icon="#{resource['images:enable_edit_blue.png']}"
+                                   shortDesc="#{bundle['LBL.2355']} : #{bundle['MSG.1243']}"
+                                   action="#{pageFlowScope.QcProcessBean.editPendingQC}"
+                                   disabled='#{ pageFlowScope.QcProcessBean.mode == "A"}'
+                                   disabledIcon="#{resource['images:disabled_edit_white.png']}" accessKey="E"/>
+              <af:commandImageLink id="cil6"
+                                   icon="#{resource['images:enable_save_blue.png']}"
+                                   action="#{pageFlowScope.QcProcessBean.saveAction}"
+                                   disabled='#{pageFlowScope.QcProcessBean.mode == "V" or bindings.MmMtlQcRsltIterator.estimatedRowCount==0}'
+                                   disabledIcon="#{resource['images:disabled_save_white.png']}"
+                                   shortDesc="#{bundle['LBL.869']} : #{bundle['MSG.1244']}" accessKey="S"/>
+            </af:toolbar>
+          </f:facet>
+          <af:panelGroupLayout id="pgl4">
+            <af:panelFormLayout id="pfl1" rows="1" maxColumns="6"
+                                inlineStyle="background-color:rgb(214,255,214);" fieldWidth="120" labelWidth="120"
+                                partialTriggers="pc2:t4 pc3:t2">
+              <af:inputText value="#{bindings.TransItmId.inputValue}" label="#{bundle['LBL.528']}"
+                            required="#{bindings.TransItmId.hints.mandatory}"
+                            columns="#{bindings.TransItmId.hints.displayWidth}"
+                            maximumLength="#{bindings.TransItmId.hints.precision}"
+                            shortDesc="#{bindings.TransItmId.hints.tooltip}" id="it31" disabled="true"
+                            contentStyle="width:150px;color:Blue; font-weight:bolder;">
+                <f:validator binding="#{bindings.TransItmId.validator}"/>
+              </af:inputText>
+              <af:selectOneChoice value="#{bindings.ItmUomBs.inputValue}" label="#{bundle['LBL.1075']}"
+                                  required="#{bindings.ItmUomBs.hints.mandatory}"
+                                  shortDesc="#{bindings.ItmUomBs.hints.tooltip}" id="soc11" contentStyle="width:150px;"
+                                  disabled="true">
+                <f:selectItems value="#{bindings.ItmUomBs.items}" id="si13"/>
+              </af:selectOneChoice>
+              <af:inputText value="#{bindings.QcTotQtyBs.inputValue}" label="#{bundle['LBL.2353']}"
+                            required="#{bindings.QcTotQtyBs.hints.mandatory}"
+                            columns="#{bindings.QcTotQtyBs.hints.displayWidth}"
+                            maximumLength="40"
+                            shortDesc="#{bindings.QcTotQtyBs.hints.tooltip}" id="it23"
+                            contentStyle="width:150px;text-align:right;" partialTriggers="it31" autoSubmit="true"
+                            disabled="true" binding="#{pageFlowScope.QcProcessBean.tatalQtyBsBind}">
+                <f:validator binding="#{bindings.QcTotQtyBs.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.QcTotQtyBs.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+              </af:inputText>
+              <af:inputText value="#{bindings.TransTotalQcDoneQty.inputValue}" label="#{bundle['LBL.2354']}"
+                            required="#{bindings.TransTotalQcDoneQty.hints.mandatory}"
+                            columns="#{bindings.TransTotalQcDoneQty.hints.displayWidth}"
+                            maximumLength="40"
+                            shortDesc="#{bindings.TransTotalQcDoneQty.hints.tooltip}" id="it16"
+                            contentStyle="width:150px;text-align:right;" disabled="true"
+                            binding="#{pageFlowScope.QcProcessBean.doneQcQtyBind}" inlineStyle="text-align:right;">
+                <f:validator binding="#{bindings.TransTotalQcDoneQty.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.TransTotalQcDoneQty.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+              </af:inputText>
+              <af:selectOneChoice value="#{bindings.ItmUom.inputValue}" label="Unit"
+                                  required="#{bindings.ItmUom.hints.mandatory}"
+                                  shortDesc="#{bindings.ItmUom.hints.tooltip}" id="soc9" disabled="true"
+                                  contentStyle="width:150px;" visible="false">
+                <f:selectItems value="#{bindings.ItmUom.items}" id="si10"/>
+              </af:selectOneChoice>
+              <af:inputText value="#{bindings.QcTotQty.inputValue}" label="Total QC Qty "
+                            required="#{bindings.QcTotQty.hints.mandatory}"
+                            columns="#{bindings.QcTotQty.hints.displayWidth}"
+                            maximumLength="#{bindings.QcTotQty.hints.precision}"
+                            shortDesc="#{bindings.QcTotQty.hints.tooltip}" id="it1"
+                            contentStyle="width:150px;text-align:right;"
+                            partialTriggers="it31" disabled="true" visible="false">
+                <f:validator binding="#{bindings.QcTotQty.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.QcTotQty.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+              </af:inputText>
+            </af:panelFormLayout>
+            <af:spacer width="10" height="2" id="s1"/>
+            <af:panelFormLayout id="pfl2" rows="4" maxColumns="4" inlineStyle="background-color:rgb(214,255,214);"
+                                fieldWidth="120" labelWidth="200" partialTriggers="pc2:t4 pc3:t2">
+              <af:inputText value="#{bindings.TransQcCheckNo.inputValue}" label="#{bundle['LBL.2357']}"
+                            required="#{bindings.TransQcCheckNo.hints.mandatory}"
+                            columns="#{bindings.TransQcCheckNo.hints.displayWidth}"
+                            maximumLength="40"
+                            shortDesc="#{bindings.TransQcCheckNo.hints.tooltip}" id="it15"
+                            contentStyle="width:150px;text-align:right;"
+                            disabled='#{bindings.QcChkType.inputValue==282 or pageFlowScope.QcProcessBean.disableItmField=="V" or pageFlowScope.QcProcessBean.disabaleAllQty =="Y"}'
+                            partialTriggers="sor1 p2 p1" autoSubmit="true"
+                            binding="#{pageFlowScope.QcProcessBean.inspctnQtyBind}"
+                            validator="#{pageFlowScope.QcProcessBean.inspectionQtyValidator}"
+                            inlineStyle="text-align:right;">
+                <f:validator binding="#{bindings.TransQcCheckNo.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.TransQcCheckNo.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+              </af:inputText>
+              <af:inputText value="#{bindings.QcOkQtyBs.inputValue}" label="#{bundle['LBL.2358']}"
+                            required="#{bindings.QcOkQtyBs.hints.mandatory}"
+                            columns="#{bindings.QcOkQtyBs.hints.displayWidth}"
+                            maximumLength="40"
+                            shortDesc="#{bindings.QcOkQtyBs.hints.tooltip}" id="it20"
+                            contentStyle="width:150px;text-align:right;"
+                            disabled='#{bindings.QcChkType.inputValue==282 or pageFlowScope.QcProcessBean.disableItmField=="V" or pageFlowScope.QcProcessBean.disabaleAllQty =="Y" or pageFlowScope.QcProcessBean.disableAll=="Y"}'
+                            autoSubmit="true" partialTriggers="sor1 p2 p1"
+                            validator="#{pageFlowScope.QcProcessBean.okQtyValidator}"
+                            binding="#{pageFlowScope.QcProcessBean.okQtyBsBind}">
+                <f:validator binding="#{bindings.QcOkQtyBs.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.QcOkQtyBs.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+              </af:inputText>
+              <af:inputText value="#{bindings.QcRejQtyBs.inputValue}" label="#{bundle['LBL.2359']}"
+                            required="#{bindings.QcRejQtyBs.hints.mandatory}"
+                            columns="#{bindings.QcRejQtyBs.hints.displayWidth}"
+                            maximumLength="40"
+                            shortDesc="#{bindings.QcRejQtyBs.hints.tooltip}" id="it21"
+                            contentStyle="width:150px;text-align:right;"
+                            disabled='#{bindings.QcChkType.inputValue==282 or pageFlowScope.QcProcessBean.disableItmField=="V" or pageFlowScope.QcProcessBean.disabaleAllQty =="Y" or pageFlowScope.QcProcessBean.disableAll=="Y"}'
+                            autoSubmit="true" partialTriggers="sor1 p2 p1"
+                            validator="#{pageFlowScope.QcProcessBean.rejectQtyValidator}"
+                            binding="#{pageFlowScope.QcProcessBean.rejectQtyBsBind}">
+                <f:validator binding="#{bindings.QcRejQtyBs.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.QcRejQtyBs.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+              </af:inputText>
+              <af:inputText value="#{bindings.QcRwkQtyBs.inputValue}" label="#{bundle['LBL.2360']}"
+                            required="#{bindings.QcRwkQtyBs.hints.mandatory}"
+                            columns="#{bindings.QcRwkQtyBs.hints.displayWidth}"
+                            maximumLength="40"
+                            shortDesc="#{bindings.QcRwkQtyBs.hints.tooltip}" id="it22"
+                            contentStyle="width:150px;text-align:right;"
+                            validator="#{pageFlowScope.QcProcessBean.reworkQtyValidator}" partialTriggers="sor1 p2 p1"
+                            autoSubmit="true"
+                            disabled='#{bindings.QcChkType.inputValue==282 or pageFlowScope.QcProcessBean.disableItmField=="V" or pageFlowScope.QcProcessBean.disabaleAllQty =="Y" or pageFlowScope.QcProcessBean.disableAll=="Y"}'
+                            binding="#{pageFlowScope.QcProcessBean.rewrkQtyBsBind}">
+                <f:validator binding="#{bindings.QcRwkQtyBs.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.QcRwkQtyBs.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+              </af:inputText>
+              <af:selectOneChoice value="#{bindings.TransSrNo.inputValue}" label="#{bundle['LBL.909']}"
+                                  required='#{bindings.TransSrNo.hints.mandatory}'
+                                  shortDesc="#{bindings.TransSrNo.hints.tooltip}" id="soc10" autoSubmit="true"
+                                  visible="#{bindings.QcChkType.inputValue==282 &amp;&amp; bindings.TransItmSerialCheck.inputValue==&quot;Y&quot;}" partialTriggers="sor1"
+                                  contentStyle="width:160px" validator="#{pageFlowScope.QcProcessBean.srNoValidator}"
+                                  disabled='#{pageFlowScope.QcProcessBean.mode == "V"}'
+                                  binding="#{pageFlowScope.QcProcessBean.srNoBind}">
+                <f:selectItems value="#{bindings.TransSrNo.items}" id="si12"/>
+              </af:selectOneChoice>
+              <af:selectOneRadio value="#{bindings.AccRejAll.inputValue}"
+                                 required="#{bindings.AccRejAll.hints.mandatory}"
+                                 shortDesc="#{bindings.AccRejAll.hints.tooltip}" id="sor2" layout="horizontal"
+                                 autoSubmit="true" valueChangeListener="#{pageFlowScope.QcProcessBean.acptRjtAllItmVCL}"
+                                 rendered="#{bindings.QcChkType.inputValue==283}" partialTriggers="sor1 p2 p1"
+                                 disabled='#{pageFlowScope.QcProcessBean.disbaleAccRejct=="Y" or pageFlowScope.QcProcessBean.mode=="V"}'
+                                 binding="#{pageFlowScope.QcProcessBean.accptRjctBind}">
+                <f:selectItems value="#{bindings.AccRejAll.items}" id="si9"/>
+              </af:selectOneRadio>
+              <af:inputText value="#{bindings.QcRejResn.inputValue}" label="#{bundle['LBL.2361']}"
+                            required='#{pageFlowScope.QcProcessBean.disableRejctReason=="N"}'
+                            columns="#{bindings.QcRejResn.hints.displayWidth}"
+                            maximumLength="#{bindings.QcRejResn.hints.precision}"
+                            shortDesc="#{bindings.QcRejResn.hints.tooltip}" id="it5" rows="3" contentStyle="width:150px"
+                            disabled='#{pageFlowScope.QcProcessBean.disableItmField=="V" or pageFlowScope.QcProcessBean.disableRejctReason == "Y"}'
+                            autoSubmit="true">
+                <f:validator binding="#{bindings.QcRejResn.validator}"/>
+              </af:inputText>
+              <af:inputText value="#{bindings.QcOkQty.inputValue}" label="Quantity Ok"
+                            required="#{bindings.QcOkQty.hints.mandatory}"
+                            columns="#{bindings.QcOkQty.hints.displayWidth}"
+                            maximumLength="#{bindings.QcOkQty.hints.precision}"
+                            shortDesc="#{bindings.QcOkQty.hints.tooltip}" id="it2"
+                            contentStyle="width:150px;text-align:right;"
+                            disabled='#{bindings.QcChkType.inputValue==282 or pageFlowScope.QcProcessBean.disableItmField=="V" or pageFlowScope.QcProcessBean.disabaleAllQty =="Y"}'
+                            partialTriggers="sor1 p2 p1" autoSubmit="true" visible="false">
+                <f:validator binding="#{bindings.QcOkQty.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.QcOkQty.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+              </af:inputText>
+              <af:inputText value="#{bindings.QcRejQty.inputValue}" label="Quantity Rejected"
+                            required="#{bindings.QcRejQty.hints.mandatory}"
+                            columns="#{bindings.QcRejQty.hints.displayWidth}"
+                            maximumLength="#{bindings.QcRejQty.hints.precision}"
+                            shortDesc="#{bindings.QcRejQty.hints.tooltip}" id="it3"
+                            contentStyle="width:150px;text-align:right;"
+                            disabled="#{bindings.QcChkType.inputValue==282 or pageFlowScope.QcProcessBean.disableItmField==&quot;V&quot; or pageFlowScope.QcProcessBean.disabaleAllQty ==&quot;Y&quot;}"
+                            partialTriggers="sor1 p2 p1" autoSubmit="true" visible="false">
+                <f:validator binding="#{bindings.QcRejQty.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.QcRejQty.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+              </af:inputText>
+              <af:inputText value="#{bindings.QcRwkQty.inputValue}" label="Quantity Reworkable"
+                            required="#{bindings.QcRwkQty.hints.mandatory}"
+                            columns="#{bindings.QcRwkQty.hints.displayWidth}"
+                            maximumLength="#{bindings.QcRwkQty.hints.precision}"
+                            shortDesc="#{bindings.QcRwkQty.hints.tooltip}" id="it4"
+                            contentStyle="width:150px;text-align:right;"
+                            disabled="#{bindings.QcChkType.inputValue==282 or pageFlowScope.QcProcessBean.disableItmField==&quot;V&quot; or pageFlowScope.QcProcessBean.disabaleAllQty ==&quot;Y&quot;}"
+                            partialTriggers="sor1 p2 p1" autoSubmit="true" visible="false">
+                <f:validator binding="#{bindings.QcRwkQty.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.QcRwkQty.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+              </af:inputText>
+              <af:inputText value="#{bindings.TransItmSerialCheck.inputValue}"
+                            label="#{bindings.TransItmSerialCheck.hints.label}"
+                            required="#{bindings.TransItmSerialCheck.hints.mandatory}"
+                            columns="#{bindings.TransItmSerialCheck.hints.displayWidth}"
+                            maximumLength="#{bindings.TransItmSerialCheck.hints.precision}"
+                            shortDesc="#{bindings.TransItmSerialCheck.hints.tooltip}" id="it30" readOnly="true"
+                            autoSubmit="true" visible="false">
+                <f:validator binding="#{bindings.TransItmSerialCheck.validator}"/>
+              </af:inputText>
+            </af:panelFormLayout>
+            <af:popup childCreation="deferred" autoCancel="disabled" id="p2"
+                      binding="#{pageFlowScope.QcProcessBean.rejctPopup}">
+              <af:dialog id="d2" type="yesNo" closeIconVisible="false"
+                         dialogListener="#{pageFlowScope.QcProcessBean.rejectAllDailogListener}">
+                <f:facet name="buttonBar"/>
+                <af:outputText value="#{bundle['MSG.675']}" id="ot3"
+                               inlineStyle="color:Red; font-weight:bolder;"/>
+              </af:dialog>
+            </af:popup>
+            <af:popup childCreation="deferred" autoCancel="disabled" id="p1"
+                      binding="#{pageFlowScope.QcProcessBean.acptPopup}">
+              <af:dialog id="d1" closeIconVisible="false" type="yesNo"
+                         dialogListener="#{pageFlowScope.QcProcessBean.acceptAllDailogListener}">
+                <f:facet name="buttonBar"/>
+                <af:outputText value="#{bundle['MSG.674']}" id="ot2"
+                               inlineStyle="font-weight:bolder; color:Blue;"/>
+              </af:dialog>
+            </af:popup>
+          </af:panelGroupLayout>
+          <af:panelCollection id="pc1" styleClass="AFStretchWidth" featuresOff="viewMenu detach">
+            <f:facet name="menus"/>
+            <f:facet name="toolbar"/>
+            <f:facet name="statusbar">
+              <af:toolbar id="t3">
+                <af:commandButton text="Done" id="cb4" inlineStyle="font-weight:bolder;"
+                                  action="#{pageFlowScope.QcProcessBean.doneQcItmStatus}"
+                                  disabled='#{pageFlowScope.QcProcessBean.mode == "V" or bindings.MmMtlQcRsltIterator.estimatedRowCount==0}'
+                                  visible="false"/>
+                <af:commandImageLink id="cil3"
+                                     icon="#{resource['images:Tick_enable_24.png']}" shortDesc="#{bundle['LBL.390']}"
+                                     disabledIcon="#{resource['images:Tick_disa_24.png']}"
+                                     action="#{pageFlowScope.QcProcessBean.doneQcItmStatus}"
+                                     disabled='#{pageFlowScope.QcProcessBean.mode == "V" or bindings.MmMtlQcRsltIterator.estimatedRowCount==0}'/>
+              </af:toolbar>
+            </f:facet>
+            <af:table value="#{bindings.MmQcParamItm.collectionModel}" var="row"
+                      rows="#{bindings.MmQcParamItm.rangeSize}"
+                      emptyText="#{bindings.MmQcParamItm.viewable ? 'No data to display.' : 'Access Denied.'}"
+                      fetchSize="#{bindings.MmQcParamItm.rangeSize}" rowBandingInterval="0" id="t1" selectedRowKeys="#{bindings.MmQcParamItm.collectionModel.selectedRow}"
+                      selectionListener="#{bindings.MmQcParamItm.collectionModel.makeCurrent}" rowSelection="single"
+                      styleClass="AFStretchWidth" autoHeightRows="5" contentDelivery="immediate"
+                      binding="#{pageFlowScope.QcProcessBean.paramTableBind}" partialTriggers=":::pc2:t4 :::pc3:t2"
+                      columnStretching="last">
+              <af:column headerText="#{bundle['LBL.679']}" id="c1" width="105">
+                <af:selectOneChoice value="#{row.bindings.ParamId.inputValue}" label="#{row.bindings.ParamId.label}"
+                                    required="#{bindings.MmQcParamItm.hints.ParamId.mandatory}"
+                                    shortDesc="#{bindings.MmQcParamItm.hints.ParamId.tooltip}" id="soc5"
+                                    readOnly="true" contentStyle="color:Blue; font-weight:bolder;">
+                  <f:selectItems value="#{row.bindings.ParamId.items}" id="si6"/>
+                </af:selectOneChoice>
+              </af:column>
+              <af:column headerText="#{bundle['LBL.701']}" id="c6" width="103">
+                <af:selectOneChoice value="#{row.bindings.ParamType.inputValue}" label="#{row.bindings.ParamType.label}"
+                                    required="#{bindings.MmQcParamItm.hints.ParamType.mandatory}"
+                                    shortDesc="#{bindings.MmQcParamItm.hints.ParamType.tooltip}" id="soc6"
+                                    readOnly="true" contentStyle="color:green; font-weight:bolder;" autoSubmit="true">
+                  <f:selectItems value="#{row.bindings.ParamType.items}" id="si7"/>
+                </af:selectOneChoice>
+              </af:column>
+              <af:column sortProperty="#{bindings.MmQcParamItm.hints.StdVal.name}" sortable="true"
+                         headerText="#{bundle['LBL.2321']}" id="c2" width="107"
+                         inlineStyle="text-align:right; font-weight:bold;">
+                <af:inputText value="#{row.bindings.StdVal.inputValue}"
+                              label="#{bindings.MmQcParamItm.hints.StdVal.label}"
+                              required="#{bindings.MmQcParamItm.hints.StdVal.mandatory}"
+                              columns="#{bindings.MmQcParamItm.hints.StdVal.displayWidth}"
+                              maximumLength="#{bindings.MmQcParamItm.hints.StdVal.precision}"
+                              shortDesc="#{bindings.MmQcParamItm.hints.StdVal.tooltip}" id="it7" readOnly="true"
+                              contentStyle="text-align:right;font-weight:bolder;">
+                  <f:validator binding="#{row.bindings.StdVal.validator}"/>
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MmQcParamItm.hints.StdVal.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+              </af:column>
+              <af:column sortProperty="#{bindings.MmQcParamItm.hints.LowerLimit.name}" sortable="true"
+                         headerText="#{bundle['LBL.1608']}" id="c4" width="105"
+                         inlineStyle="text-align:right; font-weight:bolder;">
+                <af:inputText value="#{row.bindings.LowerLimit.inputValue}"
+                              label="#{bindings.MmQcParamItm.hints.LowerLimit.label}"
+                              required="#{bindings.MmQcParamItm.hints.LowerLimit.mandatory}"
+                              columns="#{bindings.MmQcParamItm.hints.LowerLimit.displayWidth}"
+                              maximumLength="#{bindings.MmQcParamItm.hints.LowerLimit.precision}"
+                              shortDesc="#{bindings.MmQcParamItm.hints.LowerLimit.tooltip}" id="it9" readOnly="true"
+                              contentStyle="text-align:right;font-weight:bolder;">
+                  <f:validator binding="#{row.bindings.LowerLimit.validator}"/>
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MmQcParamItm.hints.LowerLimit.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+              </af:column>
+              <af:column sortProperty="#{bindings.MmQcParamItm.hints.UpperLimit.name}" sortable="true"
+                         headerText="#{bundle['LBL.1609']}" id="c5" width="105" inlineStyle="text-align:right;">
+                <af:inputText value="#{row.bindings.UpperLimit.inputValue}"
+                              label="#{bindings.MmQcParamItm.hints.UpperLimit.label}"
+                              required="#{bindings.MmQcParamItm.hints.UpperLimit.mandatory}"
+                              columns="#{bindings.MmQcParamItm.hints.UpperLimit.displayWidth}"
+                              maximumLength="#{bindings.MmQcParamItm.hints.UpperLimit.precision}"
+                              shortDesc="#{bindings.MmQcParamItm.hints.UpperLimit.tooltip}" id="it10" readOnly="true"
+                              contentStyle="text-align:right;font-weight:bolder;">
+                  <f:validator binding="#{row.bindings.UpperLimit.validator}"/>
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MmQcParamItm.hints.UpperLimit.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+              </af:column>
+              <af:column headerText="#{bundle['LBL.2324']}" id="c8" width="105" inlineStyle="text-align:right;">
+                <af:inputText value="#{row.bindings.TransActualVal.inputValue}"
+                              label="#{bindings.MmQcParamItm.hints.TransActualVal.label}"
+                              required="#{bindings.MmQcParamItm.hints.TransActualVal.mandatory}"
+                              columns="#{bindings.MmQcParamItm.hints.TransActualVal.displayWidth}"
+                              maximumLength="40"
+                              shortDesc="#{bindings.MmQcParamItm.hints.TransActualVal.tooltip}" id="it11"
+                              autoSubmit="true"
+                              partialTriggers="soc6"
+                              valueChangeListener="#{pageFlowScope.QcProcessBean.actualValueVCL}"
+                              contentStyle="font-weight:bolder;text-align:right;"
+                              disabled='#{pageFlowScope.QcProcessBean.disableItmField=="V"}'
+                              binding="#{pageFlowScope.QcProcessBean.actualValueBind}"
+                              visible="#{row.bindings.ParamType.inputValue==1}"
+                              validator="#{pageFlowScope.QcProcessBean.actualValueValidator}">
+                  <f:validator binding="#{row.bindings.TransActualVal.validator}"/>
+                  <af:convertNumber groupingUsed="false"
+                                    pattern="#{bindings.MmQcParamItm.hints.TransActualVal.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+                <af:selectBooleanCheckbox value="#{row.bindings.TransForBooleanType.inputValue}"
+                                          label="#{row.bindings.TransForBooleanType.label}"
+                                          shortDesc="#{bindings.MmQcParamItm.hints.TransForBooleanType.tooltip}"
+                                          id="sbc1"
+                                          autoSubmit="true"
+                                          valueChangeListener="#{pageFlowScope.QcProcessBean.ActualChkVCL}"
+                                          text="#{bundle['LBL.2362']}" contentStyle="color:green; font-weight:bolder;"
+                                          disabled='#{pageFlowScope.QcProcessBean.disableItmField=="V"}'
+                                          visible="#{row.bindings.ParamType.inputValue!=1}" selected="true"/>
+              </af:column>
+              <af:column headerText="#{bundle['LBL.940']}" id="c3">
+                <af:selectOneChoice value="#{row.bindings.TransQcCheckStatus.inputValue}"
+                                    label="#{row.bindings.TransQcCheckStatus.label}"
+                                    required="#{bindings.MmQcParamItm.hints.TransQcCheckStatus.mandatory}"
+                                    shortDesc="#{bindings.MmQcParamItm.hints.TransQcCheckStatus.tooltip}" id="soc7"
+                                    readOnly="true"
+                                    contentStyle="font-weight:bolder;color:#{row.bindings.TransQcCheckStatus.inputValue == 1 ? 'Green'  : (row.bindings.TransQcCheckStatus.inputValue == 2 ?  'Blue' : 'Red' )};"
+                                    autoSubmit="true" binding="#{pageFlowScope.QcProcessBean.qcStatusBind}"
+                                    partialTriggers="it11 sbc1">
+                  <f:selectItems value="#{row.bindings.TransQcCheckStatus.items}" id="si8"/>
+                </af:selectOneChoice>
+              </af:column>
+              <af:column headerText="Specification	" id="c19">
+                <af:inputText value="#{row.bindings.ParamSpec.inputValue}"
+                              label="#{bindings.MmQcParamItm.hints.ParamSpec.label}"
+                              required="#{bindings.MmQcParamItm.hints.ParamSpec.mandatory}"
+                              columns="#{bindings.MmQcParamItm.hints.ParamSpec.displayWidth}"
+                              maximumLength="#{bindings.MmQcParamItm.hints.ParamSpec.precision}"
+                              shortDesc="#{bindings.MmQcParamItm.hints.ParamSpec.tooltip}" id="it32" readOnly="true">
+                  <f:validator binding="#{row.bindings.ParamSpec.validator}"/>
+                </af:inputText>
+              </af:column>
+            </af:table>
+          </af:panelCollection>
+          <af:panelStretchLayout id="psl2" endWidth="00px" topHeight="00px" bottomHeight="00px" startWidth="250px"
+                                 dimensionsFrom="auto">
+            <f:facet name="bottom"/>
+            <f:facet name="center">
+              <af:panelGroupLayout id="pgl5" layout="horizontal" partialTriggers="pc3:t2">
+                <af:panelCollection id="pc2" styleClass="AFStretchWidth"
+                                    featuresOff="columnsMenuItem detachToolbarItem detachMenuItem freeze viewMenu wrap"
+                                    inlineStyle="height:250px;width:800px;" partialTriggers="::pc3:t2">
+                  <f:facet name="menus"/>
+                  <f:facet name="toolbar"/>
+                  <f:facet name="statusbar"/>
+                  <af:table value="#{bindings.MmMtlQcRslt.collectionModel}" var="row"
+                            rows="#{bindings.MmMtlQcRslt.rangeSize}"
+                            emptyText="#{bindings.MmMtlQcRslt.viewable ? 'No data to display.' : 'Access Denied.'}"
+                            fetchSize="#{bindings.MmMtlQcRslt.rangeSize}" rowBandingInterval="0"
+                            selectedRowKeys="#{bindings.MmMtlQcRslt.collectionModel.selectedRow}"
+                            selectionListener="#{bindings.MmMtlQcRslt.collectionModel.makeCurrent}"
+                            rowSelection="single" id="t4" contentDelivery="immediate"
+                            inlineStyle="height:239px;" styleClass="AFStretchWidth" autoHeightRows="-1"
+                            partialTriggers=":::pc3:t2" columnStretching="last">
+                    <af:column sortProperty="#{bindings.MmMtlQcRslt.hints.ItmId.name}" sortable="true"
+                               headerText="#{bundle['LBL.1396']}"
+                               id="c7" width="130">
+                      <af:commandLink id="cl1" text="#{row.bindings.TransItmId.inputValue}"
+                                      inlineStyle="font-weight:bolder;" action="gotoEdit"
+                                      disabled='#{pageFlowScope.QcProcessBean.mode == "A"}'/>
+                      <af:inputText value="#{row.bindings.TransItmId.inputValue}"
+                                    required="#{bindings.MmMtlQcRslt.hints.TransItmId.mandatory}"
+                                    columns="#{bindings.MmMtlQcRslt.hints.TransItmId.displayWidth}"
+                                    maximumLength="#{bindings.MmMtlQcRslt.hints.TransItmId.precision}"
+                                    shortDesc="#{bindings.MmMtlQcRslt.hints.TransItmId.tooltip}" id="it17"
+                                    readOnly="true" visible="false">
+                        <f:validator binding="#{row.bindings.TransItmId.validator}"/>
+                      </af:inputText>
+                      <af:outputText value="Code : #{row.ItmId}" id="ot1" inlineStyle="font-weight:bolder;"/>
+                    </af:column>
+                    <af:column sortProperty="#{bindings.MmMtlQcRslt.hints.QcTotQty.name}" sortable="true"
+                               headerText="#{bundle['LBL.1045']}" id="c9" inlineStyle="text-align:right;" width="110">
+                      <af:panelGroupLayout id="pgl8" layout="horizontal" halign="right">
+                        <af:inputText value="#{row.bindings.QcTotQtyBs.inputValue}"
+                                      label="#{bindings.MmMtlQcRslt.hints.QcTotQtyBs.label}"
+                                      required="#{bindings.MmMtlQcRslt.hints.QcTotQtyBs.mandatory}"
+                                      columns="#{bindings.MmMtlQcRslt.hints.QcTotQtyBs.displayWidth}"
+                                      maximumLength="#{bindings.MmMtlQcRslt.hints.QcTotQtyBs.precision}"
+                                      shortDesc="#{bindings.MmMtlQcRslt.hints.QcTotQtyBs.tooltip}" id="it24"
+                                      readOnly="true" contentStyle="font-weight:bolder;">
+                          <f:validator binding="#{row.bindings.QcTotQtyBs.validator}"/>
+                          <af:convertNumber groupingUsed="false"
+                                            pattern="#{bindings.MmMtlQcRslt.hints.QcTotQtyBs.format}"
+                                            minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                            maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+                        </af:inputText>
+                        <af:spacer width="10" height="10" id="s2"/>
+                        <af:selectOneChoice value="#{row.bindings.ItmUomBs.inputValue}"
+                                            label="#{row.bindings.ItmUomBs.label}"
+                                            required="#{bindings.MmMtlQcRslt.hints.ItmUomBs.mandatory}"
+                                            shortDesc="#{bindings.MmMtlQcRslt.hints.ItmUomBs.tooltip}" id="soc13"
+                                            readOnly="true" contentStyle="font-weight:bolder;color:blue;">
+                          <f:selectItems value="#{row.bindings.ItmUomBs.items}" id="si15"/>
+                        </af:selectOneChoice>
+                      </af:panelGroupLayout>
+                      <af:panelGroupLayout id="pgl7" layout="horizontal" halign="right">
+                        <af:inputText value="#{row.bindings.QcTotQty.inputValue}"
+                                      label="#{bindings.MmMtlQcRslt.hints.QcTotQty.label}"
+                                      required="#{bindings.MmMtlQcRslt.hints.QcTotQty.mandatory}"
+                                      columns="#{bindings.MmMtlQcRslt.hints.QcTotQty.displayWidth}"
+                                      maximumLength="#{bindings.MmMtlQcRslt.hints.QcTotQty.precision}"
+                                      shortDesc="#{bindings.MmMtlQcRslt.hints.QcTotQty.tooltip}" id="it6"
+                                      readOnly="true" inlineStyle="text-align:right;"
+                                      contentStyle="font-weight:bolder;"
+                                      visible='#{pageFlowScope.QcProcessBean.uomFactorCnvr=="Y"}'>
+                          <f:validator binding="#{row.bindings.QcTotQty.validator}"/>
+                          <af:convertNumber groupingUsed="false" pattern="#{bindings.MmMtlQcRslt.hints.QcTotQty.format}"
+                                            minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                            maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+                        </af:inputText>
+                        <af:spacer width="10" height="10" id="s3"/>
+                        <af:selectOneChoice value="#{row.bindings.ItmUom.inputValue}"
+                                            label="#{row.bindings.ItmUom.label}"
+                                            required="#{bindings.MmMtlQcRslt.hints.ItmUom.mandatory}"
+                                            shortDesc="#{bindings.MmMtlQcRslt.hints.ItmUom.tooltip}" id="soc12"
+                                            readOnly="true" contentStyle="font-weight:bolder;color:blue;"
+                                            visible='#{pageFlowScope.QcProcessBean.uomFactorCnvr=="Y"}'>
+                          <f:selectItems value="#{row.bindings.ItmUom.items}" id="si14"/>
+                        </af:selectOneChoice>
+                      </af:panelGroupLayout>
+                    </af:column>
+                    <af:column sortProperty="#{bindings.MmMtlQcRslt.hints.QcOkQty.name}" sortable="true"
+                               headerText="#{bundle['LBL.2202']}" id="c10" inlineStyle="text-align:right;" width="105">
+                      <af:inputText value="#{row.bindings.QcOkQtyBs.inputValue}"
+                                    label="#{bindings.MmMtlQcRslt.hints.QcOkQtyBs.label}"
+                                    required="#{bindings.MmMtlQcRslt.hints.QcOkQtyBs.mandatory}"
+                                    columns="#{bindings.MmMtlQcRslt.hints.QcOkQtyBs.displayWidth}"
+                                    maximumLength="#{bindings.MmMtlQcRslt.hints.QcOkQtyBs.precision}"
+                                    shortDesc="#{bindings.MmMtlQcRslt.hints.QcOkQtyBs.tooltip}" id="it25"
+                                    readOnly="true" contentStyle="font-weight:bolder;color:Green;">
+                        <f:validator binding="#{row.bindings.QcOkQtyBs.validator}"/>
+                        <af:convertNumber groupingUsed="false" pattern="#{bindings.MmMtlQcRslt.hints.QcOkQtyBs.format}"
+                                          minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                          maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+                      </af:inputText>
+                      <af:inputText value="#{row.bindings.QcOkQty.inputValue}"
+                                    label="#{bindings.MmMtlQcRslt.hints.QcOkQty.label}"
+                                    required="#{bindings.MmMtlQcRslt.hints.QcOkQty.mandatory}"
+                                    columns="#{bindings.MmMtlQcRslt.hints.QcOkQty.displayWidth}"
+                                    maximumLength="#{bindings.MmMtlQcRslt.hints.QcOkQty.precision}"
+                                    shortDesc="#{bindings.MmMtlQcRslt.hints.QcOkQty.tooltip}" id="it8" readOnly="true"
+                                    inlineStyle="text-align:right; " contentStyle="font-weight:bolder;color:Green;"
+                                    visible='#{pageFlowScope.QcProcessBean.uomFactorCnvr=="Y"}'>
+                        <f:validator binding="#{row.bindings.QcOkQty.validator}"/>
+                        <af:convertNumber groupingUsed="false" pattern="#{bindings.MmMtlQcRslt.hints.QcOkQty.format}"
+                                          minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                          maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+                      </af:inputText>
+                    </af:column>
+                    <af:column sortProperty="#{bindings.MmMtlQcRslt.hints.QcRejQty.name}" sortable="true"
+                               headerText="#{bundle['LBL.2279']}" id="c11" inlineStyle="text-align:right;" width="105">
+                      <af:inputText value="#{row.bindings.QcRejQtyBs.inputValue}"
+                                    label="#{bindings.MmMtlQcRslt.hints.QcRejQtyBs.label}"
+                                    required="#{bindings.MmMtlQcRslt.hints.QcRejQtyBs.mandatory}"
+                                    columns="#{bindings.MmMtlQcRslt.hints.QcRejQtyBs.displayWidth}"
+                                    maximumLength="#{bindings.MmMtlQcRslt.hints.QcRejQtyBs.precision}"
+                                    shortDesc="#{bindings.MmMtlQcRslt.hints.QcRejQtyBs.tooltip}" id="it26"
+                                    readOnly="true" contentStyle="font-weight:bolder;color:Red;">
+                        <f:validator binding="#{row.bindings.QcRejQtyBs.validator}"/>
+                        <af:convertNumber groupingUsed="false" pattern="#{bindings.MmMtlQcRslt.hints.QcRejQtyBs.format}"
+                                          minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                          maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+                      </af:inputText>
+                      <af:inputText value="#{row.bindings.QcRejQty.inputValue}"
+                                    label="#{bindings.MmMtlQcRslt.hints.QcRejQty.label}"
+                                    required="#{bindings.MmMtlQcRslt.hints.QcRejQty.mandatory}"
+                                    columns="#{bindings.MmMtlQcRslt.hints.QcRejQty.displayWidth}"
+                                    maximumLength="#{bindings.MmMtlQcRslt.hints.QcRejQty.precision}"
+                                    shortDesc="#{bindings.MmMtlQcRslt.hints.QcRejQty.tooltip}" id="it12" readOnly="true"
+                                    inlineStyle="text-align:right; " contentStyle="font-weight:bolder;color:Red;"
+                                    visible='#{pageFlowScope.QcProcessBean.uomFactorCnvr=="Y"}'>
+                        <f:validator binding="#{row.bindings.QcRejQty.validator}"/>
+                        <af:convertNumber groupingUsed="false" pattern="#{bindings.MmMtlQcRslt.hints.QcRejQty.format}"
+                                          minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                          maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+                      </af:inputText>
+                    </af:column>
+                    <af:column sortProperty="#{bindings.MmMtlQcRslt.hints.QcRwkQty.name}" sortable="true"
+                               headerText="#{bundle['LBL.2271']}" id="c12" inlineStyle="text-align:right;" width="105">
+                      <af:inputText value="#{row.bindings.QcRwkQtyBs.inputValue}"
+                                    label="#{bindings.MmMtlQcRslt.hints.QcRwkQtyBs.label}"
+                                    required="#{bindings.MmMtlQcRslt.hints.QcRwkQtyBs.mandatory}"
+                                    columns="#{bindings.MmMtlQcRslt.hints.QcRwkQtyBs.displayWidth}"
+                                    maximumLength="#{bindings.MmMtlQcRslt.hints.QcRwkQtyBs.precision}"
+                                    shortDesc="#{bindings.MmMtlQcRslt.hints.QcRwkQtyBs.tooltip}" id="it27"
+                                    readOnly="true" contentStyle="font-weight:bolder;color:blue;">
+                        <f:validator binding="#{row.bindings.QcRwkQtyBs.validator}"/>
+                        <af:convertNumber groupingUsed="false" pattern="#{bindings.MmMtlQcRslt.hints.QcRwkQtyBs.format}"
+                                          minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                          maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+                      </af:inputText>
+                      <af:inputText value="#{row.bindings.QcRwkQty.inputValue}"
+                                    label="#{bindings.MmMtlQcRslt.hints.QcRwkQty.label}"
+                                    required="#{bindings.MmMtlQcRslt.hints.QcRwkQty.mandatory}"
+                                    columns="#{bindings.MmMtlQcRslt.hints.QcRwkQty.displayWidth}"
+                                    maximumLength="#{bindings.MmMtlQcRslt.hints.QcRwkQty.precision}"
+                                    shortDesc="#{bindings.MmMtlQcRslt.hints.QcRwkQty.tooltip}" id="it13" readOnly="true"
+                                    inlineStyle="text-align:right;" contentStyle="font-weight:bolder;color:blue;"
+                                    visible='#{pageFlowScope.QcProcessBean.uomFactorCnvr=="Y"}'>
+                        <f:validator binding="#{row.bindings.QcRwkQty.validator}"/>
+                        <af:convertNumber groupingUsed="false" pattern="#{bindings.MmMtlQcRslt.hints.QcRwkQty.format}"
+                                          minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                          maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+                      </af:inputText>
+                    </af:column>
+                    <af:column headerText="#{bindings.MmMtlQcRslt.hints.UomConvFctr.label}" id="c16" visible="false">
+                      <af:inputText value="#{row.bindings.UomConvFctr.inputValue}"
+                                    label="#{bindings.MmMtlQcRslt.hints.UomConvFctr.label}"
+                                    required="#{bindings.MmMtlQcRslt.hints.UomConvFctr.mandatory}"
+                                    columns="#{bindings.MmMtlQcRslt.hints.UomConvFctr.displayWidth}"
+                                    maximumLength="#{bindings.MmMtlQcRslt.hints.UomConvFctr.precision}"
+                                    shortDesc="#{bindings.MmMtlQcRslt.hints.UomConvFctr.tooltip}" id="it28"
+                                    readOnly="true" binding="#{pageFlowScope.QcProcessBean.uomCnvrFactBind}">
+                        <f:validator binding="#{row.bindings.UomConvFctr.validator}"/>
+                        <af:convertNumber groupingUsed="false"
+                                          pattern="#{bindings.MmMtlQcRslt.hints.UomConvFctr.format}"/>
+                      </af:inputText>
+                    </af:column>
+                    <af:column headerText="#{bindings.MmMtlQcRslt.hints.TransItmSerialCheck.label}" id="c18"
+                               visible="false">
+                      <af:inputText value="#{row.bindings.TransItmSerialCheck.inputValue}"
+                                    label="#{bindings.MmMtlQcRslt.hints.TransItmSerialCheck.label}"
+                                    required="#{bindings.MmMtlQcRslt.hints.TransItmSerialCheck.mandatory}"
+                                    columns="#{bindings.MmMtlQcRslt.hints.TransItmSerialCheck.displayWidth}"
+                                    maximumLength="#{bindings.MmMtlQcRslt.hints.TransItmSerialCheck.precision}"
+                                    shortDesc="#{bindings.MmMtlQcRslt.hints.TransItmSerialCheck.tooltip}" id="it29"
+                                    readOnly="true">
+                        <f:validator binding="#{row.bindings.TransItmSerialCheck.validator}"/>
+                      </af:inputText>
+                    </af:column>
+                    <af:column sortProperty="#{bindings.MmMtlQcRslt.hints.QcRejResn.name}" sortable="true"
+                               headerText="#{bundle['LBL.2361']}" id="c13" width="235">
+                      <af:inputText value="#{row.bindings.QcRejResn.inputValue}"
+                                    label="#{bindings.MmMtlQcRslt.hints.QcRejResn.label}"
+                                    required="#{bindings.MmMtlQcRslt.hints.QcRejResn.mandatory}"
+                                    columns="#{bindings.MmMtlQcRslt.hints.QcRejResn.displayWidth}"
+                                    maximumLength="#{bindings.MmMtlQcRslt.hints.QcRejResn.precision}"
+                                    shortDesc="#{bindings.MmMtlQcRslt.hints.QcRejResn.tooltip}" id="it14"
+                                    readOnly="true">
+                        <f:validator binding="#{row.bindings.QcRejResn.validator}"/>
+                      </af:inputText>
+                    </af:column>
+                  </af:table>
+                </af:panelCollection>
+              </af:panelGroupLayout>
+            </f:facet>
+            <f:facet name="start">
+              <af:panelGroupLayout id="pgl6">
+                <af:panelCollection id="pc3" inlineStyle="width:249px; height:249px;"
+                                    featuresOff="detach columnsMenuItem freeze detachToolbarItem viewMenu statusBar wrap">
+                  <f:facet name="menus"/>
+                  <f:facet name="toolbar"/>
+                  <f:facet name="statusbar"/>
+                  <af:table value="#{bindings.MmMtlQcSrc1.collectionModel}" var="row"
+                            rows="#{bindings.MmMtlQcSrc1.rangeSize}"
+                            emptyText="#{bindings.MmMtlQcSrc1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                            fetchSize="#{bindings.MmMtlQcSrc1.rangeSize}" rowBandingInterval="0"
+                            selectedRowKeys="#{bindings.MmMtlQcSrc1.collectionModel.selectedRow}"
+                            selectionListener="#{bindings.MmMtlQcSrc1.collectionModel.makeCurrent}"
+                            rowSelection="single" id="t2" autoHeightRows="-1" contentDelivery="immediate" width="250"
+                            inlineStyle="height:271px;" styleClass="AFStretchWidth">
+                    <af:column headerText="#{bundle['LBL.2363']}" id="c14" width="100">
+                      <af:column sortProperty="#{bindings.MmMtlQcSrc1.hints.DocIdSrc.name}" sortable="true"
+                                 headerText="#{bundle['LBL.2329']}" id="c15" width="140">
+                        <af:inputText value="#{row.bindings.DocIdSrcDisp.inputValue}"
+                                      label="#{bindings.MmMtlQcSrc1.hints.DocIdSrcDisp.label}"
+                                      required="#{bindings.MmMtlQcSrc1.hints.DocIdSrcDisp.mandatory}"
+                                      columns="#{bindings.MmMtlQcSrc1.hints.DocIdSrcDisp.displayWidth}"
+                                      maximumLength="#{bindings.MmMtlQcSrc1.hints.DocIdSrcDisp.precision}"
+                                      shortDesc="#{bindings.MmMtlQcSrc1.hints.DocIdSrcDisp.tooltip}" id="it19"
+                                      readOnly="true" contentStyle="color:brown">
+                          <f:validator binding="#{row.bindings.DocIdSrcDisp.validator}"/>
+                        </af:inputText>
+                        <af:selectOneChoice value="#{row.bindings.DocIdSrc.inputValue}"
+                                            label="#{row.bindings.DocIdSrc.label}"
+                                            required="#{bindings.MmMtlQcSrc1.hints.DocIdSrc.mandatory}"
+                                            shortDesc="#{bindings.MmMtlQcSrc1.hints.DocIdSrc.tooltip}" id="soc8"
+                                            readOnly="true">
+                          <f:selectItems value="#{row.bindings.DocIdSrc.items}" id="si11"/>
+                        </af:selectOneChoice>
+                        <af:inputDate value="#{row.bindings.DocDtSrc.inputValue}"
+                                      label="#{bindings.MmMtlQcSrc1.hints.DocDtSrc.label}"
+                                      required="#{bindings.MmMtlQcSrc1.hints.DocDtSrc.mandatory}"
+                                      columns="#{bindings.MmMtlQcSrc1.hints.DocDtSrc.displayWidth}"
+                                      shortDesc="#{bindings.MmMtlQcSrc1.hints.DocDtSrc.tooltip}" id="id3"
+                                      readOnly="true">
+                          <f:validator binding="#{row.bindings.DocDtSrc.validator}"/>
+                          <af:convertDateTime pattern="#{pageFlowScope.GLBL_DT_FORMAT}"/>
+                        </af:inputDate>
+                      </af:column>
+                      <af:column sortProperty="#{bindings.MmMtlQcSrc1.hints.DlvSchdlNo.name}" sortable="true"
+                                 headerText="#{bundle['LBL.2154']}" id="c17" width="100">
+                        <af:inputText value="#{row.bindings.DlvSchdlNo.inputValue}"
+                                      label="#{bindings.MmMtlQcSrc1.hints.DlvSchdlNo.label}"
+                                      required="#{bindings.MmMtlQcSrc1.hints.DlvSchdlNo.mandatory}"
+                                      columns="#{bindings.MmMtlQcSrc1.hints.DlvSchdlNo.displayWidth}"
+                                      maximumLength="#{bindings.MmMtlQcSrc1.hints.DlvSchdlNo.precision}"
+                                      shortDesc="#{bindings.MmMtlQcSrc1.hints.DlvSchdlNo.tooltip}" id="it18"
+                                      readOnly="true">
+                          <f:validator binding="#{row.bindings.DlvSchdlNo.validator}"/>
+                          <af:convertNumber groupingUsed="false"
+                                            pattern="#{bindings.MmMtlQcSrc1.hints.DlvSchdlNo.format}"/>
+                        </af:inputText>
+                      </af:column>
+                    </af:column>
+                  </af:table>
+                </af:panelCollection>
+              </af:panelGroupLayout>
+            </f:facet>
+            <f:facet name="end"/>
+            <f:facet name="top"/>
+          </af:panelStretchLayout>
+        </af:panelBox>
+      </af:panelGroupLayout>
+    </f:facet>
+    <f:facet name="top">
+      <af:panelGroupLayout id="pgl1">
+        <af:panelHeader text="#{bundle['LBL.2143']}" id="ph1" size="4" inlineStyle="height:17px;">
+          <f:facet name="context"/>
+          <f:facet name="menuBar"/>
+          <f:facet name="toolbar">
+            <af:group id="g1">
+              <af:panelGroupLayout id="pgl9" layout="horizontal"
+                                   inlineStyle="background-color:rgb(0,210,0); width:40px; height:23px;">
+                <af:goImageLink text="#{bundle['LBL.3250']}" id="gil1" inlineStyle="font-weight:bold;"
+                                destination="/qcpservlet?orgId=#{pageFlowScope.GLBL_APP_USR_ORG}&amp;cldId=#{pageFlowScope.GLBL_APP_CLD_ID}&amp;slocId=#{pageFlowScope.GLBL_APP_SERV_LOC}&amp;qcTxnId=#{bindings.QcSrcTxnId.inputValue}"
+                                accessKey="P" shortDesc="#{bundle['LBL.3250']} : #{bundle['MSG.1251']}"
+                                targetFrame="_blank"/>
+              </af:panelGroupLayout>
+              <af:toolbar id="t5">
+                <af:commandButton text="Create" id="cb6" inlineStyle="font-weight:bolder;"
+                                  action="#{pageFlowScope.QcProcessBean.createAction}"
+                                  disabled='#{pageFlowScope.QcProcessBean.mode == "A"}' visible="false"/>
+                <af:commandImageLink id="cil1" icon="#{resource['images:enable_add_blue.png']}"
+                                     action="#{pageFlowScope.QcProcessBean.createAction}"
+                                     disabled='#{pageFlowScope.QcProcessBean.mode == "A"}'
+                                     disabledIcon="#{resource['images:disabled_add_white.png']}"
+                                     shortDesc="#{bundle['LBL.256']} : #{bundle['MSG.1242']}" accessKey="N"/>
+                <af:commandImageLink id="cil2" icon="#{resource['images:enable_cancel_blue.png']}"
+                                     action="#{pageFlowScope.QcProcessBean.cancelAction}" immediate="true"
+                                     shortDesc="#{bundle['LBL.2347']} : #{bundle['MSG.1247']}" accessKey="B">
+                  <af:resetActionListener/>
+                </af:commandImageLink>
+                <af:commandButton text="Cancel" id="cb7" immediate="true"
+                                  action="#{pageFlowScope.QcProcessBean.cancelAction}" inlineStyle="font-weight:bolder;"
+                                  visible="false">
+                  <af:resetActionListener/>
+                </af:commandButton>
+              </af:toolbar>
+            </af:group>
+          </f:facet>
+          <f:facet name="legend"/>
+          <f:facet name="info"/>
+        </af:panelHeader>
+      </af:panelGroupLayout>
+    </f:facet>
+  </af:panelStretchLayout>
+</jsp:root>

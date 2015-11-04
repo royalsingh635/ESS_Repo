@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="CashFlowHeaderVO"
+  Version="11.1.2.64.36"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full"
+  UseGlueCode="false"
+  ComponentClass="fincashflowapp.model.views.CashFlowHeaderVOImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Coll|VarAccess"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="fincashflowapp.model.views.CashFlowHeaderVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BindOrgId"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindCldId"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BindFyId"
+    Kind="viewcriteria"
+    Type="java.lang.Integer"/>
+  <SQLQuery><![CDATA[select	cld_id,
+	org_id,
+	org_fy_id,
+	sum(inflow) sum_inflow,
+	sum(outflow) sum_outflow,
+	round(sum(inflow)/ decode(max(voucher_date) - fy_strt,0,sum(inflow),max(voucher_date) - fy_strt),2) avg_inflow,
+	round(sum(outflow)/ decode(max(voucher_date) - fy_strt,0,sum(inflow),max(voucher_date) - fy_strt),2) avg_outflow ,
+	round(sum(inflow)/decode(sum(outflow),0,sum(inflow),sum(outflow)),2) inflow_vs_outflow ,
+	sum(inflow)- sum(outflow) todaysdef,
+        abs(sum(inflow)- sum(outflow)) todaysdefabs,
+	max(voucher_date) max_voucher_date
+FROM    (
+	select	a.gl_cld_id cld_id,
+		a.gl_org_id org_id,
+		c.org_fy_id,
+		a.gl_vou_dt voucher_date,
+		c.fy_strt,
+		c.fy_end,
+		substr(doc_txn_id_disp,3) id_disp ,
+		sum(decode(gl_amt_typ, 'Dr', gl_amt_bs, 0)) inflow,
+		sum(decode(gl_amt_typ, 'Cr', gl_amt_bs, 0)) outflow
+	from 	gl_lines a ,
+		app.app$doc$txn b,
+		(
+		select	cld_id,
+			org_id,
+			max(org_fy_id) org_fy_id,
+			trunc(fy_strt) fy_strt,
+			trunc(fy_end) fy_end
+		from	app.org$fy
+		where FY_TYPE = 'FY'
+		group by cld_id,
+			org_id,
+			trunc(fy_strt),
+			trunc(fy_end)
+		) c
+	where 	exists (select 1
+			from fin$acc$na fc
+			where fc.ACC_CLD_ID = a.GL_CLD_ID
+			and fc.ACC_SLOC_ID = a.GL_SLOC_ID
+			and fc.HO_ORG_ID = a.GL_HO_ORG_ID
+			and fc.acc_id = a.gl_na_id
+			and fc.acc_type in (78, 79)
+			)
+	and a.gl_cld_id = b.doc_cld_id
+	and a.gl_sloc_id = b.doc_sloc_id
+	and a.gl_org_id = b.doc_org_id
+	and a.gl_vou_id = b.doc_txn_id
+
+	and c.cld_id = a.gl_cld_id
+	and c.org_id = a.gl_org_id
+	and c.org_fy_id = a.gl_fy_id
+
+	group by gl_cld_id,
+		gl_org_id,
+		c.org_fy_id,
+		gl_vou_dt,
+		fy_strt,
+		fy_end,
+		substr(doc_txn_id_disp,3)
+	)
+group by cld_id,
+	org_id,
+	org_fy_id,
+	fy_strt]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgFyId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="ORG_FY_ID"
+    Expression="ORG_FY_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="SumInflow"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="SUM_INFLOW"
+    Expression="SUM_INFLOW"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="SumOutflow"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="SUM_OUTFLOW"
+    Expression="SUM_OUTFLOW"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="AvgInflow"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AVG_INFLOW"
+    Expression="AVG_INFLOW"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="AvgOutflow"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="AVG_OUTFLOW"
+    Expression="AVG_OUTFLOW"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="InflowVsOutflow"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="INFLOW_VS_OUTFLOW"
+    Expression="INFLOW_VS_OUTFLOW"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Todaysdef"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="TODAYSDEF"
+    Expression="TODAYSDEF"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="Todaysdefabs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="TODAYSDEFABS"
+    Expression="TODAYSDEFABS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="MaxVoucherDate"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="MAX_VOUCHER_DATE"
+    Expression="MAX_VOUCHER_DATE"
+    SQLType="DATE"/>
+  <ViewCriteria
+    Name="CashFlowHeaderVOCriteria"
+    ViewObjectName="fincashflowapp.model.views.CashFlowHeaderVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="InAdvancedMode"/>
+        <Property
+          Name="autoExecute"
+          Value="false"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="CashFlowHeaderVOCriteria_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="CldId"
+        ViewAttribute="CldId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindCldId"
+        IsBindVarValue="true"
+        Required="Optional">
+        <Properties>
+          <CustomProperties>
+            <Property
+              Name="renderedMode"
+              Value="Never"/>
+          </CustomProperties>
+        </Properties>
+      </ViewCriteriaItem>
+      <ViewCriteriaItem
+        Name="OrgId"
+        ViewAttribute="OrgId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindOrgId"
+        IsBindVarValue="true"
+        Required="Optional">
+        <Properties>
+          <CustomProperties>
+            <Property
+              Name="renderedMode"
+              Value="Never"/>
+          </CustomProperties>
+        </Properties>
+      </ViewCriteriaItem>
+      <ViewCriteriaItem
+        Name="OrgFyId"
+        ViewAttribute="OrgFyId"
+        Operator="="
+        Conjunction="AND"
+        Value=":BindFyId"
+        IsBindVarValue="true"
+        Required="Optional"/>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="fincashflowapp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>
