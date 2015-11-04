@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="LwpTakenDeptWiseVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="hcmlandingpage.model.views.LwpTakenDeptWiseVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="BIND_PROC_FRM_DT"
+    Kind="where"
+    Type="java.sql.Timestamp"/>
+  <Variable
+    Name="BIND_PROC_TO_DT"
+    Kind="where"
+    Type="java.sql.Timestamp"/>
+  <Variable
+    Name="BIND_CLD_ID"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BIND_SLOC_ID"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BIND_HO_ORG_ID"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BIND_ORG_ID"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BIND_DOC_ID"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BIND_EMP_GRP_ID"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BIND_EMP_DEPT_ID"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BIND_EMP_LOC_ID"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="BIND_MAX_VAL"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="BIND_NAME_STARTS_WITH"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[SELECT  CLD_ID, SLOC_ID,  HO_ORG_ID,  ORG_ID ,  
+ DEPARTMENT_ID , DEPARTEMENT_NAME, LWP from  
+(SELECT D.CLD_ID CLD_ID, D.SLOC_ID SLOC_ID, D.HO_ORG_ID HO_ORG_ID, D.ORG_ID ORG_ID, P.EMP_DEPT_ID DEPARTMENT_ID,  
+        (SELECT S.DEPT_NM FROM APP.APP$DEPT S WHERE D.CLD_ID =  S.CLD_ID AND D.SLOC_ID = S.SLOC_ID                          
+        AND D.HO_ORG_ID = S.HO_ORG_ID AND S.DEPT_ID = P.EMP_DEPT_ID)AS DEPARTEMENT_NAME ,  
+SUM(ABS) LWP  
+FROM   
+(  
+    SELECT D.CLD_ID, D.SLOC_ID, D.HO_ORG_ID, D.ORG_ID, D.EMP_DOC_ID , COUNT(EMP_DOC_ID) ABS  
+    FROM HCM$TIME$MOVE$EDIT$DTL D   
+    WHERE D.DED_CH = 'F'  
+    AND D.ATTEN_DT >=  NVL(:BIND_PROC_FRM_DT,SYSDATE-30) AND D.ATTEN_DT <= NVL(:BIND_PROC_TO_DT,SYSDATE)  
+    GROUP BY D.CLD_ID, D.SLOC_ID, D.HO_ORG_ID, D.ORG_ID, D.EMP_DOC_ID  
+        UNION ALL  
+    SELECT D.CLD_ID, D.SLOC_ID, D.HO_ORG_ID, D.ORG_ID, D.EMP_DOC_ID , COUNT(EMP_DOC_ID)/2 ABS  
+    FROM HCM$TIME$MOVE$EDIT$DTL D   
+    WHERE D.DED_CH = 'H'  
+    AND D.ATTEN_DT >=  NVL(:BIND_PROC_FRM_DT,SYSDATE-30) AND D.ATTEN_DT <= NVL(:BIND_PROC_TO_DT,SYSDATE)  
+    GROUP BY D.CLD_ID, D.SLOC_ID, D.HO_ORG_ID, D.ORG_ID, D.EMP_DOC_ID  
+) D ,  ORG$HCM$EMP$PRF P  
+WHERE P.CLD_ID = D.CLD_ID   
+    AND P.SLOC_ID = D.SLOC_ID  
+    AND P.HO_ORG_ID = D.HO_ORG_ID   
+    AND P.ORG_ID = D.ORG_ID   
+    AND P.DOC_ID = D.EMP_DOC_ID  
+    AND P.CLD_ID = NVL(:BIND_CLD_ID,P.CLD_ID)                           
+    AND P.SLOC_ID = NVL(:BIND_SLOC_ID,P.SLOC_ID)                           
+    AND P.HO_ORG_ID = NVL(:BIND_HO_ORG_ID,P.HO_ORG_ID)                           
+    AND P.ORG_ID = NVL(:BIND_ORG_ID,P.ORG_ID)   
+    AND P.DOC_ID IN (SELECT regexp_substr(NVL(:BIND_DOC_ID,P.DOC_ID), '[^, ]+', 1, LEVEL) token                                 
+                             FROM DUAL              --EMPLOYEE DOC ID                            
+                            CONNECT BY LEVEL <= LENGTH(:BIND_DOC_ID) - LENGTH(REPLACE(:BIND_DOC_ID, ',', '')) + 1)   
+    AND P.EMP_GRP_ID IN (SELECT regexp_substr(NVL(:BIND_EMP_GRP_ID,P.EMP_GRP_ID), '[^, ]+', 1, LEVEL) token                                
+                             FROM DUAL              --GROUP ID                           
+                            CONNECT BY LEVEL <= length(:BIND_EMP_GRP_ID) - length(REPLACE(:BIND_EMP_GRP_ID, ',', '')) + 1)                
+    AND P.EMP_DEPT_ID IN (SELECT regexp_substr(NVL(:BIND_EMP_DEPT_ID,P.EMP_DEPT_ID), '[^, ]+', 1, LEVEL) token                                              
+                             FROM dual              --DEPT ID                                         
+                            CONNECT BY LEVEL <= LENGTH(:BIND_EMP_DEPT_ID) - LENGTH(REPLACE(:BIND_EMP_DEPT_ID, ',', '')) + 1)                                         
+    AND P.EMP_LOC_ID IN (SELECT regexp_substr(NVL(:BIND_EMP_LOC_ID,P.EMP_LOC_ID), '[^, ]+', 1, LEVEL) token                                              
+                             FROM DUAL              --LOCATION ID                                         
+                            CONNECT BY LEVEL <= LENGTH(:BIND_EMP_LOC_ID) - LENGTH(REPLACE(:BIND_EMP_LOC_ID, ',', '')) + 1)  
+GROUP BY D.CLD_ID, D.SLOC_ID, D.HO_ORG_ID, D.ORG_ID, P.EMP_DEPT_ID  
+HAVING SUM(ABS) > NVL(:BIND_MAX_VAL,0))]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DepartmentId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="20"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="DEPARTMENT_ID"
+    Expression="DEPARTMENT_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="20"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="DepartementName"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="DEPARTEMENT_NAME"
+    Expression="DEPARTEMENT_NAME"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Lwp"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="LWP"
+    Expression="LWP"
+    SQLType="NUMERIC"/>
+  <ViewCriteria
+    Name="SearchWithStartsAlphabestVC"
+    ViewObjectName="hcmlandingpage.model.views.LwpTakenDeptWiseVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="InAdvancedMode"/>
+        <Property
+          Name="autoExecute"
+          Value="false"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="SearchWithStartsAlphabestVC_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="DepartementName"
+        ViewAttribute="DepartementName"
+        Operator="STARTSWITH"
+        Conjunction="AND"
+        Value=":BIND_NAME_STARTS_WITH"
+        IsBindVarValue="true"
+        Required="Optional"/>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+  <AttrArray Name="KeyAttributes">
+    <Item Value="CldId"/>
+    <Item Value="SlocId"/>
+    <Item Value="HoOrgId"/>
+    <Item Value="OrgId"/>
+  </AttrArray>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="hcmlandingapp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>
