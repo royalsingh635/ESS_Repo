@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="LOVEoNameVO"
+  Version="12.1.3.10.8"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full"
+  ComponentClass="slssalesinvoiceapp.model.module.view.LOVEoNameVOImpl">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+    <Attr Name="_codeGenFlag2" Value="Coll|Prog|VarAccess"/>
+  </DesignTime>
+  <Variable
+    Name="OrgIdBind"
+    Kind="where"
+    Type="java.lang.String">
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYHINT
+          Value="Hide"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </Variable>
+  <Variable
+    Name="EoDescBind"
+    Kind="viewcriteria"
+    Type="java.lang.String"/>
+  <Variable
+    Name="CldIdBind"
+    Kind="where"
+    Type="java.lang.String">
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYHINT
+          Value="Hide"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </Variable>
+  <Variable
+    Name="SlocIdBind"
+    Kind="where"
+    Type="java.lang.String">
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYHINT
+          Value="Hide"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </Variable>
+  <Variable
+    Name="HoOrgIdBind"
+    Kind="where"
+    Type="java.lang.String">
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYHINT
+          Value="Hide"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </Variable>
+  <Variable
+    Name="CatgIdBind"
+    Kind="where"
+    Type="java.lang.String">
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYHINT
+          Value="Hide"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </Variable>
+  <Variable
+    Name="InvTypeBind"
+    Kind="where"
+    Type="java.lang.String">
+    <Properties>
+      <SchemaBasedProperties>
+        <DISPLAYHINT
+          Value="Hide"/>
+      </SchemaBasedProperties>
+    </Properties>
+  </Variable>
+  <SQLQuery><![CDATA[SELECT DISTINCT A.EO_CLD_ID CLD_ID, 
+                  A.EO_SLOC_ID SLOC_ID, 
+                  A.EO_HO_ORG_ID HO_ORG_ID, 
+                  C.ORG_ID ORG_ID, 
+                  A.EO_TYPE, 
+                  A.EO_ID EO_ID, 
+                  A.EO_NM EO_NM, 
+                  B.SUPP_CURR_ID CUST_CURR_ID, 
+                  EE_SUB_TYPE_BHAV CATG_BHAV 
+    FROM APP.APP$EO A, 
+         APP.APP$EO$PRF B, 
+         APP.ORG C, 
+         APP$EE$PRF$SUB$TYPE D 
+   WHERE     A.EO_CLD_ID = B.EO_CLD_ID 
+         AND A.EO_SLOC_ID = B.EO_SLOC_ID 
+         AND A.EO_HO_ORG_ID = B.EO_HO_ORG_ID 
+         AND A.EO_ID = B.EO_ID 
+         AND A.EO_TYPE = B.EO_TYPE 
+         AND A.EO_CLD_ID = C.ORG_CLD_ID 
+         AND A.EO_SLOC_ID = C.ORG_CREATE_REF_SLOC_ID 
+         AND A.EO_HO_ORG_ID = APP.FN_GET_PARENT_ORG_L0 (C.ORG_CLD_ID, C.ORG_ID) 
+         AND D.EE_CLD_ID = A.EO_CLD_ID 
+         AND D.EE_SLOC_ID = A.EO_SLOC_ID 
+         AND A.CATG_ID = D.EE_SUB_TYPE_ID 
+         AND NVL (A.EO_ACTV, 'N') = 'Y' 
+         AND NVL (B.BLACK_LISTED, 'N') = 'N' 
+         AND NVL (B.ON_HOLD, 'N') = 'N' 
+         AND A.EO_TYPE IN (68, 81) 
+         AND A.EO_ID NOT IN (SLS.FN_GET_CASH_CUST_EO_ID_FR_ORG (A.EO_SLOC_ID, 
+                                                                A.EO_CLD_ID, 
+                                                                A.EO_HO_ORG_ID, 
+                                                                C.ORG_ID)) 
+         AND A.EO_CLD_ID = :CldIdBind 
+         AND C.ORG_ID = :OrgIdBind 
+         AND A.EO_SLOC_ID = :SlocIdBind 
+         AND A.EO_HO_ORG_ID = :HoOrgIdBind 
+         AND D.EE_SUB_TYPE_BHAV = NVL (:CatgIdBind, EE_SUB_TYPE_BHAV) 
+         AND EXISTS 
+               (SELECT 1 
+                  FROM DUAL 
+                 WHERE FN_SLS_CHK_ORG_PRF (:CldIdBind, 
+                                           :SlocIdBind, 
+                                           :OrgIdBind, 
+                                           'SHOW_CUST_WITH_PND_TXN') = 'N' 
+                UNION ALL 
+                SELECT 1 
+                  FROM SLS$SHIPMNT X 
+                 WHERE     X.CLD_ID = A.EO_CLD_ID 
+                       AND X.SLOC_ID = A.EO_SLOC_ID 
+                       AND X.HO_ORG_ID = A.EO_HO_ORG_ID 
+                       AND X.EO_ID = A.EO_ID 
+                       AND X.SHIPMNT_STAT = 217 
+                       AND :InvTypeBind IN (348, 883,923) 
+                UNION ALL 
+                SELECT 1 
+                  FROM SLS$INTM$SLIP Y 
+                 WHERE     Y.CLD_ID = A.EO_CLD_ID 
+                       AND Y.SLOC_ID = A.EO_SLOC_ID 
+                       AND Y.HO_ORG_ID = A.EO_HO_ORG_ID 
+                       AND Y.EO_ID = A.EO_ID 
+                       AND Y.INTM_STAT = 442 
+                       AND Y.INTM_MODE = 314 
+                       AND :InvTypeBind = 349 
+                UNION ALL 
+                SELECT 1 
+                  FROM SLS$INV Z 
+                 WHERE     Z.CLD_ID = A.EO_CLD_ID 
+                       AND Z.SLOC_ID = A.EO_SLOC_ID 
+                       AND Z.HO_ORG_ID = A.EO_HO_ORG_ID 
+                       AND Z.EO_ID = A.EO_ID 
+                       AND Z.INV_STAT = 218 
+                       AND Z.INV_MODE = 314 
+                       AND :InvTypeBind = 480 
+                UNION ALL 
+                SELECT 1 
+                  FROM SLS$SO W, SLS$SO$ITM V, APP.APP$ITM$PRF U 
+                 WHERE     W.CLD_ID = A.EO_CLD_ID 
+                       AND W.SLOC_ID = A.EO_SLOC_ID 
+                       AND W.HO_ORG_ID = A.EO_HO_ORG_ID 
+                       AND W.EO_ID = A.EO_ID 
+                       AND W.CLD_ID = V.CLD_ID 
+                       AND W.SLOC_ID = V.SLOC_ID 
+                       AND W.HO_ORG_ID = V.HO_ORG_ID 
+                       AND W.DOC_ID = V.DOC_ID 
+                       AND U.CLD_ID = V.CLD_ID 
+                       AND U.SLOC_ID = V.SLOC_ID 
+                       AND U.HO_ORG_ID = V.HO_ORG_ID 
+                       AND U.ITM_ID = V.ITM_ID 
+                       AND U.SRVC_ITM_FLG = 'Y' 
+                       AND W.ORDER_STAT = 217 
+                       AND W.SO_MODE = 314 
+                       AND W.ORDER_TYPE = 308 
+                       AND :InvTypeBind IN (795) 
+                UNION ALL 
+                SELECT 1 
+                  FROM SLS$SO Z 
+                 WHERE     Z.CLD_ID = A.EO_CLD_ID 
+                       AND Z.SLOC_ID = A.EO_SLOC_ID 
+                       AND Z.HO_ORG_ID = A.EO_HO_ORG_ID 
+                       AND Z.EO_ID = A.EO_ID 
+                       AND Z.ORDER_STAT = 217 
+                       AND Z.SO_MODE = 314 
+                       AND Z.ORDER_TYPE = 892 
+                       AND :InvTypeBind = 893) 
+ORDER BY A.EO_NM]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="EoType"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="EO_TYPE"
+    Expression="EO_TYPE"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="EoId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="INTEGER"
+    AliasName="EO_ID"
+    Expression="EO_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="EoNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="250"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="EO_NM"
+    Expression="EO_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="250"/>
+    </DesignTime>
+    <Properties>
+            <SchemaBasedProperties>
+                <DISPLAYWIDTH
+                  Value="25"/>
+                <LABEL
+                  ResId="LBL.299"/>
+            </SchemaBasedProperties>
+        </Properties>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CustCurrId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="INTEGER"
+    AliasName="CUST_CURR_ID"
+    Expression="CUST_CURR_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="CatgBhav"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="5"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="CATG_BHAV"
+    Expression="CATG_BHAV"
+    SQLType="INTEGER"/>
+  <ViewCriteria
+    Name="LOVEoNameVOCriteriaForNameSearch"
+    ViewObjectName="slssalesinvoiceapp.model.module.view.LOVEoNameVO"
+    Conjunction="AND">
+    <Properties>
+      <CustomProperties>
+        <Property
+          Name="displayOperators"
+          Value="InAdvancedMode"/>
+        <Property
+          Name="autoExecute"
+          Value="false"/>
+        <Property
+          Name="allowConjunctionOverride"
+          Value="true"/>
+        <Property
+          Name="showInList"
+          Value="true"/>
+        <Property
+          Name="mode"
+          Value="Basic"/>
+      </CustomProperties>
+    </Properties>
+    <ViewCriteriaRow
+      Name="LOVEoNameVOCriteria_row_0"
+      UpperColumns="1">
+      <ViewCriteriaItem
+        Name="EoNm"
+        ViewAttribute="EoNm"
+        Operator="CONTAINS"
+        Conjunction="AND"
+        Value=":EoDescBind"
+        IsBindVarValue="true"
+        Required="Optional"/>
+    </ViewCriteriaRow>
+  </ViewCriteria>
+</ViewObject>
