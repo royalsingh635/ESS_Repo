@@ -1,0 +1,1291 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<jsp:root xmlns:jsp="http://java.sun.com/JSP/Page" version="2.1" xmlns:af="http://xmlns.oracle.com/adf/faces/rich"
+          xmlns:f="http://java.sun.com/jsf/core">
+  <af:panelGroupLayout id="pgl1" layout="vertical" valign="top" halign="left" styleClass="AFStretchWidth">
+    <af:panelGroupLayout id="pgl2" layout="horizontal" valign="top" halign="left"
+                         styleClass="AFStretchWidth MainHeader">
+      <af:outputLabel value="Subcontracting Invoice" id="ol1"/>
+      <af:panelGroupLayout id="pgl6" rendered="true" halign="right" valign="middle" layout="horizontal"
+                           styleClass="AFStretchWidth">
+        <af:toolbar id="t1">
+          <af:link text="Cost Center" id="l23" action="#{pageFlowScope.AddSCInvoice.headCostCenterAction}"
+                   visible="#{pageFlowScope.AddSCInvoice.isCcValid}"
+                   inlineStyle="color:white;font-weight:bold;padding:3px;background-color: #3caf85;text-decoration:none;margin:5px;"/>
+          <af:link id="l22" icon="#{resource['images:print_blue.png']}"
+                   disabledIcon="#{resource['images:disable_printBlueIcon.png']}"
+                   disabled="#{pageFlowScope.AddSCInvoice.mode == 'C'}" targetFrame="_blank"
+                   destination="/scinvcservlet?CldId=#{pageFlowScope.GLBL_APP_CLD_ID}&amp;SlocId=#{pageFlowScope.GLBL_APP_SERV_LOC}&amp;HoOrgId=#{pageFlowScope.GLBL_HO_ORG_ID}&amp;OrgId=#{pageFlowScope.GLBL_APP_USR_ORG}&amp;DocId=#{pageFlowScope.DOC_ID}"/>
+          <af:spacer width="10" height="10" id="s3"/>
+          <af:link id="l1" icon="#{resource['images:enable_add_blue.png']}"
+                   disabledIcon="#{resource['images:disabled_add_white.png']}"
+                   actionListener="#{pageFlowScope.AddSCInvoice.addDocument}"
+                   disabled="#{pageFlowScope.AddSCInvoice.mode == 'C'}"/>
+          <af:spacer width="10" height="10" id="s1"/>
+          <af:link id="l2" icon="#{resource['images:enable_edit_blue.png']}"
+                   disabledIcon="#{resource['images:disabled_edit_white.png']}"
+                  actionListener="#{pageFlowScope.AddSCInvoice.editDocument}"
+                   disabled="#{pageFlowScope.AddSCInvoice.mode == 'C' ||  bindings.InvMode.inputValue ==314}"/>
+          <af:spacer width="10" height="10" id="s4"/>
+          <af:link id="l3" icon="#{resource['images:enable_save_blue.png']}"
+                   disabledIcon="#{resource['images:disabled_save_white.png']}"
+                  actionListener="#{pageFlowScope.AddSCInvoice.saveDocument}"
+                   disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"/>
+          <af:spacer width="10" height="10" id="s5"/>
+          <af:link id="l4" icon="#{resource['images:enable_cancel_blue.png']}"
+                   disabledIcon="#{resource['images:disabled_cancel_white.png']}"
+                  immediate="true" actionListener="#{pageFlowScope.AddSCInvoice.cancel}"
+                   disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}" action="Back">
+            <af:resetActionListener/>
+          </af:link>
+          <af:spacer width="10" height="10" id="s6"/>
+          <af:link id="l5" icon="#{resource['images:enable_save_and_forward_blue.png']}"
+                   disabledIcon="#{resource['images:disable_save_and_forward_blue.png']}"
+                   disabled="#{pageFlowScope.AddSCInvoice.mode != 'C' || bindings.MmScInvcItm1Iterator.estimatedRowCount==0}"
+                   action="#{pageFlowScope.AddSCInvoice.saveAndForward}" partialTriggers="l6"/>
+          <af:spacer width="10" height="10" id="s15"/>
+          <af:link id="l20" icon="#{resource['images:enable_back_white.png']}"
+                   disabledIcon="#{resource['images:disable_back_white.png']}"
+                    immediate="true" disabled="#{pageFlowScope.AddSCInvoice.mode == 'C'}" action="Back"/>
+        </af:toolbar>
+      </af:panelGroupLayout>
+    </af:panelGroupLayout>
+    <af:panelGroupLayout id="pgl4" styleClass="AFStretchWidth" inlineStyle="height:30px;padding-top:5px;" layout="horizontal"
+                         valign="middle" halign="left">
+      <af:panelFormLayout id="pfl1" rows="1" maxColumns="6" styleClass="AFStretchWidth TabHeader"
+                          inlineStyle="height:30px;">
+        <af:inputText value="#{bindings.InvNo.inputValue}"
+                      required="#{bindings.InvNo.hints.mandatory}" columns="#{bindings.InvNo.hints.displayWidth}"
+                      maximumLength="#{bindings.InvNo.hints.precision}" shortDesc="#{bindings.InvNo.hints.tooltip}"
+                      id="it1" readOnly="true" label="Invoice No : " partialTriggers="soc5 l3">
+          <f:validator binding="#{bindings.InvNo.validator}"/>
+        </af:inputText>
+        <af:selectOneChoice value="#{bindings.InvMode.inputValue}"
+                            required="#{bindings.InvMode.hints.mandatory}" shortDesc="#{bindings.InvMode.hints.tooltip}"
+                            id="soc1" readOnly="true" label="Mode">
+          <f:selectItems value="#{bindings.InvMode.items}" id="si1"/>
+          <f:validator binding="#{bindings.InvMode.validator}"/>
+        </af:selectOneChoice>
+        <af:selectOneChoice value="#{bindings.UsrIdCreate.inputValue}"
+                            required="#{bindings.UsrIdCreate.hints.mandatory}"
+                            shortDesc="#{bindings.UsrIdCreate.hints.tooltip}" id="soc2" readOnly="true"
+                            label="Created By">
+          <f:selectItems value="#{bindings.UsrIdCreate.items}" id="si2"/>
+          <f:validator binding="#{bindings.UsrIdCreate.validator}"/>
+        </af:selectOneChoice>
+        <af:inputDate value="#{bindings.UsrIdCreateDt.inputValue}"
+                      required="#{bindings.UsrIdCreateDt.hints.mandatory}"
+                      columns="#{bindings.UsrIdCreateDt.hints.displayWidth}"
+                      shortDesc="#{bindings.UsrIdCreateDt.hints.tooltip}" id="id2" label="On" readOnly="true">
+          <f:validator binding="#{bindings.UsrIdCreateDt.validator}"/>
+          <af:convertDateTime pattern="#{bindings.UsrIdCreateDt.format}"/>
+        </af:inputDate>
+        <af:selectOneChoice value="#{bindings.UsrIdMod.inputValue}" label="Modified By"
+                            required="#{bindings.UsrIdMod.hints.mandatory}"
+                            shortDesc="#{bindings.UsrIdMod.hints.tooltip}" id="soc3" readOnly="true">
+          <f:selectItems value="#{bindings.UsrIdMod.items}" id="si3"/>
+          <f:validator binding="#{bindings.UsrIdMod.validator}"/>
+        </af:selectOneChoice>
+        <af:inputDate value="#{bindings.UsrIdModDt.inputValue}" label="On"
+                      required="#{bindings.UsrIdModDt.hints.mandatory}"
+                      columns="#{bindings.UsrIdModDt.hints.displayWidth}"
+                      shortDesc="#{bindings.UsrIdModDt.hints.tooltip}" id="id3" readOnly="true">
+          <f:validator binding="#{bindings.UsrIdModDt.validator}"/>
+          <af:convertDateTime pattern="#{bindings.UsrIdModDt.format}"/>
+        </af:inputDate>
+      </af:panelFormLayout>
+    </af:panelGroupLayout>
+    <af:panelGroupLayout id="pgl3" styleClass="AFStretchWidth" layout="horizontal" valign="top" halign="left">
+      <af:panelBox id="pb1" showDisclosure="false" showHeader="never" inlineStyle="height:200px">
+        <f:facet name="toolbar"/>
+        <af:panelGroupLayout id="pgl7" layout="vertical" valign="top" halign="left"
+                             styleClass="AFStretchWidth PanelForm">
+          <af:outputText value="Invoice Detail" id="ot1" inlineStyle="Font-weight:bold;font-size:14px;"/>
+          <af:panelFormLayout id="pfl2" maxColumns="2" rows="6" labelWidth="150">
+            <af:selectOneChoice value="#{bindings.InvType.inputValue}" label="Invoice Type"
+                                required="true"
+                                shortDesc="#{bindings.InvType.hints.tooltip}" id="soc5" autoSubmit="true"
+                                contentStyle="width:200px;color:blue"
+                                labelStyle="color:black;font-weight:bold;font-size:11px;"
+                                disabled="#{pageFlowScope.AddSCInvoice.mode != 'C' ? true : bindings.MmScInvcDtl1Iterator.estimatedRowCount>0}" partialTriggers="l6"
+                                valueChangeListener="#{pageFlowScope.AddSCInvoice.changeTypeVCL}">
+              <f:selectItems value="#{bindings.InvType.items}" id="si5"/>
+              <f:validator binding="#{bindings.InvType.validator}"/>
+            </af:selectOneChoice>
+            <af:inputListOfValues id="transCurrnecyId"
+                                  popupTitle="Search and Select: #{bindings.TransCurrnecy.hints.label}"
+                                  value="#{bindings.TransCurrnecy.inputValue}"
+                                  label="Currency"
+                                  model="#{bindings.TransCurrnecy.listOfValuesModel}"
+                                  required="#{bindings.TransCurrnecy.hints.mandatory}"
+                                  columns="#{bindings.TransCurrnecy.hints.displayWidth}"
+                                  shortDesc="#{bindings.TransCurrnecy.hints.tooltip}"
+                                  disabled="#{pageFlowScope.AddSCInvoice.mode != 'C' ? true : bindings.MmScInvcDtl1Iterator.estimatedRowCount>0}"
+                                  autoSubmit="true" contentStyle="width:200px;color:blue"
+                                  labelStyle="color:black;font-weight:bold;font-size:11px;"
+                                  binding="#{pageFlowScope.AddSCInvoice.currency}" partialTriggers="transEntityId">
+              <f:validator binding="#{bindings.TransCurrnecy.validator}"/>
+              <af:autoSuggestBehavior suggestedItems="#{bindings.TransCurrnecy.suggestedItems}"/>
+            </af:inputListOfValues>
+            <af:selectOneChoice value="#{bindings.PrjId.inputValue}" label="Project"
+                                required="false" shortDesc="#{bindings.PrjId.hints.tooltip}"
+                                id="soc20" contentStyle="width:200px;color:blue"
+                                labelStyle="color:black;font-weight:bold;font-size:11px;"
+                                disabled="#{pageFlowScope.AddSCInvoice.mode != 'C' ? true : bindings.MmScInvcDtl1Iterator.estimatedRowCount>0}"
+                                autoSubmit="true"
+                                binding="#{pageFlowScope.AddSCInvoice.project}"
+                                rendered="true"
+                                visible="#{pageFlowScope.GLBL_ORG_PROJ_ALW=='Y'}">
+              <f:selectItems value="#{bindings.PrjId.items}" id="si20"/>
+              <f:validator binding="#{bindings.PrjId.validator}"/>
+            </af:selectOneChoice>
+            <af:inputText value="#{bindings.ExtDocNo.inputValue}" label="External Document No"
+                          required="#{bindings.ExtDocNo.hints.mandatory}"
+                          columns="#{bindings.ExtDocNo.hints.displayWidth}"
+                          maximumLength="#{bindings.ExtDocNo.hints.precision}"
+                          shortDesc="#{bindings.ExtDocNo.hints.tooltip}" id="it36"
+                          contentStyle="width:200px;color:blue"
+                          labelStyle="color:black;font-weight:bold;font-size:11px;"
+                          disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}">
+              <f:validator binding="#{bindings.ExtDocNo.validator}"/>
+            </af:inputText>
+            <af:inputText value="#{bindings.Remarks.inputValue}" label="#{bindings.Remarks.hints.label}"
+                          required="#{bindings.Remarks.hints.mandatory}"
+                          columns="#{bindings.Remarks.hints.displayWidth}"
+                          maximumLength="#{bindings.Remarks.hints.precision}"
+                          shortDesc="#{bindings.Remarks.hints.tooltip}" id="it4"
+                          labelStyle="color:black;font-weight:bold;font-size:11px;"
+                          contentStyle="width:200px;color:blue" rows="3"
+                          disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}">
+              <f:validator binding="#{bindings.Remarks.validator}"/>
+            </af:inputText>
+            <af:inputText value="#{bindings.TransDispId.inputValue}" label="Voucher Id"
+                          required="#{bindings.TransDispId.hints.mandatory}"
+                          columns="#{bindings.TransDispId.hints.displayWidth}"
+                          maximumLength="#{bindings.TransDispId.hints.precision}"
+                          shortDesc="#{bindings.TransDispId.hints.tooltip}" id="it37"
+                          contentStyle="width:200px;color:blue"
+                          labelStyle="color:black;font-weight:bold;font-size:11px;" disabled="true"
+                          partialTriggers="l1 l20">
+              <f:validator binding="#{bindings.TransDispId.validator}"/>
+            </af:inputText>
+            <af:inputListOfValues id="transEntityId" popupTitle="Search and Select: #{bindings.TransEntity.hints.label}"
+                                  value="#{bindings.TransEntity.inputValue}"
+                                  label="#{bindings.InvType.inputValue==826 ? ' Customer' : 'Service Provider'  }"
+                                  model="#{bindings.TransEntity.listOfValuesModel}"
+                                  columns="#{bindings.TransEntity.hints.displayWidth}"
+                                  shortDesc="#{bindings.TransEntity.hints.tooltip}"
+                                  contentStyle="width:200px;color:blue"
+                                  labelStyle="color:black;font-weight:bold;font-size:11px;" autoSubmit="true"
+                                  partialTriggers="soc5 l6"
+                                  disabled="#{pageFlowScope.AddSCInvoice.mode != 'C' || bindings.MmScInvcDtl1Iterator.estimatedRowCount>0}"
+                                  binding="#{pageFlowScope.AddSCInvoice.entityBind}">
+              <f:validator binding="#{bindings.TransEntity.validator}"/>
+              <af:autoSuggestBehavior suggestedItems="#{bindings.TransEntity.suggestedItems}"/>
+            </af:inputListOfValues>
+            <af:inputText value="#{bindings.CurrConvFctr.inputValue}" label="Conversion Rate"
+                          required="#{bindings.CurrConvFctr.hints.mandatory}"
+                          columns="#{bindings.CurrConvFctr.hints.displayWidth}"
+                          maximumLength="#{bindings.CurrConvFctr.hints.precision}"
+                          shortDesc="#{bindings.CurrConvFctr.hints.tooltip}" id="it3"
+                          labelStyle="color:black;font-weight:bold;font-size:11px;"
+                          contentStyle="width:200px;color:blue" disabled="true"
+                          partialTriggers="soc5 transEntityId transCurrnecyId">
+              <f:validator binding="#{bindings.CurrConvFctr.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.CurrConvFctr.format}"/>
+            </af:inputText>
+            <af:selectOneChoice value="#{bindings.TaxFormTypId.inputValue}" label="Form Type"
+                                required="#{bindings.TaxFormTypId.hints.mandatory}"
+                                shortDesc="#{bindings.TaxFormTypId.hints.tooltip}" id="soc4"
+                                contentStyle="width:200px;color:blue"
+                                labelStyle="color:black;font-weight:bold;font-size:11px;" autoSubmit="true"
+                                disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}">
+              <f:selectItems value="#{bindings.TaxFormTypId.items}" id="si4"/>
+              <f:validator binding="#{bindings.TaxFormTypId.validator}"/>
+            </af:selectOneChoice>
+            <af:inputDate value="#{bindings.ExtDocDt.inputValue}" label="External Document Date"
+                          required="#{bindings.ExtDocDt.hints.mandatory}"
+                          columns="#{bindings.ExtDocDt.hints.displayWidth}"
+                          shortDesc="#{bindings.ExtDocDt.hints.tooltip}" id="id5"
+                          labelStyle="color:black;font-weight:bold;font-size:11px;"
+                          contentStyle="width:200px;color:blue" disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}">
+              <f:validator binding="#{bindings.ExtDocDt.validator}"/>
+              <af:convertDateTime pattern="#{bindings.ExtDocDt.format}"/>
+            </af:inputDate>
+            <af:inputText value="#{bindings.TransAdds.inputValue}" label="Billing Address"
+                          required="#{bindings.TransAdds.hints.mandatory}"
+                          columns="#{bindings.TransAdds.hints.displayWidth}"
+                          maximumLength="#{bindings.TransAdds.hints.precision}"
+                          shortDesc="#{bindings.TransAdds.hints.tooltip}" id="it9" rows="3"
+                          contentStyle="width:200px;color:blue"
+                          labelStyle="color:black;font-weight:bold;font-size:11px;" disabled="true"
+                          partialTriggers="soc5 transEntityId">
+              <f:validator binding="#{bindings.TransAdds.validator}"/>
+            </af:inputText>
+          </af:panelFormLayout>
+        </af:panelGroupLayout>
+      </af:panelBox>
+      <af:panelBox id="pb2" showHeader="never" showDisclosure="false" inlineStyle="width:400px;height:200px;">
+        <f:facet name="toolbar"/>
+        <af:panelGroupLayout id="pgl5" styleClass="AFStretchWidth" inlineStyle="height:160px;padding:10px;"
+                             layout="vertical" valign="middle" halign="left">
+          <af:activeOutputText value="Total Amout" id="aot1"
+                               inlineStyle="Font-weight:bold;font-size:14px;"/>
+          <af:panelFormLayout id="pfl3" styleClass="padding:5px;">
+            <af:inputText value="#{bindings.TransAssAmt.inputValue}" label="Assessable  Amount"
+                          required="#{bindings.TransAssAmt.hints.mandatory}"
+                          columns="#{bindings.TransAssAmt.hints.displayWidth}"
+                          maximumLength="#{bindings.TransAssAmt.hints.precision}"
+                          shortDesc="#{bindings.TransAssAmt.hints.tooltip}" id="it2" readOnly="true"
+                          labelStyle="Font-weight:bold;font-size:11px;"
+                          contentStyle="Font-weight:bold;font-size:11px;color:blue;"
+                          partialTriggers="l6 p1 d1 p2 d2 p3 d3">
+              <f:validator binding="#{bindings.TransAssAmt.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.TransAssAmt.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+            <af:inputText value="#{bindings.TransTax.inputValue}" label="Total Tax"
+                          required="#{bindings.TransTax.hints.mandatory}"
+                          columns="#{bindings.TransTax.hints.displayWidth}"
+                          maximumLength="#{bindings.TransTax.hints.precision}"
+                          shortDesc="#{bindings.TransTax.hints.tooltip}" id="it5" readOnly="true"
+                          labelStyle="Font-weight:bold;font-size:11px;"
+                          contentStyle="Font-weight:bold;font-size:11px;color:blue;"
+                          partialTriggers="l6 p1 d1 p2 d2 soc12 p3 d3 p4 d4 soc18">
+              <f:validator binding="#{bindings.TransTax.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.TransTax.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+            <af:inputText value="#{bindings.TransTds.inputValue}" label="Tds"
+                          required="#{bindings.TransTds.hints.mandatory}"
+                          columns="#{bindings.TransTds.hints.displayWidth}"
+                          maximumLength="#{bindings.TransTds.hints.precision}"
+                          shortDesc="#{bindings.TransTds.hints.tooltip}" id="it8" readOnly="true"
+                          labelStyle="Font-weight:bold;font-size:11px;"
+                          contentStyle="Font-weight:bold;font-size:11px;color:blue;"
+                          partialTriggers="l6 p1 d1 p2 d2 p3 d3 soc14 p5 d5 soc19">
+              <f:validator binding="#{bindings.TransTds.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.TransTds.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+            <af:inputText value="#{bindings.TransOc.inputValue}" label="Total Other charges"
+                          required="#{bindings.TransOc.hints.mandatory}"
+                          columns="#{bindings.TransOc.hints.displayWidth}"
+                          maximumLength="#{bindings.TransOc.hints.precision}"
+                          shortDesc="#{bindings.TransOc.hints.tooltip}" id="it6" readOnly="true"
+                          labelStyle="Font-weight:bold;font-size:11px;"
+                          contentStyle="Font-weight:bold;font-size:11px;color:blue;"
+                          partialTriggers="l6 p1 d1 t5:l10 t5:l11 p2 d2 p3 d3 transCurrIdId it17">
+              <f:validator binding="#{bindings.TransOc.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.TransOc.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+            <af:inputText value="#{bindings.TransTotal.inputValue}"
+                          required="#{bindings.TransTotal.hints.mandatory}"
+                          columns="#{bindings.TransTotal.hints.displayWidth}"
+                          maximumLength="#{bindings.TransTotal.hints.precision}"
+                          shortDesc="#{bindings.TransTotal.hints.tooltip}" id="it7" label="Total" readOnly="true"
+                          labelStyle="Font-weight:bold;font-size:11px;"
+                          contentStyle="Font-weight:bold;font-size:11px;color:blue;"
+                          partialTriggers="l6 p1 d1 t5:l10 t5:l11 transCurrIdId it17 p2 d2 soc12 p3 d3 soc14 p4 d4 soc18 soc19">
+              <f:validator binding="#{bindings.TransTotal.validator}"/>
+              <af:convertNumber groupingUsed="false" pattern="#{bindings.TransTotal.format}"
+                                minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+            </af:inputText>
+          </af:panelFormLayout>
+        </af:panelGroupLayout>
+      </af:panelBox>
+    </af:panelGroupLayout>
+    <af:panelGroupLayout id="pgl8" styleClass="AFStretchWidth  SearchPanel" layout="horizontal" valign="top" halign="left">
+      <af:panelBox id="pb3" showDisclosure="false" showHeader="never" styleClass="AFStretchWidth">
+        <f:facet name="toolbar"/>
+        <af:panelGroupLayout id="pgl28" layout="vertical" valign="middle" halign="left" styleClass="SearchPanel"
+                             inlineStyle="height:40px;">
+          <af:panelFormLayout id="pfl4" styleClass="AFStretchWidth " maxColumns="2" rows="1" labelWidth="150"
+                              inlineStyle="padding-top:10px;">
+            <af:inputListOfValues id="docNo1Id" popupTitle="Search and Select: #{bindings.DocNo1.hints.label}"
+                                  value="#{bindings.DocNo1.inputValue}"
+                                  label="#{bindings.InvType.inputValue==826 ? ' Issue No' : 'Receipt No'  }"
+                                  model="#{bindings.DocNo1.listOfValuesModel}"
+                                  required="#{bindings.DocNo1.hints.mandatory}"
+                                  columns="#{bindings.DocNo1.hints.displayWidth}"
+                                  shortDesc="#{bindings.DocNo1.hints.tooltip}" contentStyle="width:200px;color:blue"
+                                  labelStyle="color:black;font-weight:bold;font-size:11px;"
+                                  partialTriggers="soc5 transCurrnecyId transEntityId l6 soc20" autoSubmit="true"
+                                  disabled="#{pageFlowScope.AddSCInvoice.mode != 'C' ? true :false}"
+                                  binding="#{pageFlowScope.AddSCInvoice.docNoBind}">
+              <f:validator binding="#{bindings.DocNo1.validator}"/>
+              <af:autoSuggestBehavior suggestedItems="#{bindings.DocNo1.suggestedItems}"/>
+            </af:inputListOfValues>
+            <af:link id="l6" icon="#{resource['images:enable_add_blue.png']}"
+                     disabledIcon="#{resource['images:disabled_add_white.png']}"
+                     actionListener="#{pageFlowScope.AddSCInvoice.addDocDetail}"
+                     disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"/>
+          </af:panelFormLayout>
+        </af:panelGroupLayout>
+      </af:panelBox>
+    </af:panelGroupLayout>
+    <af:panelTabbed position="above" id="pt1" dimensionsFrom="disclosedChild" styleClass="AFStretchWidth">
+      <af:showDetailItem id="tab1" text="Source Detail" styleClass="AFStretchWidth" stretchChildren="first">
+        <af:panelGroupLayout id="pgl30" styleClass="AFStretchWidth" layout="vertical" valign="top" halign="left">
+          <af:panelGroupLayout id="pgl29" styleClass="AFStretchWidth LeftHeader" layout="horizontal" valign="middle"
+                               halign="left">
+            <af:outputLabel value="Document Detail" id="ol8"/>
+          </af:panelGroupLayout>
+          <af:panelStretchLayout id="psl1" startWidth="200px" endWidth="0px;" topHeight="0px;" bottomHeight="0px;"
+                                 dimensionsFrom="children" styleClass="AFStretchWidth">
+            <f:facet name="bottom"/>
+            <f:facet name="center">
+              <af:panelGroupLayout id="pgl9" layout="vertical" valign="top" halign="left" styleClass="AFStretchWidth">
+                <af:panelBox id="pb4" showDisclosure="false" showHeader="never" styleClass="AFStretchWidth">
+                  <f:facet name="toolbar"/>
+                  <af:outputText value="#{bindings.DocIdSco.inputValue}" shortDesc="#{bindings.DocIdSco.hints.tooltip}"
+                                 id="ot2" partialTriggers="t3 t2" visible="false"/>
+                  <af:panelGroupLayout id="pgl10" styleClass="AFStretchWidth" layout="vertical" valign="top"
+                                       halign="left" inlineStyle="padding:5px;">
+                    <af:inputText value="#{bindings.TotAmt.inputValue}" required="#{bindings.TotAmt.hints.mandatory}"
+                                  columns="#{bindings.TotAmt.hints.displayWidth}"
+                                  maximumLength="#{bindings.TotAmt.hints.precision}"
+                                  shortDesc="#{bindings.TotAmt.hints.tooltip}" id="it44" readOnly="true"
+                                  partialTriggers="t3" visible="false">
+                      <f:validator binding="#{bindings.TotAmt.validator}"/>
+                      <af:convertNumber groupingUsed="false" pattern="#{bindings.TotAmt.format}"/>
+                    </af:inputText>
+                    <af:table value="#{bindings.MmScInvcSrc1.collectionModel}" var="row"
+                              rows="#{bindings.MmScInvcSrc1.rangeSize}"
+                              emptyText="#{bindings.MmScInvcSrc1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                              rowBandingInterval="0"
+                              selectedRowKeys="#{bindings.MmScInvcSrc1.collectionModel.selectedRow}"
+                              selectionListener="#{bindings.MmScInvcSrc1.collectionModel.makeCurrent}"
+                              rowSelection="single" fetchSize="#{bindings.MmScInvcSrc1.rangeSize}" id="t3"
+                              columnStretching="column:c2" horizontalGridVisible="true" verticalGridVisible="false"
+                              inlineStyle="line-height:25px;" autoHeightRows="4" styleClass="AFStretchWidth"
+                              partialTriggers="::l1 ::l2 ::l3 ::l4 ::l5 ::l20 ::l6 ::t2" contentDelivery="immediate">
+                      <af:column headerText="Subcontracting Order" id="c2" width="200">
+                        <af:selectOneChoice value="#{row.bindings.DocIdSco.inputValue}"
+                                            label="#{row.bindings.DocIdSco.label}"
+                                            required="#{bindings.MmScInvcSrc1.hints.DocIdSco.mandatory}"
+                                            shortDesc="#{bindings.MmScInvcSrc1.hints.DocIdSco.tooltip}" id="soc7"
+                                            readOnly="true" contentStyle="color:blue;">
+                          <f:selectItems value="#{row.bindings.DocIdSco.items}" id="si7"/>
+                          <f:validator binding="#{row.bindings.DocIdSco.validator}"/>
+                        </af:selectOneChoice>
+                      </af:column>
+                      <af:column headerText="Schedule Number" id="c3" width="200" align="right">
+                        <af:inputText value="#{row.bindings.DlvSchdlNo.inputValue}"
+                                      label="#{bindings.MmScInvcSrc1.hints.DlvSchdlNo.label}"
+                                      required="#{bindings.MmScInvcSrc1.hints.DlvSchdlNo.mandatory}"
+                                      columns="#{bindings.MmScInvcSrc1.hints.DlvSchdlNo.displayWidth}"
+                                      maximumLength="#{bindings.MmScInvcSrc1.hints.DlvSchdlNo.precision}"
+                                      shortDesc="#{bindings.MmScInvcSrc1.hints.DlvSchdlNo.tooltip}" id="it10"
+                                      readOnly="true" contentStyle="color:green;text-align:right;">
+                          <f:validator binding="#{row.bindings.DlvSchdlNo.validator}"/>
+                          <af:convertNumber groupingUsed="false"
+                                            pattern="#{bindings.MmScInvcSrc1.hints.DlvSchdlNo.format}"/>
+                        </af:inputText>
+                      </af:column>
+                      <af:column id="c12">
+                        <af:panelGroupLayout id="pgl13" layout="vertical" valign="top" halign="left">
+                          <af:link text="Apply Other Charges" id="l9"
+                                   actionListener="#{pageFlowScope.AddSCInvoice.showOtherCharges}"/>
+                        </af:panelGroupLayout>
+                      </af:column>
+                      <af:column id="c34" width="200">
+                        <af:panelGroupLayout id="pgl31" layout="horizontal" styleClass="AFStretchWidth" valign="top"
+                                             halign="left">
+                          <af:panelGroupLayout id="pgl38" layout="vertical" valign="top" halign="left">
+                            <af:link text="Apply Tax" id="l14" disabled="#{ pageFlowScope.AddSCInvoice.mode != 'C' }"
+                                     actionListener="#{pageFlowScope.AddSCInvoice.applyTaxAllAL}"/>
+                            <af:link text="Apply Tds" id="l15"
+                                     disabled="#{bindings.InvType.inputValue == 826  || pageFlowScope.AddSCInvoice.mode != 'C' }">
+                              <af:showPopupBehavior popupId="::p5" triggerType="click"/>
+                            </af:link>
+                          </af:panelGroupLayout>
+                        </af:panelGroupLayout>
+                      </af:column>
+                    </af:table>
+                  </af:panelGroupLayout>
+                </af:panelBox>
+                <af:panelBox id="pb5" showHeader="never" showDisclosure="false" styleClass="AFStretchWidth">
+                  <f:facet name="toolbar"/>
+                  <af:inputText value="#{bindings.CcId.inputValue}" simple="true"
+                                required="#{bindings.CcId.hints.mandatory}"
+                                columns="#{bindings.CcId.hints.displayWidth}"
+                                maximumLength="#{bindings.CcId.hints.precision}"
+                                shortDesc="#{bindings.CcId.hints.tooltip}" id="it38" readOnly="true"
+                                partialTriggers="t4" visible="false">
+                    <f:validator binding="#{bindings.CcId.validator}"/>
+                  </af:inputText>
+                  <af:inputText value="#{bindings.TaxableAmtSp.inputValue}"
+                                required="#{bindings.TaxableAmtSp.hints.mandatory}"
+                                columns="#{bindings.TaxableAmtSp.hints.displayWidth}"
+                                maximumLength="#{bindings.TaxableAmtSp.hints.precision}"
+                                shortDesc="#{bindings.TaxableAmtSp.hints.tooltip}" id="it45" visible="false"
+                                partialTriggers="t4" readOnly="true">
+                    <f:validator binding="#{bindings.TaxableAmtSp.validator}"/>
+                    <af:convertNumber groupingUsed="false" pattern="#{bindings.TaxableAmtSp.format}"/>
+                  </af:inputText>
+                  <af:panelGroupLayout id="pgl11" styleClass="AFStretchWidth" layout="horizontal" valign="top"
+                                       halign="left">
+                    <af:table value="#{bindings.MmScInvcItm1.collectionModel}" var="row"
+                              rows="#{bindings.MmScInvcItm1.rangeSize}"
+                              emptyText="#{bindings.MmScInvcItm1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                              rowBandingInterval="0"
+                              selectedRowKeys="#{bindings.MmScInvcItm1.collectionModel.selectedRow}"
+                              selectionListener="#{bindings.MmScInvcItm1.collectionModel.makeCurrent}"
+                              rowSelection="single" fetchSize="#{bindings.MmScInvcItm1.rangeSize}" id="t4"
+                              inlineStyle="line-height:25px;" columnStretching="column:c11" verticalGridVisible="false"
+                              styleClass="AFStretchWidth" autoHeightRows="4"
+                              partialTriggers="::l1 ::l2 ::l3 ::l4 ::l5 ::l20 ::l6 ::t2 ::t3 ::p2 ::d2 ::p3 ::d3"
+                              contentDelivery="immediate">
+                      <af:column headerText="Operation" id="c47" width="150">
+                        <af:inputText value="#{row.bindings.TransOpDesc.inputValue}"
+                                      label="#{bindings.MmScInvcItm1.hints.TransOpDesc.label}"
+                                      required="#{bindings.MmScInvcItm1.hints.TransOpDesc.mandatory}"
+                                      columns="#{bindings.MmScInvcItm1.hints.TransOpDesc.displayWidth}"
+                                      maximumLength="#{bindings.MmScInvcItm1.hints.TransOpDesc.precision}"
+                                      shortDesc="#{bindings.MmScInvcItm1.hints.TransOpDesc.tooltip}" id="it46"
+                                      readOnly="true" contentStyle="color:black;font-weight:bold;">
+                          <f:validator binding="#{row.bindings.TransOpDesc.validator}"/>
+                        </af:inputText>
+                      </af:column>
+                      <af:column headerText="Item" id="c4" width="150">
+                        <af:selectOneChoice value="#{row.bindings.ItmId.inputValue}" label="#{row.bindings.ItmId.label}"
+                                            required="#{bindings.MmScInvcItm1.hints.ItmId.mandatory}"
+                                            shortDesc="#{bindings.MmScInvcItm1.hints.ItmId.tooltip}" id="soc8"
+                                            readOnly="true" contentStyle="color:blue;">
+                          <f:selectItems value="#{row.bindings.ItmId.items}" id="si8"/>
+                          <f:validator binding="#{row.bindings.ItmId.validator}"/>
+                        </af:selectOneChoice>
+                      </af:column>
+                      <af:column headerText="Uom" id="c5" width="80">
+                        <af:selectOneChoice value="#{row.bindings.ItmUom.inputValue}" label="UOM"
+                                            required="#{bindings.MmScInvcItm1.hints.ItmUom.mandatory}"
+                                            shortDesc="#{bindings.MmScInvcItm1.hints.ItmUom.tooltip}" id="soc9"
+                                            readOnly="true" contentStyle="color:Maroon;">
+                          <f:selectItems value="#{row.bindings.ItmUom.items}" id="si9"/>
+                          <f:validator binding="#{row.bindings.ItmUom.validator}"/>
+                        </af:selectOneChoice>
+                      </af:column>
+                      <af:column headerText="Quantity" id="c6" width="60" align="right">
+                        <af:inputText value="#{row.bindings.FinalRcptQty.inputValue}"
+                                      label="#{bindings.MmScInvcItm1.hints.FinalRcptQty.label}"
+                                      required="#{bindings.MmScInvcItm1.hints.FinalRcptQty.mandatory}"
+                                      columns="#{bindings.MmScInvcItm1.hints.FinalRcptQty.displayWidth}"
+                                      maximumLength="#{bindings.MmScInvcItm1.hints.FinalRcptQty.precision}"
+                                      shortDesc="#{bindings.MmScInvcItm1.hints.FinalRcptQty.tooltip}" id="it11"
+                                      readOnly="true" contentStyle="text-align:right;">
+                          <f:validator binding="#{row.bindings.FinalRcptQty.validator}"/>
+                          <af:convertNumber groupingUsed="false"
+                                            pattern="#{bindings.MmScInvcItm1.hints.FinalRcptQty.format}"
+                                            minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                            maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                        </af:inputText>
+                      </af:column>
+                      <af:column headerText="Service Charge / Item Price" id="c7" width="100" align="right">
+                        <af:inputText value="#{row.bindings.ItmPrice.inputValue}"
+                                      label="#{bindings.MmScInvcItm1.hints.ItmPrice.label}"
+                                      required="#{bindings.MmScInvcItm1.hints.ItmPrice.mandatory}"
+                                      columns="#{bindings.MmScInvcItm1.hints.ItmPrice.displayWidth}"
+                                      maximumLength="#{bindings.MmScInvcItm1.hints.ItmPrice.precision}"
+                                      shortDesc="#{bindings.MmScInvcItm1.hints.ItmPrice.tooltip}" id="it12"
+                                      readOnly="true" contentStyle="color:green;text-align:right;">
+                          <f:validator binding="#{row.bindings.ItmPrice.validator}"/>
+                          <af:convertNumber groupingUsed="false"
+                                            pattern="#{bindings.MmScInvcItm1.hints.ItmPrice.format}"
+                                            minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                            maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                        </af:inputText>
+                      </af:column>
+                      <af:column headerText="Amount" id="c8" width="60" align="right">
+                        <af:inputText value="#{row.bindings.ItmAmtSp.inputValue}"
+                                      label="#{bindings.MmScInvcItm1.hints.ItmAmtSp.label}"
+                                      required="#{bindings.MmScInvcItm1.hints.ItmAmtSp.mandatory}"
+                                      columns="#{bindings.MmScInvcItm1.hints.ItmAmtSp.displayWidth}"
+                                      maximumLength="#{bindings.MmScInvcItm1.hints.ItmAmtSp.precision}"
+                                      shortDesc="#{bindings.MmScInvcItm1.hints.ItmAmtSp.tooltip}" id="it13"
+                                      readOnly="true" contentStyle="color:blue;text-align:right;">
+                          <f:validator binding="#{row.bindings.ItmAmtSp.validator}"/>
+                          <af:convertNumber groupingUsed="false"
+                                            pattern="#{bindings.MmScInvcItm1.hints.ItmAmtSp.format}"
+                                            minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                            maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                        </af:inputText>
+                      </af:column>
+                      <af:column headerText="Taxable amount" id="c9" width="80" align="right">
+                        <af:inputText value="#{row.bindings.TaxableAmtSp.inputValue}"
+                                      label="#{bindings.MmScInvcItm1.hints.TaxableAmtSp.label}"
+                                      required="#{bindings.MmScInvcItm1.hints.TaxableAmtSp.mandatory}"
+                                      columns="#{bindings.MmScInvcItm1.hints.TaxableAmtSp.displayWidth}"
+                                      maximumLength="#{bindings.MmScInvcItm1.hints.TaxableAmtSp.precision}"
+                                      shortDesc="#{bindings.MmScInvcItm1.hints.TaxableAmtSp.tooltip}" id="it14"
+                                      readOnly="true" contentStyle="color:Maroon;text-align:right;">
+                          <f:validator binding="#{row.bindings.TaxableAmtSp.validator}"/>
+                          <af:convertNumber groupingUsed="false"
+                                            pattern="#{bindings.MmScInvcItm1.hints.TaxableAmtSp.format}"
+                                            minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                            maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                        </af:inputText>
+                      </af:column>
+                      <af:column headerText="Total Tax" id="c10" width="80" align="right">
+                        <af:inputText value="#{row.bindings.TotTaxAmtSp.inputValue}"
+                                      label="#{bindings.MmScInvcItm1.hints.TotTaxAmtSp.label}"
+                                      required="#{bindings.MmScInvcItm1.hints.TotTaxAmtSp.mandatory}"
+                                      columns="#{bindings.MmScInvcItm1.hints.TotTaxAmtSp.displayWidth}"
+                                      maximumLength="#{bindings.MmScInvcItm1.hints.TotTaxAmtSp.precision}"
+                                      shortDesc="#{bindings.MmScInvcItm1.hints.TotTaxAmtSp.tooltip}" id="it15"
+                                      readOnly="true" contentStyle="color:green;text-align:right;">
+                          <f:validator binding="#{row.bindings.TotTaxAmtSp.validator}"/>
+                          <af:convertNumber groupingUsed="false"
+                                            pattern="#{bindings.MmScInvcItm1.hints.TotTaxAmtSp.format}"
+                                            minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                            maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                        </af:inputText>
+                      </af:column>
+                      <af:column id="c11" width="120">
+                        <af:panelGroupLayout id="pgl39" layout="horizontal" styleClass="AFStretchWidth">
+                          <af:panelGroupLayout id="pgl12" layout="vertical" valign="top" halign="left">
+                            <af:link text="Apply Tax" id="l7"
+                                     actionListener="#{pageFlowScope.AddSCInvoice.applyTaxListener}"
+                                     disabled="#{ pageFlowScope.AddSCInvoice.mode != 'C' }"/>
+                            <af:link text="Apply Tds" id="l8" actionListener="#{pageFlowScope.AddSCInvoice.applyTDS}"
+                                     disabled="#{bindings.InvType.inputValue == 826  || pageFlowScope.AddSCInvoice.mode != 'C' }"/>
+                          </af:panelGroupLayout>
+                          <af:panelGroupLayout id="pgl37"
+                                               inlineStyle="color:white;font-weight:bold;padding:3px;background-color: #3caf85;text-decoration:none;margin:5px;">
+                            <af:link text="Cost Center" id="l24"
+                                     action="#{pageFlowScope.AddSCInvoice.costCenterAction}"
+                                     visible="#{pageFlowScope.AddSCInvoice.isCcValid}"/>
+                          </af:panelGroupLayout>
+                        </af:panelGroupLayout>
+                      </af:column>
+                    </af:table>
+                  </af:panelGroupLayout>
+                </af:panelBox>
+              </af:panelGroupLayout>
+            </f:facet>
+            <f:facet name="start">
+              <af:table value="#{bindings.MmScInvcDtl1.collectionModel}" var="row"
+                        rows="#{bindings.MmScInvcDtl1.rangeSize}"
+                        emptyText="#{bindings.MmScInvcDtl1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                        rowBandingInterval="0" selectedRowKeys="#{bindings.MmScInvcDtl1.collectionModel.selectedRow}"
+                        selectionListener="#{bindings.MmScInvcDtl1.collectionModel.makeCurrent}" rowSelection="single"
+                        fetchSize="#{bindings.MmScInvcDtl1.rangeSize}" id="t2"
+                        inlineStyle="line-height:25px;width:200px;" autoHeightRows="10" columnStretching="column:c1"
+                        partialTriggers="::l1 ::l2 ::l3 ::l4 ::l5 ::l20 ::l6" contentDelivery="immediate">
+                <af:column headerText="Document" id="c1" sortable="true" styleClass="AFStretchWidth" width="150">
+                  <af:selectOneChoice value="#{row.bindings.DocIdSrc.inputValue}" label="#{row.bindings.DocIdSrc.label}"
+                                      required="#{bindings.MmScInvcDtl1.hints.DocIdSrc.mandatory}"
+                                      shortDesc="#{bindings.MmScInvcDtl1.hints.DocIdSrc.tooltip}" id="soc6" contentStyle="width:150px;color:Maroon;"
+                                      readOnly="true">
+                    <f:selectItems value="#{row.bindings.DocIdSrc.items}" id="si6"/>
+                    <f:validator binding="#{row.bindings.DocIdSrc.validator}"/>
+                  </af:selectOneChoice>
+                </af:column>
+                <af:column id="c40" width="30" align="center">
+                  <af:link id="l25" icon="#{resource['images:enable_delete_blue.png']}"
+                       disabledIcon="#{resource['images:disabled_delete_white.png']}"
+                       actionListener="#{bindings.deleteDocument.execute}"
+                       disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"/>
+                </af:column>
+              </af:table>
+            </f:facet>
+            <f:facet name="end"/>
+            <f:facet name="top"/>
+          </af:panelStretchLayout>
+        </af:panelGroupLayout>
+      </af:showDetailItem>
+      <af:showDetailItem text="Payment Schedule" id="sdi1">
+        <af:panelGroupLayout id="pgl26" styleClass="AFStretchWidth" layout="vertical" valign="top" halign="left">
+          <af:panelGroupLayout id="pgl27" styleClass="AFStretchWidth LeftHeader" layout="horizontal" valign="middle" halign="left">
+            <af:outputLabel value="Make Payment Schedule" id="ol7"/>
+          </af:panelGroupLayout>
+          <af:panelBox id="pb6" showHeader="never" showDisclosure="false">
+            <f:facet name="toolbar"/>
+            <af:panelFormLayout id="pfl7" maxColumns="4" rows="1" styleClass="SearchPanel AFStretchWidth"
+                                inlineStyle="padding:5px;" labelWidth="100px;">
+              <af:selectOneChoice value="#{bindings.PayMode.inputValue}" label="Mode"
+                                  required="#{bindings.PayMode.hints.mandatory}"
+                                  shortDesc="#{bindings.PayMode.hints.tooltip}" id="soc15"
+                                  contentStyle="width:130px;color:blue"
+                                  labelStyle="color:black;font-weight:bold;font-size:11px"
+                                  disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"
+                                  partialTriggers="l1 l2 l3 l4 l5 l20 l6">
+                <f:selectItems value="#{bindings.PayMode.items}" id="si15"/>
+                <f:validator binding="#{bindings.PayMode.validator}"/>
+              </af:selectOneChoice>
+              <af:inputDate value="#{bindings.PayDate.inputValue}" label="Date"
+                            required="#{bindings.PayDate.hints.mandatory}"
+                            columns="#{bindings.PayDate.hints.displayWidth}"
+                            shortDesc="#{bindings.PayDate.hints.tooltip}" id="id1" contentStyle="width:130px;color:blue"
+                            labelStyle="color:black;font-weight:bold;font-size:11px"
+                            disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"
+                            partialTriggers="l1 l2 l3 l4 l5 l20 l6">
+                <f:validator binding="#{bindings.PayDate.validator}"/>
+                <af:convertDateTime pattern="#{bindings.PayDate.format}"/>
+              </af:inputDate>
+              <af:inputText value="#{bindings.PayAmt.inputValue}" label="Amount"
+                            required="#{bindings.PayAmt.hints.mandatory}"
+                            columns="#{bindings.PayAmt.hints.displayWidth}"
+                            maximumLength="#{bindings.PayAmt.hints.precision}"
+                            shortDesc="#{bindings.PayAmt.hints.tooltip}" id="it27"
+                            contentStyle="width:130px;color:blue;text-align:right;"
+                            labelStyle="color:black;font-weight:bold;font-size:11px"
+                            disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"
+                            partialTriggers="l1 l2 l3 l4 l5 l20 l6">
+                <f:validator binding="#{bindings.PayAmt.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.PayAmt.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:inputText>
+              <af:link id="l12" icon="#{resource['images:enable_add_blue.png']}"
+                       disabledIcon="#{resource['images:disabled_add_white.png']}"
+                       actionListener="#{bindings.addPaySchedule.execute}"
+                       disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"/>
+            </af:panelFormLayout>
+          </af:panelBox>
+          <af:table value="#{bindings.MmScInvcPmtSchdl1.collectionModel}" var="row"
+                    rows="#{bindings.MmScInvcPmtSchdl1.rangeSize}"
+                    emptyText="#{bindings.MmScInvcPmtSchdl1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                    rowBandingInterval="0" selectedRowKeys="#{bindings.MmScInvcPmtSchdl1.collectionModel.selectedRow}"
+                    selectionListener="#{bindings.MmScInvcPmtSchdl1.collectionModel.makeCurrent}" rowSelection="single"
+                    fetchSize="#{bindings.MmScInvcPmtSchdl1.rangeSize}" id="t9" inlineStyle="line-height:20px;"
+                    partialTriggers="::l1 ::l2 ::l3 ::l4 ::l5 ::l20 ::l12 l13 ::l6" columnStretching="column:c30" verticalGridVisible="false" autoHeightRows="5"
+                    styleClass="AFStretchWidth" contentDelivery="immediate">
+            <af:column headerText="#{bindings.MmScInvcPmtSchdl1.hints.SrNo.label}" id="c27" align="right">
+              <af:inputText value="#{row.bindings.SrNo.inputValue}"
+                            label="#{bindings.MmScInvcPmtSchdl1.hints.SrNo.label}"
+                            required="#{bindings.MmScInvcPmtSchdl1.hints.SrNo.mandatory}"
+                            columns="#{bindings.MmScInvcPmtSchdl1.hints.SrNo.displayWidth}"
+                            maximumLength="#{bindings.MmScInvcPmtSchdl1.hints.SrNo.precision}"
+                            shortDesc="#{bindings.MmScInvcPmtSchdl1.hints.SrNo.tooltip}" id="it29" readOnly="true"
+                            contentStyle=";color:green">
+                <f:validator binding="#{row.bindings.SrNo.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.MmScInvcPmtSchdl1.hints.SrNo.format}"/>
+              </af:inputText>
+            </af:column>
+            <af:column headerText="Mode" id="c30">
+              <af:selectOneChoice value="#{row.bindings.PayMode.inputValue}" label="#{row.bindings.PayMode.label}"
+                                  required="#{bindings.MmScInvcPmtSchdl1.hints.PayMode.mandatory}"
+                                  shortDesc="#{bindings.MmScInvcPmtSchdl1.hints.PayMode.tooltip}" id="soc16"
+                                  readOnly="true" contentStyle="color:blue;">
+                <f:selectItems value="#{row.bindings.PayMode.items}" id="si16"/>
+                <f:validator binding="#{row.bindings.PayMode.validator}"/>
+              </af:selectOneChoice>
+            </af:column>
+            <af:column headerText="Date" id="c29">
+              <af:inputDate value="#{row.bindings.PayDt.inputValue}"
+                            label="#{bindings.MmScInvcPmtSchdl1.hints.PayDt.label}"
+                            required="#{bindings.MmScInvcPmtSchdl1.hints.PayDt.mandatory}"
+                            columns="#{bindings.MmScInvcPmtSchdl1.hints.PayDt.displayWidth}"
+                            shortDesc="#{bindings.MmScInvcPmtSchdl1.hints.PayDt.tooltip}" id="id4" readOnly="true">
+                <f:validator binding="#{row.bindings.PayDt.validator}"/>
+                <af:convertDateTime pattern="#{bindings.MmScInvcPmtSchdl1.hints.PayDt.format}"/>
+              </af:inputDate>
+            </af:column>
+            <af:column headerText="Total Payment" id="c31" align="right" width="150">
+              <af:inputText value="#{row.bindings.TotAmtSp.inputValue}"
+                            label="#{bindings.MmScInvcPmtSchdl1.hints.TotAmtSp.label}"
+                            required="#{bindings.MmScInvcPmtSchdl1.hints.TotAmtSp.mandatory}"
+                            columns="#{bindings.MmScInvcPmtSchdl1.hints.TotAmtSp.displayWidth}"
+                            maximumLength="#{bindings.MmScInvcPmtSchdl1.hints.TotAmtSp.precision}"
+                            shortDesc="#{bindings.MmScInvcPmtSchdl1.hints.TotAmtSp.tooltip}" id="it30" readOnly="true"
+                            contentStyle="text-align:right;color:maroon;">
+                <f:validator binding="#{row.bindings.TotAmtSp.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.MmScInvcPmtSchdl1.hints.TotAmtSp.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:inputText>
+            </af:column>
+            <af:column headerText="Scheduled Payment" id="c32" width="150" align="right"
+                       headerClass="text-align:right;color:green;">
+              <af:inputText value="#{row.bindings.PayAmtSp.inputValue}"
+                            label="#{bindings.MmScInvcPmtSchdl1.hints.PayAmtSp.label}"
+                            required="#{bindings.MmScInvcPmtSchdl1.hints.PayAmtSp.mandatory}"
+                            columns="#{bindings.MmScInvcPmtSchdl1.hints.PayAmtSp.displayWidth}"
+                            maximumLength="#{bindings.MmScInvcPmtSchdl1.hints.PayAmtSp.precision}"
+                            shortDesc="#{bindings.MmScInvcPmtSchdl1.hints.PayAmtSp.tooltip}" id="it31" readOnly="true"
+                            contentStyle="color:red;">
+                <f:validator binding="#{row.bindings.PayAmtSp.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.MmScInvcPmtSchdl1.hints.PayAmtSp.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+              </af:inputText>
+            </af:column>
+            <af:column id="c33" align="center">
+              <af:link id="l13" icon="#{resource['images:enable_delete_blue.png']}"
+                       disabledIcon="#{resource['images:disabled_add_white.png']}"
+                       actionListener="#{bindings.DeletePaySchedule.execute}"
+                       disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"/>
+            </af:column>
+          </af:table>
+        </af:panelGroupLayout>
+      </af:showDetailItem>
+      <af:showDetailItem text="Calculation" id="sdi2">
+        <af:panelCollection id="pc1" styleClass="AFStretchWidth">
+          <f:facet name="menus"/>
+          <f:facet name="toolbar">
+            <af:toolbar id="t11">
+              <af:link id="l21"
+                       icon="#{resource['images:enable_recycle_icon_blue.png']}"
+                       disabledIcon="#{resource['images:disable_recycle_blue.png']}"
+                       disabled="#{pageFlowScope.AddSCInvoice.mode != 'C' || bindings.MmScInvcItm1Iterator.estimatedRowCount==0}"
+                       actionListener="#{bindings.processCalculation.execute}"/>
+            </af:toolbar>
+          </f:facet>
+          <f:facet name="statusbar"/>
+          <af:table value="#{bindings.MmScInvcCalc1.collectionModel}" var="row"
+                    rows="#{bindings.MmScInvcCalc1.rangeSize}"
+                    emptyText="#{bindings.MmScInvcCalc1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                    rowBandingInterval="0" fetchSize="#{bindings.MmScInvcCalc1.rangeSize}"
+                    filterModel="#{bindings.MmScInvcCalc1Query.queryDescriptor}"
+                    queryListener="#{bindings.MmScInvcCalc1Query.processQuery}" filterVisible="true" varStatus="vs"
+                    id="t10" styleClass="AFStretchWidth" inlineStyle="line-height:20px;" columnStretching="column:c35"
+                    verticalGridVisible="false" autoHeightRows="10" contentDelivery="immediate" partialTriggers="::l21">
+            <af:column sortProperty="#{bindings.MmScInvcCalc1.hints.SrNo.name}" filterable="true" sortable="true"
+                       headerText="Sr. No." id="c38" width="50" align="center">
+              <af:inputText value="#{row.bindings.SrNo.inputValue}" label="#{bindings.MmScInvcCalc1.hints.SrNo.label}"
+                            required="#{bindings.MmScInvcCalc1.hints.SrNo.mandatory}"
+                            columns="#{bindings.MmScInvcCalc1.hints.SrNo.displayWidth}"
+                            maximumLength="#{bindings.MmScInvcCalc1.hints.SrNo.precision}"
+                            shortDesc="#{bindings.MmScInvcCalc1.hints.SrNo.tooltip}" id="it34" readOnly="true"
+                            contentStyle="color:blue;">
+                <f:validator binding="#{row.bindings.SrNo.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.MmScInvcCalc1.hints.SrNo.format}"/>
+              </af:inputText>
+            </af:column>
+            <af:column sortProperty="#{bindings.MmScInvcCalc1.hints.CoaNm.name}" filterable="true" sortable="true"
+                       headerText="Coa Name" id="c35" width="150" align="left">
+              <af:inputText value="#{row.bindings.CoaNm.inputValue}" label="#{bindings.MmScInvcCalc1.hints.CoaNm.label}"
+                            required="#{bindings.MmScInvcCalc1.hints.CoaNm.mandatory}"
+                            columns="#{bindings.MmScInvcCalc1.hints.CoaNm.displayWidth}"
+                            maximumLength="#{bindings.MmScInvcCalc1.hints.CoaNm.precision}"
+                            shortDesc="#{bindings.MmScInvcCalc1.hints.CoaNm.tooltip}" id="it25" readOnly="true"
+                            contentStyle="color:green;font-weight:bold;">
+                <f:validator binding="#{row.bindings.CoaNm.validator}"/>
+              </af:inputText>
+            </af:column>
+            <af:column sortProperty="#{bindings.MmScInvcCalc1.hints.AmtSp.name}" filterable="true" sortable="true"
+                       headerText="Amount(Specific)" id="c36" align="right" width="150">
+              <af:inputText value="#{row.bindings.AmtSp.inputValue}" label="#{bindings.MmScInvcCalc1.hints.AmtSp.label}"
+                            required="#{bindings.MmScInvcCalc1.hints.AmtSp.mandatory}"
+                            columns="#{bindings.MmScInvcCalc1.hints.AmtSp.displayWidth}"
+                            maximumLength="#{bindings.MmScInvcCalc1.hints.AmtSp.precision}"
+                            shortDesc="#{bindings.MmScInvcCalc1.hints.AmtSp.tooltip}" id="it32" readOnly="true"
+                            contentStyle="text-align:right;color:maroon;">
+                <f:validator binding="#{row.bindings.AmtSp.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.MmScInvcCalc1.hints.AmtSp.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+              </af:inputText>
+            </af:column>
+            <af:column sortProperty="#{bindings.MmScInvcCalc1.hints.AmtBs.name}" filterable="true" sortable="true"
+                       headerText="Amount(Basic)" id="c37" align="right" width="150">
+              <af:inputText value="#{row.bindings.AmtBs.inputValue}" label="#{bindings.MmScInvcCalc1.hints.AmtBs.label}"
+                            required="#{bindings.MmScInvcCalc1.hints.AmtBs.mandatory}"
+                            columns="#{bindings.MmScInvcCalc1.hints.AmtBs.displayWidth}"
+                            maximumLength="#{bindings.MmScInvcCalc1.hints.AmtBs.precision}"
+                            shortDesc="#{bindings.MmScInvcCalc1.hints.AmtBs.tooltip}" id="it33" readOnly="true"
+                            contentStyle="text-align:right;color:maroon;">
+                <f:validator binding="#{row.bindings.AmtBs.validator}"/>
+                <af:convertNumber groupingUsed="false" pattern="#{bindings.MmScInvcCalc1.hints.AmtBs.format}"
+                                  minFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"
+                                  maxFractionDigits="#{pageFlowScope.GLBL_QTY_DIGIT}"/>
+              </af:inputText>
+            </af:column>
+            <af:column sortProperty="#{bindings.MmScInvcCalc1.hints.TranType.name}" filterable="true" sortable="true" id="c39"
+                       align="center">
+              <af:inputText value="#{row.bindings.TranType.inputValue}"
+                            label="#{bindings.MmScInvcCalc1.hints.TranType.label}"
+                            required="#{bindings.MmScInvcCalc1.hints.TranType.mandatory}"
+                            columns="#{bindings.MmScInvcCalc1.hints.TranType.displayWidth}"
+                            maximumLength="#{bindings.MmScInvcCalc1.hints.TranType.precision}"
+                            shortDesc="#{bindings.MmScInvcCalc1.hints.TranType.tooltip}" id="it35" readOnly="true">
+                <f:validator binding="#{row.bindings.TranType.validator}"/>
+              </af:inputText>
+            </af:column>
+          </af:table>
+        </af:panelCollection>
+      </af:showDetailItem>
+      <af:showDetailItem text="Terms and Conditions" id="sdi3">
+        <af:panelGroupLayout id="pgl41" layout="horizontal" valign="top" halign="left" styleClass="AFStretchWidth">
+          <af:inputText value="#{bindings.TncId.inputValue}" required="#{bindings.TncId.hints.mandatory}"
+                        columns="#{bindings.TncId.hints.displayWidth}" maximumLength="#{bindings.TncId.hints.precision}"
+                        shortDesc="#{bindings.TncId.hints.tooltip}" id="it43" readOnly="true" visible="false"
+                        partialTriggers="pc2:t12">
+            <f:validator binding="#{bindings.TncId.validator}"/>
+            <af:convertNumber groupingUsed="false" pattern="#{bindings.TncId.format}"/>
+          </af:inputText>
+          <af:panelCollection id="pc2" inlineStyle="width:400px;;">
+            <f:facet name="menus"/>
+            <f:facet name="toolbar"/>
+            <f:facet name="statusbar"/>
+            <af:table value="#{bindings.AppTncVO1.collectionModel}" var="row" rows="#{bindings.AppTncVO1.rangeSize}"
+                      emptyText="#{bindings.AppTncVO1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                      rowBandingInterval="0" selectedRowKeys="#{bindings.AppTncVO1.collectionModel.selectedRow}"
+                      selectionListener="#{bindings.AppTncVO1.collectionModel.makeCurrent}" rowSelection="single"
+                      fetchSize="#{bindings.AppTncVO1.rangeSize}" id="t12" columnStretching="column:c41"
+                      inlineStyle="line-height:20px;" contentDelivery="immediate" styleClass="AFStretchWidth"
+                      partialTriggers=":::pc3:t13:l27" varStatus="vs" autoHeightRows="5">
+              <af:column id="c45" width="30" align="center">
+                <af:inputText id="it41" value="#{vs.index+1}" contentStyle="Font-weight:bold;" readOnly="true"/>
+              </af:column>
+              <af:column headerText="Description" id="c41">
+                <af:inputText value="#{row.bindings.TncDesc.inputValue}"
+                              label="#{bindings.AppTncVO1.hints.TncDesc.label}"
+                              required="#{bindings.AppTncVO1.hints.TncDesc.mandatory}"
+                              columns="#{bindings.AppTncVO1.hints.TncDesc.displayWidth}"
+                              maximumLength="#{bindings.AppTncVO1.hints.TncDesc.precision}"
+                              shortDesc="#{bindings.AppTncVO1.hints.TncDesc.tooltip}" id="it39" readOnly="true">
+                  <f:validator binding="#{row.bindings.TncDesc.validator}"/>
+                </af:inputText>
+              </af:column>
+              <af:column id="c43" align="center" width="50">
+                <af:link id="l26" icon="#{resource['images:enable_add_blue.png']}"
+                         disabledIcon="#{resource['images:disabled_add_white.png']}"
+                         disabled="#{pageFlowScope.AddSCInvoice.mode != 'C' || row.IsAdded=='Y'}"
+                         actionListener="#{pageFlowScope.AddSCInvoice.addTnc}"/>
+              </af:column>
+            </af:table>
+          </af:panelCollection>
+          <af:spacer width="10" height="10" id="s2"/>
+          <af:panelCollection id="pc3" styleClass="AFStretchWidth">
+            <f:facet name="menus"/>
+            <f:facet name="toolbar"/>
+            <f:facet name="statusbar"/>
+            <af:table value="#{bindings.MmScInvcTncVO1.collectionModel}" var="row"
+                      rows="#{bindings.MmScInvcTncVO1.rangeSize}"
+                      emptyText="#{bindings.MmScInvcTncVO1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                      rowBandingInterval="0" selectedRowKeys="#{bindings.MmScInvcTncVO1.collectionModel.selectedRow}"
+                      selectionListener="#{bindings.MmScInvcTncVO1.collectionModel.makeCurrent}" rowSelection="single"
+                      fetchSize="#{bindings.MmScInvcTncVO1.rangeSize}" id="t13" columnStretching="column:c42"
+                      inlineStyle="line-height:20px;" styleClass="AFStretchWidth" partialTriggers="l27 :::pc2:t12:l26"
+                      varStatus="vs" autoHeightRows="5" contentDelivery="immediate">
+              <af:column id="c46" width="30" align="center">
+                <af:inputText id="it42" value="#{vs.index+1}" readOnly="true" contentStyle="Font-weight:bold;"/>
+              </af:column>
+              <af:column headerText="Description" id="c42">
+                <af:inputText value="#{row.bindings.TransTncDesc.inputValue}"
+                              label="#{bindings.MmScInvcTncVO1.hints.TransTncDesc.label}"
+                              required="#{bindings.MmScInvcTncVO1.hints.TransTncDesc.mandatory}"
+                              columns="#{bindings.MmScInvcTncVO1.hints.TransTncDesc.displayWidth}"
+                              maximumLength="#{bindings.MmScInvcTncVO1.hints.TransTncDesc.precision}"
+                              shortDesc="#{bindings.MmScInvcTncVO1.hints.TransTncDesc.tooltip}" id="it40"
+                              readOnly="true">
+                  <f:validator binding="#{row.bindings.TransTncDesc.validator}"/>
+                </af:inputText>
+              </af:column>
+              <af:column id="c44" width="50" align="center">
+                <af:link id="l27" icon="#{resource['images:enable_delete_blue.png']}"
+                         disabledIcon="#{resource['images:disabled_delete_white.png']}"
+                         actionListener="#{bindings.DeleteTnc.execute}"
+                         disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"/>
+              </af:column>
+            </af:table>
+          </af:panelCollection>
+        </af:panelGroupLayout>
+      </af:showDetailItem>
+    </af:panelTabbed>
+    <af:panelGroupLayout id="pgl14">
+      <af:popup childCreation="deferred" autoCancel="disabled" id="p1"
+                binding="#{pageFlowScope.AddSCInvoice.bindOcPop}">
+        <af:dialog id="d1" type="ok" closeIconVisible="false">
+          <f:facet name="buttonBar"/>
+          <af:panelGroupLayout id="pgl16" layout="vertical" valign="top" halign="left">
+            <af:panelGroupLayout id="pgl17" layout="horizontal" valign="top" halign="left"
+                                 styleClass="AFStretchWidth LeftHeader">
+              <af:outputLabel value="Add Other Charges" id="ol2"/>
+            </af:panelGroupLayout>
+            <af:panelGroupLayout id="pgl15" layout="horizontal" valign="top" halign="left" styleClass="AFStretchWidth">
+              <af:panelGroupLayout id="pgl18" layout="vertical" valign="top" halign="left" styleClass="AFStretchWidth"
+                                   inlineStyle="padding-top:5px;">
+                <af:panelGroupLayout id="pgl19" styleClass="AFStretchWidth LeftHeader" layout="horizontal" valign="top"
+                                     halign="left">
+                  <af:outputLabel value="Other Chages" id="ol3"/>
+                </af:panelGroupLayout>
+                <af:table value="#{bindings.LovOtherCharges1.collectionModel}" var="row"
+                          rows="#{bindings.LovOtherCharges1.rangeSize}"
+                          emptyText="#{bindings.LovOtherCharges1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                          rowBandingInterval="0"
+                          selectedRowKeys="#{bindings.LovOtherCharges1.collectionModel.selectedRow}"
+                          selectionListener="#{bindings.LovOtherCharges1.collectionModel.makeCurrent}"
+                          rowSelection="single" fetchSize="#{bindings.LovOtherCharges1.rangeSize}" id="t5"
+                          inlineStyle="width:300px;line-height:20px;height:300px;" autoHeightRows="15"
+                          columnStretching="column:c13" styleClass="AFStretchWidth" verticalGridVisible="false"
+                          contentDelivery="immediate">
+                  <af:column headerText="Other Charges" id="c13" width="200">
+                    <af:inputText value="#{row.bindings.OcNm.inputValue}"
+                                  label="#{bindings.LovOtherCharges1.hints.OcNm.label}"
+                                  required="#{bindings.LovOtherCharges1.hints.OcNm.mandatory}"
+                                  columns="#{bindings.LovOtherCharges1.hints.OcNm.displayWidth}"
+                                  maximumLength="#{bindings.LovOtherCharges1.hints.OcNm.precision}"
+                                  shortDesc="#{bindings.LovOtherCharges1.hints.OcNm.tooltip}" id="it16" readOnly="true">
+                      <f:validator binding="#{row.bindings.OcNm.validator}"/>
+                    </af:inputText>
+                  </af:column>
+                  <af:column id="c14" width="40" align="center">
+                    <af:link id="l10" icon="#{resource['images:enable_add_blue.png']}"
+                             actionListener="#{bindings.addOtherCharge.execute}"
+                             disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"
+                             disabledIcon="#{resource['images:disabled_add_white.png']}"/>
+                  </af:column>
+                  <af:column id="c15" width="43" align="center">
+                    <af:link id="l11" icon="#{resource['images:enable_delete_blue.png']}"
+                             actionListener="#{bindings.deleteOtherCharge.execute}"
+                             disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"
+                             disabledIcon="#{resource['images:disabled_delete_white.png']}"/>
+                  </af:column>
+                </af:table>
+              </af:panelGroupLayout>
+              <af:panelGroupLayout id="pgl20" layout="vertical" valign="top" halign="left" styleClass="AFStretchWidth"
+                                   inlineStyle="padding-top:5px;padding-left:5px;">
+                <af:panelGroupLayout id="pgl21" layout="horizontal" valign="top" halign="left"
+                                     styleClass="AFStretchWidth LeftHeader">
+                  <af:outputLabel value="Added Other Charges" id="ol4"/>
+                </af:panelGroupLayout>
+                <af:panelFormLayout id="pfl5" maxColumns="3" rows="1" inlineStyle="padding:5px;"
+                                    styleClass="SearchPanel" partialTriggers="t5:l10 t5:l11">
+                  <af:selectOneChoice value="#{bindings.OcId.inputValue}" label="Other Charge"
+                                      required="#{bindings.OcId.hints.mandatory}"
+                                      shortDesc="#{bindings.OcId.hints.tooltip}" id="soc10" disabled="true"
+                                      contentStyle="width:130px;color:blue"
+                                      labelStyle="color:black;font-weight:bold;font-size:11px;">
+                    <f:selectItems value="#{bindings.OcId.items}" id="si10"/>
+                    <f:validator binding="#{bindings.OcId.validator}"/>
+                  </af:selectOneChoice>
+                  <af:inputListOfValues id="transCurrIdId"
+                                        popupTitle="Search and Select: #{bindings.TransCurrId.hints.label}"
+                                        value="#{bindings.TransCurrId.inputValue}"
+                                        label="Currency"
+                                        model="#{bindings.TransCurrId.listOfValuesModel}"
+                                        columns="#{bindings.TransCurrId.hints.displayWidth}"
+                                        shortDesc="#{bindings.TransCurrId.hints.tooltip}" autoSubmit="true"
+                                        contentStyle="width:130px;color:blue"
+                                        labelStyle="color:black;font-weight:bold;font-size:11px;"
+                                        valueChangeListener="#{pageFlowScope.AddSCInvoice.listenCurrChange}"
+                                        disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}" required="true">
+                    <f:validator binding="#{bindings.TransCurrId.validator}"/>
+                    <af:autoSuggestBehavior suggestedItems="#{bindings.TransCurrId.suggestedItems}"/>
+                  </af:inputListOfValues>
+                  <af:inputText value="#{bindings.OcAmtSpOc.inputValue}" label="Amount"
+                                columns="#{bindings.OcAmtSpOc.hints.displayWidth}"
+                                maximumLength="#{bindings.OcAmtSpOc.hints.precision}"
+                                shortDesc="#{bindings.OcAmtSpOc.hints.tooltip}" id="it17"
+                                contentStyle="width:130px;color:blue"
+                                labelStyle="color:black;font-weight:bold;font-size:11px;" autoSubmit="true"
+                                valueChangeListener="#{pageFlowScope.AddSCInvoice.listenAmtChange}"
+                                disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}" required="true">
+                    <f:validator binding="#{bindings.OcAmtSpOc.validator}"/>
+                    <af:convertNumber groupingUsed="false" pattern="#{bindings.OcAmtSpOc.format}"
+                                      minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                      maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                  </af:inputText>
+                </af:panelFormLayout>
+                <af:table value="#{bindings.MmScInvcOc1.collectionModel}" var="row"
+                          rows="#{bindings.MmScInvcOc1.rangeSize}"
+                          emptyText="#{bindings.MmScInvcOc1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                          rowBandingInterval="0" selectedRowKeys="#{bindings.MmScInvcOc1.collectionModel.selectedRow}"
+                          selectionListener="#{bindings.MmScInvcOc1.collectionModel.makeCurrent}" rowSelection="single"
+                          fetchSize="#{bindings.MmScInvcOc1.rangeSize}" id="t6"
+                          inlineStyle="line-height:25px;width:700px;height:300px;" autoHeightRows="15"
+                          columnStretching="column:c16" verticalGridVisible="false"
+                          partialTriggers="::t5:l10 ::t5:l11 ::transCurrIdId ::it17" contentDelivery="immediate">
+                  <af:column headerText="Other Charges" id="c16" width="150">
+                    <af:selectOneChoice value="#{row.bindings.OcId.inputValue}" label="#{row.bindings.OcId.label}"
+                                        required="#{bindings.MmScInvcOc1.hints.OcId.mandatory}"
+                                        shortDesc="#{bindings.MmScInvcOc1.hints.OcId.tooltip}" id="soc11"
+                                        readOnly="true" contentStyle="color:blue;">
+                      <f:selectItems value="#{row.bindings.OcId.items}" id="si11"/>
+                      <f:validator binding="#{row.bindings.OcId.validator}"/>
+                    </af:selectOneChoice>
+                  </af:column>
+                  <af:column headerText="Charge(OC Specific)" id="c19" width="150" align="right"
+                             headerClass="text-align:right;color:maroon;">
+                    <af:inputText value="#{row.bindings.OcAmtSpOc.inputValue}"
+                                  label="#{bindings.MmScInvcOc1.hints.OcAmtSpOc.label}"
+                                  required="#{bindings.MmScInvcOc1.hints.OcAmtSpOc.mandatory}"
+                                  columns="#{bindings.MmScInvcOc1.hints.OcAmtSpOc.displayWidth}"
+                                  maximumLength="#{bindings.MmScInvcOc1.hints.OcAmtSpOc.precision}"
+                                  shortDesc="#{bindings.MmScInvcOc1.hints.OcAmtSpOc.tooltip}" id="it20" readOnly="true"
+                                  partialTriggers="::transCurrIdId ::it17">
+                      <f:validator binding="#{row.bindings.OcAmtSpOc.validator}"/>
+                      <af:convertNumber groupingUsed="false" pattern="#{bindings.MmScInvcOc1.hints.OcAmtSpOc.format}"
+                                        maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                        minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                    </af:inputText>
+                  </af:column>
+                  <af:column headerText="Charge(Specific)" id="c17" width="150" align="right">
+                    <af:inputText value="#{row.bindings.OcAmtSp.inputValue}"
+                                  label="#{bindings.MmScInvcOc1.hints.OcAmtSp.label}"
+                                  required="#{bindings.MmScInvcOc1.hints.OcAmtSp.mandatory}"
+                                  columns="#{bindings.MmScInvcOc1.hints.OcAmtSp.displayWidth}"
+                                  maximumLength="#{bindings.MmScInvcOc1.hints.OcAmtSp.precision}"
+                                  shortDesc="#{bindings.MmScInvcOc1.hints.OcAmtSp.tooltip}" id="it18" readOnly="true"
+                                  contentStyle="text-align:right;color:green;" partialTriggers="::transCurrIdId ::it17">
+                      <f:validator binding="#{row.bindings.OcAmtSp.validator}"/>
+                      <af:convertNumber groupingUsed="false" pattern="#{bindings.MmScInvcOc1.hints.OcAmtSp.format}"
+                                        maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                        minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                    </af:inputText>
+                  </af:column>
+                  <af:column headerText="Charge(Base)" id="c18" align="right" width="150">
+                    <af:inputText value="#{row.bindings.OcAmtBs.inputValue}"
+                                  label="#{bindings.MmScInvcOc1.hints.OcAmtBs.label}"
+                                  required="#{bindings.MmScInvcOc1.hints.OcAmtBs.mandatory}"
+                                  columns="#{bindings.MmScInvcOc1.hints.OcAmtBs.displayWidth}"
+                                  maximumLength="#{bindings.MmScInvcOc1.hints.OcAmtBs.precision}"
+                                  shortDesc="#{bindings.MmScInvcOc1.hints.OcAmtBs.tooltip}" id="it19" readOnly="true"
+                                  contentStyle="text-align:right;color:red;" partialTriggers="::transCurrIdId ::it17">
+                      <f:validator binding="#{row.bindings.OcAmtBs.validator}"/>
+                      <af:convertNumber groupingUsed="false" pattern="#{bindings.MmScInvcOc1.hints.OcAmtBs.format}"
+                                        maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                        minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                    </af:inputText>
+                  </af:column>
+                </af:table>
+              </af:panelGroupLayout>
+            </af:panelGroupLayout>
+          </af:panelGroupLayout>
+        </af:dialog>
+      </af:popup>
+      <af:popup childCreation="deferred" autoCancel="disabled" id="p2"
+                binding="#{pageFlowScope.AddSCInvoice.bindTaxPop}">
+        <af:dialog id="d2" type="none">
+          <f:facet name="buttonBar">
+            <af:button text="OK" id="b4" actionListener="#{pageFlowScope.AddSCInvoice.hidePop}"/>
+          </f:facet>
+          <af:panelGroupLayout id="pgl22" layout="vertical" valign="top" halign="left" styleClass="AFStretchWidth">
+            <af:panelGroupLayout id="pgl23" styleClass="AFStretchWidth LeftHeader" layout="horizontal" valign="top" halign="left">
+              <af:outputLabel value="Add Tax" id="ol5"/>
+            </af:panelGroupLayout>
+            <af:panelFormLayout id="pfl6" inlineStyle="padding:10px;" styleClass="SearchPanel" maxColumns="2" rows="1"
+                                fieldWidth="100" labelWidth="150">
+              <af:selectOneChoice value="#{bindings.TaxRule.inputValue}" label="#{bindings.TaxRule.label}"
+                                  required="#{bindings.TaxRule.hints.mandatory}"
+                                  shortDesc="#{bindings.TaxRule.hints.tooltip}" id="soc12"
+                                  valueChangeListener="#{pageFlowScope.AddSCInvoice.taxRuleVCL}"
+                                  disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}" autoSubmit="true"
+                                  partialTriggers="l18">
+                <f:selectItems value="#{bindings.TaxRule.items}" id="si12"/>
+                <f:validator binding="#{bindings.TaxRule.validator}"/>
+              </af:selectOneChoice>
+              <af:link id="l18" actionListener="#{bindings.resetTax1.execute}"
+                       disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"
+                       icon="#{resource['images:enable_recycle_icon_blue.png']}"/>
+            </af:panelFormLayout>
+            <af:table value="#{bindings.MmScInvcTrLines1.collectionModel}" var="row"
+                      rows="#{bindings.MmScInvcTrLines1.rangeSize}"
+                      emptyText="#{bindings.MmScInvcTrLines1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                      rowBandingInterval="0" selectedRowKeys="#{bindings.MmScInvcTrLines1.collectionModel.selectedRow}"
+                      selectionListener="#{bindings.MmScInvcTrLines1.collectionModel.makeCurrent}" rowSelection="single"
+                      fetchSize="#{bindings.MmScInvcTrLines1.rangeSize}" id="t7"
+                      inlineStyle="line-height:20px;height:200px;"
+                      columnStretching="column:c20" partialTriggers="::soc12 ::l18" verticalGridVisible="false"
+                      autoHeightRows="5" styleClass="AFStretchWidth" contentDelivery="immediate" width="450">
+              <af:column headerText="SR No." id="c23" align="right" headerClass="text-align:right;color:red;"
+                         width="50">
+                <af:inputText value="#{row.bindings.TaxRuleSlno.inputValue}"
+                              label="#{bindings.MmScInvcTrLines1.hints.TaxRuleSlno.label}"
+                              required="#{bindings.MmScInvcTrLines1.hints.TaxRuleSlno.mandatory}"
+                              columns="#{bindings.MmScInvcTrLines1.hints.TaxRuleSlno.displayWidth}"
+                              maximumLength="#{bindings.MmScInvcTrLines1.hints.TaxRuleSlno.precision}"
+                              shortDesc="#{bindings.MmScInvcTrLines1.hints.TaxRuleSlno.tooltip}" id="it23"
+                              readOnly="true" contentStyle="text-align:right;color:red;">
+                  <f:validator binding="#{row.bindings.TaxRuleSlno.validator}"/>
+                  <af:convertNumber groupingUsed="false"
+                                    pattern="#{bindings.MmScInvcTrLines1.hints.TaxRuleSlno.format}"/>
+                </af:inputText>
+              </af:column>
+              <af:column headerText="Tax" id="c20" width="150">
+                <af:selectOneChoice value="#{row.bindings.TaxCoaId.inputValue}" label="#{row.bindings.TaxCoaId.label}"
+                                    required="#{bindings.MmScInvcTrLines1.hints.TaxCoaId.mandatory}"
+                                    shortDesc="#{bindings.MmScInvcTrLines1.hints.TaxCoaId.tooltip}" id="soc13"
+                                    readOnly="true" contentStyle="color:green;">
+                  <f:selectItems value="#{row.bindings.TaxCoaId.items}" id="si13"/>
+                  <f:validator binding="#{row.bindings.TaxCoaId.validator}"/>
+                </af:selectOneChoice>
+              </af:column>
+              <af:column headerText="Tax Amount" id="c21">
+                <af:inputText value="#{row.bindings.TaxAmtSp.inputValue}"
+                              label="#{bindings.MmScInvcTrLines1.hints.TaxAmtSp.label}"
+                              required="#{bindings.MmScInvcTrLines1.hints.TaxAmtSp.mandatory}"
+                              columns="#{bindings.MmScInvcTrLines1.hints.TaxAmtSp.displayWidth}"
+                              maximumLength="#{bindings.MmScInvcTrLines1.hints.TaxAmtSp.precision}"
+                              shortDesc="#{bindings.MmScInvcTrLines1.hints.TaxAmtSp.tooltip}" id="it21" readOnly="true"
+                              contentStyle="text-align:right;color:maroon;">
+                  <f:validator binding="#{row.bindings.TaxAmtSp.validator}"/>
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MmScInvcTrLines1.hints.TaxAmtSp.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+              </af:column>
+              <af:column headerText="Priority" id="c24" align="right">
+                <af:inputText value="#{row.bindings.TaxRulePriority.inputValue}"
+                              label="#{bindings.MmScInvcTrLines1.hints.TaxRulePriority.label}"
+                              required="#{bindings.MmScInvcTrLines1.hints.TaxRulePriority.mandatory}"
+                              columns="#{bindings.MmScInvcTrLines1.hints.TaxRulePriority.displayWidth}"
+                              maximumLength="#{bindings.MmScInvcTrLines1.hints.TaxRulePriority.precision}"
+                              shortDesc="#{bindings.MmScInvcTrLines1.hints.TaxRulePriority.tooltip}" id="it24"
+                              readOnly="true" contentStyle="text-align:right;color:blue;">
+                  <f:validator binding="#{row.bindings.TaxRulePriority.validator}"/>
+                  <af:convertNumber groupingUsed="false"
+                                    pattern="#{bindings.MmScInvcTrLines1.hints.TaxRulePriority.format}"/>
+                </af:inputText>
+              </af:column>
+            </af:table>
+          </af:panelGroupLayout>
+        </af:dialog>
+      </af:popup>
+      <af:popup childCreation="deferred" autoCancel="disabled" id="p3"
+                binding="#{pageFlowScope.AddSCInvoice.bindTdsPop}">
+        <af:dialog id="d3" type="none">
+          <f:facet name="buttonBar">
+            <af:button text="OK" id="b3" actionListener="#{pageFlowScope.AddSCInvoice.hidePop}"/>
+          </f:facet>
+          <af:panelGroupLayout id="pgl24" styleClass="AFStretchWidth" layout="vertical" valign="top" halign="left">
+            <af:panelGroupLayout id="pgl25" styleClass="AFStretchWidth LeftHeader" layout="horizontal" valign="top" halign="left">
+              <af:outputLabel value="Apply Tds" id="ol6"/>
+            </af:panelGroupLayout>
+            <af:panelFormLayout id="pfl8" styleClass="AFStretchWidth SearchPanel" inlineStyle="padding:10px;"
+                                maxColumns="2" rows="1" fieldWidth="100" labelWidth="150">
+              <af:selectOneChoice value="#{bindings.TdsRule.inputValue}" label="Tds Rule"
+                                  required="#{bindings.TdsRule.hints.mandatory}"
+                                  shortDesc="#{bindings.TdsRule.hints.tooltip}" id="soc14"
+                                  valueChangeListener="#{pageFlowScope.AddSCInvoice.tdsRuleChange}"
+                                  disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}" autoSubmit="true"
+                                  partialTriggers="soc12 l19">
+                <f:selectItems value="#{bindings.TdsRule.items}" id="si14"/>
+                <f:validator binding="#{bindings.TdsRule.validator}"/>
+              </af:selectOneChoice>
+              <af:link id="l19" actionListener="#{bindings.resetTds1.execute}"
+                       disabled="#{bindings.InvType.inputValue == 826  || pageFlowScope.AddSCInvoice.mode != 'C' }"
+                       icon="#{resource['images:enable_recycle_icon_blue.png']}"/>
+            </af:panelFormLayout>
+            <af:table value="#{bindings.MmScInvcTdsLines1.collectionModel}" var="row"
+                      rows="#{bindings.MmScInvcTdsLines1.rangeSize}"
+                      emptyText="#{bindings.MmScInvcTdsLines1.viewable ? 'No data to display.' : 'Access Denied.'}"
+                      rowBandingInterval="0" selectedRowKeys="#{bindings.MmScInvcTdsLines1.collectionModel.selectedRow}"
+                      selectionListener="#{bindings.MmScInvcTdsLines1.collectionModel.makeCurrent}"
+                      rowSelection="single" fetchSize="#{bindings.MmScInvcTdsLines1.rangeSize}" id="t8"
+                      inlineStyle="line-height:20px;" columnStretching="column:c25" verticalGridVisible="false"
+                      autoHeightRows="5" styleClass="AFStretchWidth" contentDelivery="immediate"
+                      partialTriggers="::soc14 ::l19">
+              <af:column headerText="Sr. No." id="c22" width="50" align="right">
+                <af:inputText value="#{row.bindings.TdsRuleSlno.inputValue}"
+                              label="#{bindings.MmScInvcTdsLines1.hints.TdsRuleSlno.label}"
+                              required="#{bindings.MmScInvcTdsLines1.hints.TdsRuleSlno.mandatory}"
+                              columns="#{bindings.MmScInvcTdsLines1.hints.TdsRuleSlno.displayWidth}"
+                              maximumLength="#{bindings.MmScInvcTdsLines1.hints.TdsRuleSlno.precision}"
+                              shortDesc="#{bindings.MmScInvcTdsLines1.hints.TdsRuleSlno.tooltip}" id="it22"
+                              readOnly="true" contentStyle="text-align:right;color:red;">
+                  <f:validator binding="#{row.bindings.TdsRuleSlno.validator}"/>
+                  <af:convertNumber groupingUsed="false"
+                                    pattern="#{bindings.MmScInvcTdsLines1.hints.TdsRuleSlno.format}"/>
+                </af:inputText>
+              </af:column>
+              <af:column headerText="Tds" id="c25" width="150">
+                <af:selectOneChoice value="#{row.bindings.TdsCoaId.inputValue}" label="#{row.bindings.TdsCoaId.label}"
+                                    required="#{bindings.MmScInvcTdsLines1.hints.TdsCoaId.mandatory}"
+                                    shortDesc="#{bindings.MmScInvcTdsLines1.hints.TdsCoaId.tooltip}" id="soc17"
+                                    contentStyle="color:green;" readOnly="true">
+                  <f:selectItems value="#{row.bindings.TdsCoaId.items}" id="si17"/>
+                  <f:validator binding="#{row.bindings.TdsCoaId.validator}"/>
+                </af:selectOneChoice>
+              </af:column>
+              <af:column headerText="Tds Amount" id="c26" align="right">
+                <af:inputText value="#{row.bindings.TdsAmtSp.inputValue}"
+                              label="#{bindings.MmScInvcTdsLines1.hints.TdsAmtSp.label}"
+                              required="#{bindings.MmScInvcTdsLines1.hints.TdsAmtSp.mandatory}"
+                              columns="#{bindings.MmScInvcTdsLines1.hints.TdsAmtSp.displayWidth}"
+                              maximumLength="#{bindings.MmScInvcTdsLines1.hints.TdsAmtSp.precision}"
+                              shortDesc="#{bindings.MmScInvcTdsLines1.hints.TdsAmtSp.tooltip}" id="it26"
+                              readOnly="true" contentStyle="text-align:right;color:maroon;">
+                  <f:validator binding="#{row.bindings.TdsAmtSp.validator}"/>
+                  <af:convertNumber groupingUsed="false" pattern="#{bindings.MmScInvcTdsLines1.hints.TdsAmtSp.format}"
+                                    minFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"
+                                    maxFractionDigits="#{pageFlowScope.GLBL_AMT_DIGIT}"/>
+                </af:inputText>
+              </af:column>
+              <af:column headerText="Rule Priority" id="c28" align="right">
+                <af:inputText value="#{row.bindings.TdsRulePriority.inputValue}"
+                              label="#{bindings.MmScInvcTdsLines1.hints.TdsRulePriority.label}"
+                              required="#{bindings.MmScInvcTdsLines1.hints.TdsRulePriority.mandatory}"
+                              columns="#{bindings.MmScInvcTdsLines1.hints.TdsRulePriority.displayWidth}"
+                              maximumLength="#{bindings.MmScInvcTdsLines1.hints.TdsRulePriority.precision}"
+                              shortDesc="#{bindings.MmScInvcTdsLines1.hints.TdsRulePriority.tooltip}" id="it28"
+                              readOnly="true" contentStyle="text-align:right;color:blue;">
+                  <f:validator binding="#{row.bindings.TdsRulePriority.validator}"/>
+                  <af:convertNumber groupingUsed="false"
+                                    pattern="#{bindings.MmScInvcTdsLines1.hints.TdsRulePriority.format}"/>
+                </af:inputText>
+              </af:column>
+            </af:table>
+          </af:panelGroupLayout>
+        </af:dialog>
+      </af:popup>
+      <af:popup childCreation="deferred" autoCancel="disabled" id="p4"
+                binding="#{pageFlowScope.AddSCInvoice.bindTaxAll}">
+        <af:dialog id="d4" type="none" closeIconVisible="false">
+          <f:facet name="buttonBar">
+            <af:panelGroupLayout id="pgl40" layout="horizontal" valign="middle" halign="right">
+              <af:button text="OK" id="b1" actionListener="#{pageFlowScope.AddSCInvoice.hidePop}"/>
+            </af:panelGroupLayout>
+          </f:facet>
+          <af:panelGroupLayout id="pgl32" layout="vertical" valign="top" halign="left">
+            <af:panelGroupLayout id="pgl33" layout="horizontal" styleClass="AFStretchWidth LeftHeader" valign="top" halign="left">
+              <af:outputLabel value="Add Tax" id="ol9"/>
+            </af:panelGroupLayout>
+            <af:panelFormLayout id="pfl9" inlineStyle="padding:10px;" styleClass="SearchPanel" maxColumns="2" rows="1"
+                                fieldWidth="150" labelWidth="100">
+              <af:selectOneChoice value="#{bindings.TaxRuleId.inputValue}" label="Tax Rule"
+                                  required="#{bindings.TaxRuleId.hints.mandatory}"
+                                  shortDesc="#{bindings.TaxRuleId.hints.tooltip}" id="soc18"
+                                  labelStyle="Font-weight:bold;" contentStyle="color:blue;height:20px;width:200px;"
+                                  autoSubmit="true" valueChangeListener="#{pageFlowScope.AddSCInvoice.applyTaxAll}"
+                                  disabled="#{pageFlowScope.AddSCInvoice.mode !='C' }" partialTriggers="l16">
+                <f:selectItems value="#{bindings.TaxRuleId.items}" id="si18"/>
+                <f:validator binding="#{bindings.TaxRuleId.validator}"/>
+              </af:selectOneChoice>
+              <af:link id="l16" actionListener="#{bindings.resetTax.execute}"
+                       disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}"
+                       icon="#{resource['images:enable_recycle_icon_blue.png']}"/>
+            </af:panelFormLayout>
+          </af:panelGroupLayout>
+        </af:dialog>
+      </af:popup>
+      <af:popup childCreation="deferred" autoCancel="disabled" id="p5"
+                binding="#{pageFlowScope.AddSCInvoice.bindTdsAll}">
+        <af:dialog id="d5" type="none" closeIconVisible="false">
+          <f:facet name="buttonBar">
+            <af:button text="OK" id="b2" actionListener="#{pageFlowScope.AddSCInvoice.hidePop}"/>
+          </f:facet>
+          <af:panelGroupLayout id="pgl34" layout="vertical">
+            <af:panelGroupLayout id="pgl35" layout="horizontal" valign="middle" halign="left"
+                                 styleClass="AFStretchWidth LeftHeader">
+              <af:outputLabel value="Apply Tds" id="ol10"/>
+            </af:panelGroupLayout>
+            <af:panelFormLayout id="pfl10" inlineStyle="padding:10px;" styleClass="SearchPanel" maxColumns="2" rows="1"
+                                fieldWidth="150" labelWidth="100">
+              <af:selectOneChoice value="#{bindings.TdsRuleId.inputValue}" label="Tds"
+                                  required="#{bindings.TdsRuleId.hints.mandatory}"
+                                  shortDesc="#{bindings.TdsRuleId.hints.tooltip}" id="soc19"
+                                  valueChangeListener="#{pageFlowScope.AddSCInvoice.tdsAllChange}" autoSubmit="true"
+                                  disabled="#{pageFlowScope.AddSCInvoice.mode != 'C'}" labelStyle="font-weight:bold;"
+                                  contentStyle="height:20px;" partialTriggers="l17">
+                <f:selectItems value="#{bindings.TdsRuleId.items}" id="si19"/>
+                <f:validator binding="#{bindings.TdsRuleId.validator}"/>
+              </af:selectOneChoice>
+              <af:link id="l17" actionListener="#{bindings.resetTds.execute}"
+                       disabled="#{bindings.InvType.inputValue == 826  || pageFlowScope.AddSCInvoice.mode != 'C' }"
+                       icon="#{resource['images:enable_recycle_icon_blue.png']}"/>
+            </af:panelFormLayout>
+          </af:panelGroupLayout>
+        </af:dialog>
+      </af:popup>
+    </af:panelGroupLayout>
+  </af:panelGroupLayout>
+</jsp:root>

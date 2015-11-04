@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="TopNOperationVo"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="sclp.views.TopNOperationVo_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="p_org_id"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="p_cld_id"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="p_sloc_id"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="p_ho_org_id"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="p_inv_type"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <SQLQuery><![CDATA[SELECT op_id OP_ID, op_desc OP_NM, amt AMOUNT  
+FROM   
+(SELECT inv.op_id, op.op_desc, SUM(itm_amt_sp) amt  
+FROM mm.mm$sc$invc invc 
+JOIN mm.mm$sc$invc$itm inv  
+ON (  
+      inv.cld_id  = invc.cld_id AND  
+      inv.sloc_id = invc.sloc_id AND  
+      inv.org_id = invc.org_id AND  
+      inv.doc_id  = invc.doc_id  
+   )  
+JOIN mnf.mnf$op op  
+ON (  
+      op.cld_id  = inv.cld_id AND  
+      op.sloc_id = inv.sloc_id AND  
+      op.ho_org_id = mm.mm_get_ho_org(inv.cld_id, inv.sloc_id, inv.org_id) AND  
+      op.doc_id  = inv.op_id  
+   )  
+JOIN mnf.org$mnf$op org  
+ON (  
+      op.cld_id  = org.cld_id AND  
+      op.sloc_id = org.sloc_id AND  
+      op.ho_org_id = org.ho_org_id AND  
+      org.org_id = :p_org_id AND  
+      op.doc_id  = org.doc_id  
+   )  
+JOIN app.app$itm$prf itm  
+ON (  
+      inv.cld_id = itm.cld_id AND  
+      inv.sloc_id = itm.sloc_id AND  
+      mm.mm_get_ho_org(inv.cld_id, inv.sloc_id, inv.org_id) = itm.ho_org_id AND  
+      inv.itm_id = itm.itm_id  
+   )  
+WHERE inv.cld_id = :p_cld_id AND  
+      inv.sloc_id = :p_sloc_id AND  
+      mm.mm_get_ho_org(inv.cld_id, inv.sloc_id, inv.org_id) = :p_ho_org_id AND  
+      inv.org_id = :p_org_id AND  
+      invc.inv_type = :p_inv_type  
+GROUP BY inv.op_id, op.op_desc  
+ORDER BY amt DESC)]]></SQLQuery>
+  <ViewAttribute
+    Name="OpId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="OP_ID"
+    Expression="OP_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="40"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OpNm"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="50"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="OP_NM"
+    Expression="OP_NM"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="50"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="Amount"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="AMOUNT"
+    Expression="AMOUNT"
+    SQLType="NUMERIC"/>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="sclp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>
