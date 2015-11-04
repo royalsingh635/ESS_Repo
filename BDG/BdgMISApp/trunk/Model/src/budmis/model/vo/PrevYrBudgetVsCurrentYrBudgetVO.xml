@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="PrevYrBudgetVsCurrentYrBudgetVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="budmis.model.vo.PrevYrBudgetVsCurrentYrBudgetVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="CldIdBindVar"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="SlocIdBindVar"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="HoOrgIdBindVar"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="OrgIdBindVar"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[SELECT A.CLD_ID CLD_ID, A.SLOC_ID SLOC_ID, A.HO_ORG_ID HO_ORG_ID, A.ORG_ID ORG_ID,  
+       A.PRD_START_DT PRD_START_DT, A.PRD_END_DT PRD_END_DT, A.PRD_DTL_START_DT PRD_DTL_START_DT,  
+       A.PRD_DTL_END_DT PRD_DTL_END_DT,A.CURRENT_TARGET CURRENT_BUDGET, 
+       NVL(B.CURRENT_TARGET,0) PREVIOUS_BUDGET, 
+       PER_ID SR_NO, 
+       PERIOD_DESC PER_ID 
+FROM 
+    (SELECT  
+     B.CLD_ID, B.SLOC_ID, B.HO_ORG_ID,  
+        B.ORG_ID, B.PRD_START_DT,  
+        B.PRD_END_DT, B.PRD_DTL_START_DT, B.PRD_DTL_END_DT,  
+        SUM(B.BUDG_AMT) CURRENT_TARGET, 
+        B.DISTB_PRD_BASIS 
+     FROM BDG.BDG$MTL$EXP$BUDG_VS_ACTUAL_VW B 
+     --WHERE  
+     --TO_CHAR(B.PRD_START_DT,'YYYY')=TO_CHAR(TO_DATE('01-JAN-2018'),'YYYY') 
+     GROUP BY B.CLD_ID, B.SLOC_ID, B.HO_ORG_ID,  
+        B.ORG_ID, B.PRD_START_DT,  
+        B.PRD_END_DT, B.PRD_DTL_START_DT, B.PRD_DTL_END_DT, 
+        B.DISTB_PRD_BASIS 
+     ) A, 
+    (SELECT  
+         B.CLD_ID, B.SLOC_ID, B.HO_ORG_ID,  
+            B.ORG_ID, B.PRD_START_DT,  
+            B.PRD_END_DT, B.PRD_DTL_START_DT, B.PRD_DTL_END_DT, 
+            NVL(SUM(B.BUDG_AMT),0) CURRENT_TARGET, 
+            B.DISTB_PRD_BASIS 
+         FROM BDG.BDG$MTL$EXP$BUDG_VS_ACTUAL_VW B 
+         --WHERE  
+         --TO_CHAR(B.PRD_START_DT,'YYYY')=TO_CHAR(TO_DATE('01-JAN-2017'),'YYYY') 
+         GROUP BY B.CLD_ID, B.SLOC_ID, B.HO_ORG_ID,  
+            B.ORG_ID, B.PRD_START_DT,  
+            B.PRD_END_DT, B.PRD_DTL_START_DT, B.PRD_DTL_END_DT, 
+            B.DISTB_PRD_BASIS 
+    ) B, 
+    BDG.BDG$YEAR_FRQNCY_VW C 
+WHERE 
+A.CLD_ID = B.CLD_ID(+) 
+    AND A.SLOC_ID = B.SLOC_ID(+) 
+    AND A.HO_ORG_ID = B.HO_ORG_ID(+) 
+    AND TO_CHAR(A.PRD_START_DT,'YYYY')-1 = TO_CHAR(B.PRD_START_DT(+),'YYYY') 
+    AND TO_CHAR(A.PRD_END_DT,'YYYY')-1 = TO_CHAR(B.PRD_END_DT(+),'YYYY') 
+    AND TO_CHAR(A.PRD_DTL_START_DT,'MM') = TO_CHAR(B.PRD_DTL_START_DT(+),'MM') 
+    AND TO_CHAR(A.PRD_DTL_START_DT,'MM') = TO_CHAR(B.PRD_DTL_START_DT(+),'MM') 
+    AND TO_CHAR(A.PRD_DTL_START_DT,'YYYY')-1 = TO_CHAR(B.PRD_DTL_START_DT(+),'YYYY') 
+    AND TO_CHAR(A.PRD_DTL_START_DT,'YYYY')-1 = TO_CHAR(B.PRD_DTL_START_DT(+),'YYYY') 
+    AND A.DISTB_PRD_BASIS =B.DISTB_PRD_BASIS(+) 
+    AND A.CLD_ID = C.CLD_ID   
+    AND A.ORG_ID = C.ORG_ID 
+    AND (CASE A.DISTB_PRD_BASIS WHEN 3 THEN 'Q' 
+                                WHEN 4 THEN 'H' 
+                                WHEN 5 THEN 'M'  
+                                ELSE 'P' END) = C.PERIOD_TYPE  
+    AND A.PRD_DTL_START_DT = C.STRT_DT 
+    AND A.PRD_DTL_END_DT = C.END_DT 
+    AND TO_CHAR(A.PRD_START_DT,'YYYY') = TO_CHAR(C.STRT_DT,'YYYY') 
+    AND TO_CHAR(C.STRT_DT,'YYYY') = TO_CHAR(SYSDATE,'YYYY') -1 
+    AND A.CLD_ID                             = :CldIdBindVar   
+AND A.SLOC_ID                            = :SlocIdBindVar   
+AND A.HO_ORG_ID                          = :HoOrgIdBindVar   
+AND A.ORG_ID                             = :OrgIdBindVar]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="PrdStartDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_START_DT"
+    Expression="PRD_START_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdEndDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_END_DT"
+    Expression="PRD_END_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdDtlStartDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_DTL_START_DT"
+    Expression="PRD_DTL_START_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdDtlEndDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_DTL_END_DT"
+    Expression="PRD_DTL_END_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdDtlStartDt1"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_DTL_START_DT"
+    Expression="PRD_DTL_START_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdDtlEndDt1"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_DTL_END_DT"
+    Expression="PRD_DTL_END_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PerId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="CHAR"
+    AliasName="PER_ID"
+    Expression="PER_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="CurrentBudget"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="CURRENT_BUDGET"
+    Expression="CURRENT_BUDGET"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="PreviousBudget"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="PREVIOUS_BUDGET"
+    Expression="PREVIOUS_BUDGET"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="SrNo"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="SR_NO"
+    Expression="SR_NO"
+    SQLType="NUMERIC"/>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="budmis.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

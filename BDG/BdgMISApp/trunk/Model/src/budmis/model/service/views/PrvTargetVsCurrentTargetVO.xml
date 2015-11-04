@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="PrvTargetVsCurrentTargetVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="budmis.model.service.views.PrvTargetVsCurrentTargetVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <SQLQuery><![CDATA[SELECT A.CLD_ID cld_id, A.SLOC_ID sloc_id, A.HO_ORG_ID ho_orG_id, A.ORG_ID org_id,  
+       A.PRD_START_DT PRD_START_DT, A.PRD_END_DT PRD_END_DT, A.PRD_DTL_START_DT PRD_DTL_START_DT,  
+       A.PRD_DTL_END_DT PRD_DTL_END_DT, 
+       A.CURRENT_TRGET CURRENT_TRGET, 
+       NVL(B.CURRENT_TRGET,0) PREVIOUS_TRGET, 
+       PER_ID PER_ID, 
+       PERIOD_DESC PERIOD_DESC 
+FROM 
+(SELECT V.CLD_ID, V.SLOC_ID, V.HO_ORG_ID, V.ORG_ID,  
+       V.PRD_START_DT, V.PRD_END_DT, V.PRD_DTL_START_DT, V.PRD_DTL_END_DT, SUM(V.BUDG_AMT) CURRENT_TRGET, 
+       DISTB_PRD_BASIS 
+FROM BDG$EO$TARGET_VS_ACTUAL_VW V 
+--WHERE TO_CHAR(PRD_START_DT,'YYYY')='2016' 
+GROUP BY V.CLD_ID, V.SLOC_ID, V.HO_ORG_ID, V.ORG_ID, 
+       V.PRD_START_DT, V.PRD_END_DT, V.PRD_DTL_START_DT, V.PRD_DTL_END_DT,DISTB_PRD_BASIS) A, 
+(SELECT V.CLD_ID, V.SLOC_ID, V.HO_ORG_ID, V.ORG_ID,  
+       V.PRD_START_DT, V.PRD_END_DT, V.PRD_DTL_START_DT, V.PRD_DTL_END_DT,  NVL(SUM(V.BUDG_AMT),0) CURRENT_TRGET, 
+       DISTB_PRD_BASIS 
+FROM BDG$EO$TARGET_VS_ACTUAL_VW V 
+--WHERE TO_CHAR(V.PRD_START_DT,'YYYY')='2015' 
+GROUP BY V.CLD_ID, V.SLOC_ID, V.HO_ORG_ID, V.ORG_ID, 
+       V.PRD_START_DT, V.PRD_END_DT, V.PRD_DTL_START_DT, V.PRD_DTL_END_DT,DISTB_PRD_BASIS) B, 
+BDG.BDG$YEAR_FRQNCY_VW C        
+WHERE   
+    A.CLD_ID = B.CLD_ID(+) 
+    AND A.SLOC_ID = B.SLOC_ID(+) 
+    AND A.HO_ORG_ID = B.HO_ORG_ID(+) 
+    AND TO_CHAR(A.PRD_START_DT,'YYYY')-1 = TO_CHAR(B.PRD_START_DT(+),'YYYY') 
+    AND TO_CHAR(A.PRD_END_DT,'YYYY')-1 = TO_CHAR(B.PRD_END_DT(+),'YYYY') 
+    AND TO_CHAR(A.PRD_DTL_START_DT,'MM') = TO_CHAR(B.PRD_DTL_START_DT(+),'MM') 
+    AND TO_CHAR(A.PRD_DTL_END_DT,'MM') = TO_CHAR(B.PRD_DTL_END_DT(+),'MM') 
+    AND TO_CHAR(A.PRD_DTL_START_DT,'YYYY')-1 = TO_CHAR(B.PRD_DTL_START_DT(+),'YYYY') 
+    AND TO_CHAR(A.PRD_DTL_END_DT,'YYYY')-1 = TO_CHAR(B.PRD_DTL_END_DT(+),'YYYY') 
+    AND A.DISTB_PRD_BASIS = B.DISTB_PRD_BASIS(+) 
+    AND A.CLD_ID = C.CLD_ID   
+    AND A.ORG_ID = C.ORG_ID 
+    AND (CASE A.DISTB_PRD_BASIS WHEN 3 THEN 'Q' 
+                                WHEN 4 THEN 'H' 
+                                WHEN 5 THEN 'M'  
+                                ELSE 'P' END) = C.PERIOD_TYPE  
+    AND A.PRD_DTL_START_DT = C.STRT_DT 
+    AND A.PRD_DTL_END_DT = C.END_DT 
+    AND TO_CHAR(A.PRD_START_DT,'YYYY') = TO_CHAR(C.STRT_DT,'YYYY') 
+    AND A.ORG_ID = '01' 
+    and TO_CHAR(A.PRD_START_DT,'YYYY') = TO_CHAR(SYSDATE,'YYYY')]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="PrdStartDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_START_DT"
+    Expression="PRD_START_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdEndDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_END_DT"
+    Expression="PRD_END_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdDtlStartDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_DTL_START_DT"
+    Expression="PRD_DTL_START_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdDtlEndDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_DTL_END_DT"
+    Expression="PRD_DTL_END_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="CurrentTrget"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="CURRENT_TRGET"
+    Expression="CURRENT_TRGET"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="PreviousTrget"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="PREVIOUS_TRGET"
+    Expression="PREVIOUS_TRGET"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="PerId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="PER_ID"
+    Expression="PER_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="PeriodDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="3"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PERIOD_DESC"
+    Expression="PERIOD_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="3"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="budmis.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="PrevBdgIndirectExpenseVsCurrentVo"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="budmis.model.vo.PrevBdgIndirectExpenseVsCurrentVo_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="CldIdBindVar"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="SlocIdBindVar"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="HoOrgIdBindVar"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="OrgIdBindVar"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[SELECT A.CLD_ID,  
+    A.SLOC_ID, A.ORG_ID, A.HO_ORG_ID, A.PRD_START_DT, A.PRD_END_DT, A.PRD_DTL_START_DT, A.PRD_DTL_END_DT,  
+                                      A.ITM_AMT_BS CURRENT_BUDGETED,NVL(B.ITM_AMT_BS,0) PREVIOUS_BUDGETED, 
+                                      C.PER_ID, 
+                                      C.PERIOD_DESC 
+FROM 
+(SELECT  
+B.CLD_ID,  
+    B.SLOC_ID, B.ORG_ID, B.HO_ORG_ID, B.DOC_ID, B.PRD_START_DT, B.PRD_END_DT, B.PRD_DTL_START_DT, B.PRD_DTL_END_DT, SUM(B.ITM_AMT_BS) ITM_AMT_BS,A.DISTB_PRD_BASIS  
+FROM  
+    BDG.BDG$FIN$BUDGET$PROD$PRD$DTL B,BDG$FIN$BUDGET A  
+WHERE  
+        A.CLD_ID = B.CLD_ID  
+    AND A.SLOC_ID = B.SLOC_ID 
+    AND A.ORG_ID = B.ORG_ID 
+    AND A.HO_ORG_ID =  B.HO_ORG_ID 
+    AND A.PRD_START_DT = B.PRD_START_DT 
+    AND A.PRD_END_DT = B.PRD_END_DT 
+    AND B.BUDGET_TYPE = '3' AND B.AMT_TYP='Dr' 
+GROUP BY B.CLD_ID,  
+    B.SLOC_ID, B.ORG_ID, B.HO_ORG_ID, B.DOC_ID, B.PRD_START_DT, B.PRD_END_DT, B.PRD_DTL_START_DT, B.PRD_DTL_END_DT,A.DISTB_PRD_BASIS)A, --AND TO_CHAR(B.PRD_START_DT,'YYYY')='2016')A 
+(SELECT  
+B.CLD_ID,  
+    B.SLOC_ID, B.ORG_ID, B.HO_ORG_ID, B.DOC_ID, B.PRD_START_DT, B.PRD_END_DT, B.PRD_DTL_START_DT, B.PRD_DTL_END_DT, SUM(B.ITM_AMT_BS) ITM_AMT_BS,A.DISTB_PRD_BASIS  
+FROM  
+    BDG.BDG$FIN$BUDGET$PROD$PRD$DTL B,BDG$FIN$BUDGET A  
+WHERE  
+    A.CLD_ID = B.CLD_ID  
+    AND A.SLOC_ID = B.SLOC_ID 
+    AND A.ORG_ID = B.ORG_ID 
+    AND A.HO_ORG_ID =  B.HO_ORG_ID 
+    AND A.PRD_START_DT = B.PRD_START_DT 
+    AND A.PRD_END_DT = B.PRD_END_DT 
+    AND B.BUDGET_TYPE = '3' AND B.AMT_TYP='Dr' 
+GROUP BY B.CLD_ID,  
+    B.SLOC_ID, B.ORG_ID, B.HO_ORG_ID, B.DOC_ID, B.PRD_START_DT, B.PRD_END_DT, B.PRD_DTL_START_DT, B.PRD_DTL_END_DT,A.DISTB_PRD_BASIS  
+    )B, 
+    BDG.BDG$YEAR_FRQNCY_VW C  
+WHERE     
+A.CLD_ID = B.CLD_ID(+) 
+    AND A.SLOC_ID = B.SLOC_ID(+) 
+    AND A.HO_ORG_ID = B.HO_ORG_ID(+) 
+    AND TO_CHAR(A.PRD_START_DT,'YYYY')-1 = TO_CHAR(B.PRD_START_DT(+),'YYYY') 
+    AND TO_CHAR(A.PRD_END_DT,'YYYY')-1 = TO_CHAR(B.PRD_END_DT(+),'YYYY') 
+    AND TO_CHAR(A.PRD_DTL_START_DT,'MM') = TO_CHAR(B.PRD_DTL_START_DT(+),'MM') 
+    AND TO_CHAR(A.PRD_DTL_END_DT,'MM') = TO_CHAR(B.PRD_DTL_END_DT(+),'MM') 
+    AND TO_CHAR(A.PRD_DTL_START_DT,'YYYY')-1 = TO_CHAR(B.PRD_DTL_START_DT(+),'YYYY') 
+    AND TO_CHAR(A.PRD_DTL_END_DT,'YYYY')-1 = TO_CHAR(B.PRD_DTL_END_DT(+),'YYYY') 
+    AND A.DISTB_PRD_BASIS = B.DISTB_PRD_BASIS(+)  
+    AND A.CLD_ID = C.CLD_ID (+)  
+    AND A.ORG_ID = C.ORG_ID(+) 
+    AND (CASE A.DISTB_PRD_BASIS WHEN 3 THEN 'Q' 
+                                WHEN 4 THEN 'H' 
+                                WHEN 5 THEN 'M'  
+                                ELSE 'P' END) = C.PERIOD_TYPE(+) 
+    AND A.PRD_DTL_START_DT = C.STRT_DT(+) 
+    AND A.PRD_DTL_END_DT = C.END_DT(+) 
+    AND TO_CHAR(A.PRD_START_DT,'YYYY') = TO_CHAR(C.STRT_DT(+),'YYYY') 
+    AND A.CLD_ID = :CldIdBindVar    
+AND  A.SLOC_ID = :SlocIdBindVar    
+AND  A.HO_ORG_ID = :HoOrgIdBindVar    
+AND  A.ORG_ID = :OrgIdBindVar]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="PrdStartDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_START_DT"
+    Expression="PRD_START_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdEndDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_END_DT"
+    Expression="PRD_END_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdDtlStartDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_DTL_START_DT"
+    Expression="PRD_DTL_START_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdDtlEndDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_DTL_END_DT"
+    Expression="PRD_DTL_END_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="CurrentBudgeted"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="26"
+    Scale="6"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="CURRENT_BUDGETED"
+    Expression="CURRENT_BUDGETED"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="PreviousBudgeted"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="PREVIOUS_BUDGETED"
+    Expression="PREVIOUS_BUDGETED"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="PerId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="PER_ID"
+    Expression="PER_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="PeriodDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="3"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PERIOD_DESC"
+    Expression="PERIOD_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="3"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="budmis.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

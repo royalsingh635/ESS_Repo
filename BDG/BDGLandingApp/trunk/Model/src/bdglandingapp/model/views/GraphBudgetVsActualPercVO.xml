@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="GraphBudgetVsActualPercVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="bdglandingapp.model.views.GraphBudgetVsActualPercVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="CldIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="OrgIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="SlocIdBind"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="EmpCodeBind"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <SQLQuery><![CDATA[--ACTUAL VS BUDGETED Percentage      
+select CLD_ID CLD_ID,       
+SLOC_ID SLOC_ID,       
+ORG_ID ORG_ID,       
+HO_ORG_ID HO_ORG_ID,        
+NVL(BUDG_AMT_BS,0) BUDGET_AMT ,      
+NVL(GL_AMT,0) ACTUAL_AMT,   
+(GL_AMT*100)/BUDG_AMT_BS COMPLETE_PERC   
+from       
+(select a.CLD_ID,       
+a.SLOC_ID,       
+a.ORG_ID,       
+a.HO_ORG_ID,       
+sum(a.BUDG_AMT) BUDG_AMT_BS,       
+SUM(V.GL_AMT) GL_AMT      
+from BDG$EO$BUDGET a,      
+(SELECT m.CLD_ID, m.SLOC_ID, m.ORG_ID,  m.ORG_FY_ID, SUM(M.GL_AMT) GL_AMT FROM (      
+SELECT  C.CLD_ID  ,C.ORG_FY_REF_SLOC_ID SLOC_ID ,C.ORG_ID  , C.ORG_FY_ID, B.GL_COA_ID COA_ID,      
+  sum(B.GL_AMT_BS) GL_AMT,       
+ decode(sign(SUM(decode(LTRIM(RTRIM(UPPER(B.GL_AMT_TYP))),'DR',    B.GL_AMT_BS,'CR',-   B.GL_AMT_BS,0))),1,'Dr',-1,'Cr','Dr') GL_AMT_TYPE,    
+ B.GL_VOU_DT GL_DT    
+    FROM    fin.GL A,      
+            FIN.GL_LINES B,       
+            APP.ORG$FY C    
+    WHERE   C.CLD_ID = :CldIdBind      
+    AND     C.ORG_ID = :OrgIdBind      
+    and     c.ORG_FY_REF_SLOC_ID = :SlocIdBind    
+    AND     C.ORG_FY_ID = app.fn_get_fy_id(:CldIdBind, :OrgIdBind, sysdate)      
+    AND     NVL(A.GL_ARCH_FLG,'!') = 'N'      
+    AND     B.GL_TXN_TYP_MIG not in ('O','MO')      
+    AND     A.GL_ORG_ID=C.ORG_ID      
+    and     RTRIM(UPPER(B.GL_AMT_TYP)) = 'CR' 
+    AND     A.GL_VOU_DT BETWEEN C.FY_STRT AND C.FY_END      
+    AND     B.GL_SLOC_ID= A.GL_SLOC_ID      
+    AND     B.GL_ORG_ID = A.GL_ORG_ID      
+    AND     B.GL_VOU_ID = A.GL_VOU_ID      
+    AND     B.GL_VOU_DT = A.GL_VOU_DT      
+    AND     (B.GL_CLD_ID , B.GL_SLOC_ID, B.GL_HO_ORG_ID,  B.GL_COA_ID) IN (SELECT DISTINCT CLD_ID, SLOC_ID , HO_ORG_ID , COA_ID FROM       
+APP.APP$ITM$COA WHERE COA_FOR = 145)       
+group by  C.CLD_ID , C.ORG_FY_REF_SLOC_ID , C.ORG_ID , C.ORG_FY_ID, B.GL_COA_ID , B.GL_VOU_DT    
+) M      
+WHERE  M.GL_AMT_TYPE(+) = 'Cr'    
+      and   m.CLD_ID = :CldIdBind      
+    AND     m.ORG_ID = :OrgIdBind      
+    and     m.SLOC_ID = :SlocIdBind    
+    AND     m.ORG_FY_ID = app.fn_get_fy_id(:CldIdBind, :OrgIdBind, sysdate)     
+GROUP BY  m.CLD_ID, m.SLOC_ID, m.ORG_ID,  m.ORG_FY_ID) V      
+WHERE A.CLD_ID = V.CLD_ID(+)       
+AND A.ORG_ID = V.ORG_ID(+)       
+and a.fy_id = v.org_fy_id(+)   
+AND A.eo_id = :EmpCodeBind     
+group by   a.CLD_ID,       
+a.SLOC_ID,       
+a.ORG_ID,       
+a.HO_ORG_ID   
+)]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="BudgetAmt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="BUDGET_AMT"
+    Expression="BUDGET_AMT"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ActualAmt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="ACTUAL_AMT"
+    Expression="ACTUAL_AMT"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="CompletePerc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="COMPLETE_PERC"
+    Expression="COMPLETE_PERC"
+    SQLType="NUMERIC"/>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="bdglandingapp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

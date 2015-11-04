@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+    xmlns="http://xmlns.oracle.com/bc4j"
+    Name="MonthlyBudgetVO"
+    Version="12.1.3.10.8"
+    InheritPersonalization="merge"
+    BindingStyle="OracleName"
+    CustomQuery="true"
+    PageIterMode="Full">
+    <DesignTime>
+        <Attr Name="_isExpertMode" Value="true"/>
+    </DesignTime>
+    <Properties>
+        <SchemaBasedProperties>
+            <LABEL
+                ResId="bdgfinancebudgetapp.model.views.MonthlyBudgetVO_LABEL"/>
+        </SchemaBasedProperties>
+    </Properties>
+    <Variable
+        Name="BindCldId"
+        Kind="where"
+        Type="java.lang.String"/>
+    <Variable
+        Name="BindSlocId"
+        Kind="where"
+        Type="java.lang.Integer"/>
+    <Variable
+        Name="BindHoOrgId"
+        Kind="where"
+        Type="java.lang.String"/>
+    <Variable
+        Name="BindOrgId"
+        Kind="where"
+        Type="java.lang.String"/>
+    <Variable
+        Name="BindEmpCode"
+        Kind="where"
+        Type="java.lang.Integer"/>
+    <Variable
+        Name="BindStartDt"
+        Kind="where"
+        Type="oracle.jbo.domain.Timestamp"/>
+    <Variable
+        Name="BindEndDt"
+        Kind="where"
+        Type="oracle.jbo.domain.Timestamp"/>
+    <SQLQuery><![CDATA[SELECT CLD_ID CLD_ID,                     
+SLOC_ID SLOC_ID,                     
+ORG_ID ORG_ID,                     
+HO_ORG_ID HO_ORG_ID,                     
+DOC_ID DOC_ID,                     
+EMP_CODE EMP_CODE,                     
+PRD_START_DT PRD_START_DT,                     
+PRD_END_DT PRD_END_DT,                     
+ITM_ID ITM_ID,                     
+ITM_DESC ITM_DESC,                     
+PERD DISPLAY_MONTH,                     
+PRD_DTL_START_DT PRD_DTL_START_DT,                     
+PRD_DTL_END_DT PRD_DTL_END_DT,                     
+SUM(ITM_PRICE) ITM_PRICE,                      
+SUM(ITM_QTY) ITM_QTY,                      
+SUM(ITM_AMT_BS) ITM_AMT_BS                     
+FROM                     
+(SELECT  P.CLD_ID,                     
+        P.SLOC_ID,                     
+        P.ORG_ID,                     
+        P.HO_ORG_ID,                      
+        P.DOC_ID,                      
+        A.EO_ID EMP_CODE,                     
+        P.PRD_START_DT,                      
+        P.PRD_END_DT,                      
+        P.ITM_ID,                     
+        NVL((SELECT ITM_DESC                     
+            FROM APP.APP$ITM$PRF I                     
+            WHERE D.CLD_ID = I.CLD_ID                      
+            AND D.SLOC_ID = I.SLOC_ID                      
+            AND D.HO_ORG_ID = I.HO_ORG_ID                      
+            AND D.ITM_ID = I.ITM_ID),'OTHERS') ITM_DESC,                     
+        CASE P.DISTB_PRD_BASIS WHEN 5 THEN TO_CHAR(D.PRD_DTL_START_DT,'MON') --MONTHLY                     
+             WHEN 3 THEN TO_CHAR(D.PRD_DTL_START_DT,'MON' )||'-'||TO_CHAR(D.PRD_DTL_END_DT,'MON')--QUATERLY                      
+             WHEN 4 THEN TO_CHAR(D.PRD_DTL_START_DT,'MON' )||'-'||TO_CHAR(D.PRD_DTL_END_DT,'MON')--HALF YEAR                     
+             WHEN 1 THEN TO_CHAR(D.PRD_DTL_START_DT,'DD-MON') --DAILY                     
+             ELSE TO_CHAR(D.PRD_DTL_START_DT,'MON') END PERD,                     
+      D.PRD_DTL_START_DT,                      
+      D.PRD_DTL_END_DT,                      
+      D.ITM_PRICE,                      
+      D.ITM_QTY,                      
+      D.ITM_AMT_BS                     
+FROM BDG$EO$BUDGET A, BDG$EO$BUDGET$PROD$DTL P,BDG$EO$BUDGET$PROD$PRD$DTL D                     
+WHERE A.CLD_ID = P.CLD_ID                              
+AND A.SLOC_ID = P.SLOC_ID                              
+AND A.HO_ORG_ID = P.HO_ORG_ID                              
+AND A.DOC_ID = P.DOC_ID                         
+                     
+AND P.CLD_ID = D.CLD_ID                      
+AND P.SLOC_ID = D.SLOC_ID                      
+AND P.ORG_ID = D.ORG_ID                      
+AND P.HO_ORG_ID = D.HO_ORG_ID                     
+AND P.DOC_ID = D.DOC_ID                      
+AND P.PRD_START_DT = D.PRD_START_DT                      
+AND P.PRD_END_DT = D.PRD_END_DT                      
+AND P.ITM_ID = D.ITM_ID                     
+AND P.EO_ID = D.EO_ID                     
+AND P.CUST_EO_ID = D.CUST_EO_ID                     
+AND P.ITM_GRP_ID = D.ITM_GRP_ID                     
+AND P.ITM_ID = D.ITM_ID                     
+AND P.REGION = D.REGION                     
+                     
+AND A.CLD_ID = :BindCldId                              
+AND A.SLOC_ID = :BindSlocId                              
+AND A.HO_ORG_ID = :BindHoOrgId                              
+AND A.ORG_ID = :BindOrgId                              
+                     
+AND P.ITM_ID NOT IN '0'                     
+                     
+AND A.EO_ID = :BindEmpCode                                 
+AND TRUNC(A.PRD_START_DT) = :BindStartDt                          
+AND TRUNC(A.PRD_END_DT) = :BindEndDt                        
+)                     
+WHERE ROWNUM <= 25  
+GROUP BY CLD_ID,                     
+SLOC_ID,                     
+ORG_ID,                     
+HO_ORG_ID,                     
+DOC_ID,                     
+EMP_CODE,                     
+PRD_START_DT,                     
+PRD_END_DT,                     
+ITM_ID,                     
+ITM_DESC,                     
+PERD,                     
+PRD_DTL_START_DT,                     
+PRD_DTL_END_DT  
+ORDER BY ITM_AMT_BS DESC, ITM_ID]]></SQLQuery>
+    <ViewAttribute
+        Name="CldId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="4"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="CLD_ID"
+        Expression="CLD_ID"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="4"/>
+        </DesignTime>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="SlocId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="2"
+        Scale="0"
+        Type="java.lang.Integer"
+        ColumnType="NUMBER"
+        AliasName="SLOC_ID"
+        Expression="SLOC_ID"
+        SQLType="INTEGER"/>
+    <ViewAttribute
+        Name="OrgId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="2"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="ORG_ID"
+        Expression="ORG_ID"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="2"/>
+        </DesignTime>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="HoOrgId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="2"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="HO_ORG_ID"
+        Expression="HO_ORG_ID"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="2"/>
+        </DesignTime>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="DocId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="40"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="DOC_ID"
+        Expression="DOC_ID"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="40"/>
+        </DesignTime>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="EmpCode"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="20"
+        Scale="0"
+        Type="java.lang.Integer"
+        ColumnType="NUMBER"
+        AliasName="EMP_CODE"
+        Expression="EMP_CODE"
+        SQLType="INTEGER"/>
+    <ViewAttribute
+        Name="PrdStartDt"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Type="oracle.jbo.domain.Timestamp"
+        ColumnType="DATE"
+        AliasName="PRD_START_DT"
+        Expression="PRD_START_DT"
+        SQLType="DATE"/>
+    <ViewAttribute
+        Name="PrdEndDt"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Type="oracle.jbo.domain.Timestamp"
+        ColumnType="DATE"
+        AliasName="PRD_END_DT"
+        Expression="PRD_END_DT"
+        SQLType="DATE"/>
+    <ViewAttribute
+        Name="ItmId"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="20"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="ITM_ID"
+        Expression="ITM_ID"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="20"/>
+        </DesignTime>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="ItmDesc"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="100"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="ITM_DESC"
+        Expression="ITM_DESC"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="100"/>
+        </DesignTime>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="DisplayMonth"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Precision="35"
+        Type="java.lang.String"
+        ColumnType="VARCHAR2"
+        AliasName="DISPLAY_MONTH"
+        Expression="DISPLAY_MONTH"
+        SQLType="VARCHAR">
+        <DesignTime>
+            <Attr Name="_DisplaySize" Value="35"/>
+        </DesignTime>
+    </ViewAttribute>
+    <ViewAttribute
+        Name="PrdDtlStartDt"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Type="oracle.jbo.domain.Timestamp"
+        ColumnType="DATE"
+        AliasName="PRD_DTL_START_DT"
+        Expression="PRD_DTL_START_DT"
+        SQLType="DATE"/>
+    <ViewAttribute
+        Name="PrdDtlEndDt"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Type="oracle.jbo.domain.Timestamp"
+        ColumnType="DATE"
+        AliasName="PRD_DTL_END_DT"
+        Expression="PRD_DTL_END_DT"
+        SQLType="DATE"/>
+    <ViewAttribute
+        Name="ItmPrice"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Type="oracle.jbo.domain.Number"
+        ColumnType="NUMBER"
+        AliasName="ITM_PRICE"
+        Expression="ITM_PRICE"
+        SQLType="NUMERIC"/>
+    <ViewAttribute
+        Name="ItmQty"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Type="oracle.jbo.domain.Number"
+        ColumnType="NUMBER"
+        AliasName="ITM_QTY"
+        Expression="ITM_QTY"
+        SQLType="NUMERIC"/>
+    <ViewAttribute
+        Name="ItmAmtBs"
+        IsUpdateable="false"
+        IsPersistent="false"
+        PrecisionRule="true"
+        Type="oracle.jbo.domain.Number"
+        ColumnType="NUMBER"
+        AliasName="ITM_AMT_BS"
+        Expression="ITM_AMT_BS"
+        SQLType="NUMERIC"/>
+    <AttrArray Name="KeyAttributes">
+        <Item Value="CldId"/>
+        <Item Value="SlocId"/>
+        <Item Value="OrgId"/>
+        <Item Value="HoOrgId"/>
+        <Item Value="DocId"/>
+        <Item Value="EmpCode"/>
+        <Item Value="PrdStartDt"/>
+        <Item Value="PrdEndDt"/>
+        <Item Value="ItmId"/>
+    </AttrArray>
+  <ResourceBundle>
+    <JavaResourceBundle
+      MsgBundleClass="ebizresources.resource.bundle.Resource"/>
+  </ResourceBundle>
+</ViewObject>

@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="GraphRevenueExpenseVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="bdglandingapp.model.views.GraphRevenueExpenseVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="CldIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="SlocIdBind"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="OrgIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="HoOrgIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[--EXPENSE VS REVENUE 
+select CLD_ID CLD_ID,  
+SLOC_ID SLOC_ID,  
+ORG_ID ORG_ID,  
+HO_ORG_ID HO_ORG_ID,  
+PRD_DTL_START_DT PRD_DTL_START_DT,  
+PRD_DTL_END_DT PRD_DTL_END_DT,  
+PER_ID PER_ID,  
+PERIOD_DESC PERIOD_DESC,  
+sum(NVL(REV_AMT_BS,0)) REV_AMT_BS, 
+sum(NVL(EXP_AMT_BS,0)) EXP_AMT_BS  
+from  
+(select D.CLD_ID,  
+D.SLOC_ID,  
+D.ORG_ID,  
+D.HO_ORG_ID,  
+D.ORG_FY_ID,  
+D.STRT_DT PRD_DTL_START_DT,  
+D.END_DT PRD_DTL_END_DT,  
+--decode(A.budget_type,'1','Revenue') REVENUE,  
+--DECODE(V.BUDGET_TYPE,'2','Expenses',3,decode(V.amt_typ,'Dr','Expenses','Cr','Revenue')) EXPENSE, 
+--decode(budget_type, '1', 'Cr', '2', 'Dr', '3', amt_typ) amt_typ,   
+sum(a.ITM_AMT_BS) REV_AMT_BS,  
+sum(V.ITM_AMT_BS) EXP_AMT_BS,  
+D.PER_ID,  
+D.PERIOD_DESC  
+from bdg$fin$budget$prod$prd$dtl a, bdg$fin$budget$prod$prd$dtl V, 
+(SELECT B.CLD_ID,   
+B.ORG_ID,   
+F.ORG_CREATE_REF_SLOC_ID SLOC_ID,  
+NVL(F.ORG_ID_PARENT_L0, F.ORG_ID) HO_ORG_ID,  
+B.ORG_FY_ID,   
+B.PER_ID,   
+B.PERIOD_DESC,   
+B.STRT_DT,   
+B.END_DT   
+FROM FIN.FIN$YEAR_FRQNCY_VW B, (SELECT CLD_ID, SLOC_ID, ORG_ID, DECODE(BDG_METHD,1,'D',2,'W',3,'Q',4,'H',5,'M') PERIOD_TYPE --1 FOR DAILY,2 FOR WEEKLY,3 QUARTERLY ,4 FOR HALFYEARLY, 5 MONTHLY   
+FROM APP.ORG$BDG$PRF) C, APP.ORG F   
+WHERE B.ORG_ID = C.ORG_ID   
+AND B.CLD_ID = C.CLD_ID   
+AND B.PERIOD_TYPE = C.PERIOD_TYPE   
+AND B.ORG_ID = F.ORG_ID  
+AND B.CLD_ID = F.ORG_CLD_ID   
+) D  
+WHERE A.CLD_ID(+) = D.CLD_ID  
+AND A.ORG_ID(+) = D.ORG_ID  
+AND A.PRD_DTL_START_DT(+) = D.STRT_DT  
+AND A.PRD_DTL_END_DT(+) = D.END_DT  
+AND (V.BUDGET_TYPE(+) = 3 OR V.BUDGET_TYPE(+) = 2) 
+AND  V.CLD_ID(+) = D.CLD_ID  
+AND V.ORG_ID(+) = D.ORG_ID  
+AND V.PRD_DTL_START_DT(+) = D.STRT_DT  
+AND V.PRD_DTL_END_DT(+) = D.END_DT  
+AND A.budget_type(+) = 1 
+group by   D.CLD_ID,  
+D.SLOC_ID,  
+D.ORG_ID,  
+D.HO_ORG_ID,  
+D.ORG_FY_ID,  
+D.STRT_DT,  
+D.END_DT,  
+a.BUDGET_TYPE,  
+D.PER_ID,  
+D.PERIOD_DESC  
+)  
+where CLD_ID = :CldIdBind  
+AND SLOC_ID = :SlocIdBind  
+AND ORG_ID = :OrgIdBind  
+AND HO_ORG_ID = :HoOrgIdBind  
+AND ORG_FY_ID = app.fn_get_fy_id( :CldIdBind , :OrgIdBind, sysdate)  
+group by CLD_ID,  
+SLOC_ID,  
+ORG_ID,  
+HO_ORG_ID,  
+PRD_DTL_START_DT,  
+PRD_DTL_END_DT,   
+PER_ID,  
+PERIOD_DESC  
+order by  PRD_DTL_START_DT, PRD_DTL_END_DT]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="4"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="PrdDtlStartDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_DTL_START_DT"
+    Expression="PRD_DTL_START_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdDtlEndDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_DTL_END_DT"
+    Expression="PRD_DTL_END_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PerId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="PER_ID"
+    Expression="PER_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="PeriodDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="3"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PERIOD_DESC"
+    Expression="PERIOD_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="3"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="RevAmtBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="REV_AMT_BS"
+    Expression="REV_AMT_BS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ExpAmtBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="EXP_AMT_BS"
+    Expression="EXP_AMT_BS"
+    SQLType="NUMERIC"/>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="bdglandingapp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>

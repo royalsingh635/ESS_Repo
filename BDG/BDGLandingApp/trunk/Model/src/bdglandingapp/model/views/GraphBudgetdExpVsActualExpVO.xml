@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<!DOCTYPE ViewObject SYSTEM "jbo_03_01.dtd">
+<!---->
+<ViewObject
+  xmlns="http://xmlns.oracle.com/bc4j"
+  Name="GraphBudgetdExpVsActualExpVO"
+  Version="12.1.3.10.8"
+  InheritPersonalization="merge"
+  BindingStyle="OracleName"
+  CustomQuery="true"
+  FetchMode="FETCH_AS_NEEDED"
+  PageIterMode="Full">
+  <DesignTime>
+    <Attr Name="_isExpertMode" Value="true"/>
+  </DesignTime>
+  <Properties>
+    <SchemaBasedProperties>
+      <LABEL
+        ResId="bdglandingapp.model.views.GraphBudgetdExpVsActualExpVO_LABEL"/>
+    </SchemaBasedProperties>
+  </Properties>
+  <Variable
+    Name="CldIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="OrgIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <Variable
+    Name="SlocIdBind"
+    Kind="where"
+    Type="java.lang.Integer"/>
+  <Variable
+    Name="HoOrgIdBind"
+    Kind="where"
+    Type="java.lang.String"/>
+  <SQLQuery><![CDATA[--BUDGETED EXPENSES VS ACTUAL EXPENSES     
+select CLD_ID CLD_ID, SLOC_ID SLOC_ID, ORG_ID ORG_ID, HO_ORG_ID HO_ORG_ID, PRD_DTL_START_DT PRD_DTL_START_DT,  
+PRD_DTL_END_DT PRD_DTL_END_DT, PER_ID PER_ID, PERIOD_DESC PERIOD_DESC, BUDG_EXP_AMT_BS BUDG_EXP_AMT_BS, ACTUAL_EXP_AMT_BS ACTUAL_EXP_AMT_BS 
+FROM 
+( 
+select X.CLD_ID CLD_ID,      
+X.SLOC_ID SLOC_ID,      
+X.ORG_ID ORG_ID,      
+X.HO_ORG_ID HO_ORG_ID,      
+X.PRD_DTL_START_DT PRD_DTL_START_DT,       
+X.PRD_DTL_END_DT PRD_DTL_END_DT,      
+X.PER_ID PER_ID,      
+X.PERIOD_DESC PERIOD_DESC,      
+sum(NVL(X.EXP_AMT_BS,0)) BUDG_EXP_AMT_BS ,    
+SUM(NVL(Y.GL_AMT,0)) ACTUAL_EXP_AMT_BS    
+from      
+(select D.CLD_ID,      
+D.SLOC_ID,      
+D.ORG_ID,      
+D.HO_ORG_ID,      
+D.ORG_FY_ID,      
+D.STRT_DT PRD_DTL_START_DT,      
+D.END_DT PRD_DTL_END_DT,         
+sum(V.ITM_AMT_BS) EXP_AMT_BS,      
+D.PER_ID,      
+D.PERIOD_DESC      
+from     
+bdg.bdg$fin$budget$prod$prd$dtl V,     
+(SELECT B.CLD_ID,       
+B.ORG_ID,       
+F.ORG_CREATE_REF_SLOC_ID SLOC_ID,      
+NVL(F.ORG_ID_PARENT_L0, F.ORG_ID) HO_ORG_ID,      
+B.ORG_FY_ID,       
+B.PER_ID,       
+B.PERIOD_DESC,       
+B.STRT_DT,       
+B.END_DT       
+FROM FIN.FIN$YEAR_FRQNCY_VW B, (SELECT CLD_ID, SLOC_ID, ORG_ID, DECODE(BDG_METHD,1,'D',2,'W',3,'Q',4,'H',5,'M') PERIOD_TYPE --1 FOR DAILY,2 FOR WEEKLY,3 QUARTERLY ,4 FOR HALFYEARLY, 5 MONTHLY       
+FROM APP.ORG$BDG$PRF) C, APP.ORG F       
+WHERE B.ORG_ID = C.ORG_ID       
+AND B.CLD_ID = C.CLD_ID       
+AND B.PERIOD_TYPE = C.PERIOD_TYPE       
+AND B.ORG_ID = F.ORG_ID      
+AND B.CLD_ID = F.ORG_CLD_ID       
+) D     
+WHERE     
+ ((V.BUDGET_TYPE(+) = 3 and AMT_TYP(+) = 'Dr') OR V.BUDGET_TYPE(+) = 2)     
+AND  V.CLD_ID(+) = D.CLD_ID      
+AND V.ORG_ID(+) = D.ORG_ID      
+AND V.PRD_DTL_START_DT(+) = D.STRT_DT      
+AND V.PRD_DTL_END_DT(+) = D.END_DT      
+group by   D.CLD_ID,      
+D.SLOC_ID,      
+D.ORG_ID,      
+D.HO_ORG_ID,      
+D.ORG_FY_ID,      
+D.STRT_DT,      
+D.END_DT,      
+D.PER_ID,      
+D.PERIOD_DESC      
+) X , (--ACTUAL EXPENSES     
+SELECT  C.CLD_ID  ,C.ORG_FY_REF_SLOC_ID SLOC_ID ,C.ORG_ID  , C.ORG_FY_ID, SUM(B.GL_AMT_BS)  GL_AMT, TRUNC(B.GL_VOU_DT) GL_DT     
+    FROM    fin.GL A,       
+            FIN.GL_LINES B,        
+            APP.ORG$FY C    
+    WHERE   C.CLD_ID = :CldIdBind       
+    AND     C.ORG_ID = :OrgIdBind       
+    and     c.ORG_FY_REF_SLOC_ID = :SlocIdBind     
+    AND     C.ORG_FY_ID = app.fn_get_fy_id(:CldIdBind, :OrgIdBind, sysdate)       
+    AND     NVL(A.GL_ARCH_FLG,'!') = 'N'       
+    AND     B.GL_TXN_TYP_MIG not in ('O','MO')       
+    AND     A.GL_ORG_ID=C.ORG_ID       
+    AND     TRIM(UPPER(B.GL_AMT_TYP)) = 'DR'    
+    AND     B.GL_VOU_DT BETWEEN C.FY_STRT AND C.FY_END       
+    AND     B.GL_SLOC_ID= A.GL_SLOC_ID       
+    AND     B.GL_ORG_ID = A.GL_ORG_ID       
+    AND     B.GL_VOU_ID = A.GL_VOU_ID       
+    AND     B.GL_VOU_DT = A.GL_VOU_DT       
+    AND     (B.GL_CLD_ID , B.GL_SLOC_ID, B.GL_HO_ORG_ID,  B.GL_COA_ID) IN (SELECT DISTINCT CLD_ID, SLOC_ID , HO_ORG_ID , COA_ID FROM        
+APP.APP$ITM$COA WHERE COA_FOR = 145)     
+GROUP BY     
+  C.CLD_ID  ,C.ORG_FY_REF_SLOC_ID  ,C.ORG_ID  , C.ORG_FY_ID,  TRUNC(B.GL_VOU_DT)    
+) Y     
+where X.CLD_ID = :CldIdBind      
+AND X.SLOC_ID = :SlocIdBind      
+AND X.ORG_ID = :OrgIdBind      
+AND X.HO_ORG_ID = :HoOrgIdBind      
+AND X.ORG_FY_ID = app.fn_get_fy_id( :CldIdBind , :OrgIdBind, sysdate)      
+AND X.CLD_ID = Y.CLD_ID(+)    
+AND X.SLOC_ID = Y.SLOC_ID(+)    
+AND X.ORG_ID = Y.ORG_ID(+)    
+AND Y.GL_DT(+) BETWEEN X.PRD_DTL_START_DT AND X.PRD_DTL_END_DT    
+group by X.CLD_ID,      
+X.SLOC_ID,      
+X.ORG_ID,      
+X.HO_ORG_ID,      
+X.PRD_DTL_START_DT,      
+X.PRD_DTL_END_DT,       
+X.PER_ID,      
+X.PERIOD_DESC      
+order by  X.PRD_DTL_START_DT, X.PRD_DTL_END_DT 
+)]]></SQLQuery>
+  <ViewAttribute
+    Name="CldId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="255"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="CLD_ID"
+    Expression="CLD_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="4"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="SlocId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Scale="0"
+    Type="java.lang.Integer"
+    ColumnType="NUMBER"
+    AliasName="SLOC_ID"
+    Expression="SLOC_ID"
+    SQLType="INTEGER"/>
+  <ViewAttribute
+    Name="OrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="ORG_ID"
+    Expression="ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="HoOrgId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="2"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="HO_ORG_ID"
+    Expression="HO_ORG_ID"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="2"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="PrdDtlStartDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_DTL_START_DT"
+    Expression="PRD_DTL_START_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PrdDtlEndDt"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.sql.Timestamp"
+    ColumnType="DATE"
+    AliasName="PRD_DTL_END_DT"
+    Expression="PRD_DTL_END_DT"
+    SQLType="DATE"/>
+  <ViewAttribute
+    Name="PerId"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="java.math.BigDecimal"
+    ColumnType="NUMBER"
+    AliasName="PER_ID"
+    Expression="PER_ID"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="PeriodDesc"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Precision="3"
+    Type="java.lang.String"
+    ColumnType="VARCHAR2"
+    AliasName="PERIOD_DESC"
+    Expression="PERIOD_DESC"
+    SQLType="VARCHAR">
+    <DesignTime>
+      <Attr Name="_DisplaySize" Value="3"/>
+    </DesignTime>
+  </ViewAttribute>
+  <ViewAttribute
+    Name="BudgExpAmtBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="BUDG_EXP_AMT_BS"
+    Expression="BUDG_EXP_AMT_BS"
+    SQLType="NUMERIC"/>
+  <ViewAttribute
+    Name="ActualExpAmtBs"
+    IsUpdateable="false"
+    IsPersistent="false"
+    PrecisionRule="true"
+    Type="oracle.jbo.domain.Number"
+    ColumnType="NUMBER"
+    AliasName="ACTUAL_EXP_AMT_BS"
+    Expression="ACTUAL_EXP_AMT_BS"
+    SQLType="NUMERIC"/>
+  <ResourceBundle>
+    <PropertiesBundle
+      PropertiesFile="bdglandingapp.model.ModelBundle"/>
+  </ResourceBundle>
+</ViewObject>
